@@ -8,11 +8,13 @@ import ProductPage from "./pages/ProductPage";
 import CartPage from "./pages/CartPage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import Footer from "./global/Footer";
 
 function App() {
   return (
     <Router>
       <Navbar />
+      <Footer />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<AboutUsPage />} />
