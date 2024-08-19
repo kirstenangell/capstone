@@ -2,32 +2,33 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBackCircle } from 'react-icons/io5';
 
-const SignUp = () => {
+const Confirmation = () => {
   const navigate = useNavigate();
 
   const handleBackToLoginClick = () => {
     navigate('/login');
   };
 
+  const handleSetNewPasswordClick = () => {
+    navigate('/login/set-password'); // Navigate to SetPassword component
+  };
+
   return (
     <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]"> 
       <div className="w-full max-w-sm space-y-6 p-8 rounded-lg">
-        <h1 className="text-2xl font-semibold text-center mb-4">PASSWORD RESET E-MAIL HAS BEEN SENT!</h1>
+        <h1 className="text-2xl font-medium text-center mb-4">PASSWORD RESET E-MAIL HAS BEEN SENT!</h1>
         <p className="text-center text-xs bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent mb-6">
           A password reset email has been sent to your email address
         </p>
-
         <button
-          type="button"
           className="w-full py-3 mt-4 rounded-full text-sm font-semibold tracking-widest transition-all duration-300"
           style={{
             background: 'linear-gradient(90deg, #040405, #335C6E)',
-            color: 'white',
           }}
+          onClick={handleSetNewPasswordClick} // Add onClick handler
         >
           SET A NEW PASSWORD
         </button>
-
         <div className="text-center mt-4 text-xs">
           <a
             href="#"
@@ -69,4 +70,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default Confirmation;

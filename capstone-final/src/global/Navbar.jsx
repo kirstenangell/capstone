@@ -4,9 +4,12 @@ import { NavLink } from 'react-router-dom';
 
 const Navbar = () => {
   return (
-    <nav className="p-4 flex justify-between items-center">
+    <nav
+      className="p-4 flex justify-between items-center sticky top-[52px] z-40"
+      style={{ backgroundColor: 'black' }} // Ensure the background is transparent
+    >
       {/* Logo */}
-      <NavLink to="/" className="text-black text-2xl font-bold">
+      <NavLink to="/" className="text-white text-2xl font-bold">
         LOGO
       </NavLink>
 
@@ -14,8 +17,9 @@ const Navbar = () => {
       <div
         className="flex items-center py-2 px-4 rounded-full text-xs drop-shadow-2xl"
         style={{
-            background: 'linear-gradient(90deg, #4B88A3 0%, #040405 100%, #4B88A3 82%)',
-          }}
+          background: 'linear-gradient(90deg, #4B88A3 0%, #040405 100%, #4B88A3 82%)',
+          fontFamily: 'Poppins, sans-serif',
+        }}
       >
         {/* Links with Extended Rounded Background Hover Animation and Drop Shadow */}
         <div className="flex items-center ml-8">

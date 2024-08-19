@@ -3,11 +3,12 @@ import React from 'react';
 const Header = () => {
   const headerStyle = {
     background: 'linear-gradient(90deg, #4B88A3 0%, #040405 48%, #4B88A3 100%)',
+    fontFamily: 'Poppins, sans-serif',
   };
 
   return (
-    <header style={headerStyle} className="text-center py-4">
-      <h1 className="text-lg text-white tracking-widest">LOREM IPSUM DOLOR SIT AMET CONSECTETUR ADIPISCING ELIT</h1>
+    <header style={headerStyle} className="text-center py-4 sticky top-0 z-50">
+      <h1 className="text-sm text-white tracking-widest">LOREM IPSUM DOLOR SIT AMET CONSECTETUR ADIPISCING ELIT</h1>
     </header>
   );
 };
