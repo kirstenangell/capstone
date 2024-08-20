@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 function Footer() {
   return (
     <footer
-      className="w-full h-auto bg-gradient-to-b from-gray-900 to-black text-white flex items-center px-6 py-8 fixed bottom-0 left-0"
+      className="w-full h-auto bg-gradient-to-b from-gray-900 to-black text-white flex items-center px-6 py-8"
       style={{
         fontFamily: 'Poppins, sans-serif',
       }}
