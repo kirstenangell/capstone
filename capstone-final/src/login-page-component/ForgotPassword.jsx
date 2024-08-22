@@ -2,31 +2,46 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBackCircle } from 'react-icons/io5';
 
-const SignUp = () => {
+const ForgotPassword = ({ onSubmit }) => {
   const navigate = useNavigate();
 
   const handleBackToLoginClick = () => {
     navigate('/login');
   };
 
+  console.log("ForgotPassword component is rendered");
+
   return (
     <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]"> 
       <div className="w-full max-w-sm space-y-6 p-8 rounded-lg">
-        <h1 className="text-2xl font-semibold text-center mb-4">PASSWORD RESET E-MAIL HAS BEEN SENT!</h1>
+        <h1 className="text-2xl font-medium text-center mb-4">FORGOT PASSWORD?</h1>
         <p className="text-center text-xs bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent mb-6">
-          A password reset email has been sent to your email address
+          Enter your email address below to receive a password reset link
         </p>
 
-        <button
-          type="button"
-          className="w-full py-3 mt-4 rounded-full text-sm font-semibold tracking-widest transition-all duration-300"
-          style={{
-            background: 'linear-gradient(90deg, #040405, #335C6E)',
-            color: 'white',
-          }}
-        >
-          SET A NEW PASSWORD
-        </button>
+        <form className="space-y-4" onSubmit={onSubmit}>
+          <div className="relative">
+            <label className="text-xs mb-1 block">EMAIL ADDRESS</label>
+            <input
+              type="email"
+              placeholder="user@gmail.com"
+              className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
+              style={{
+                background: 'linear-gradient(90deg, #040405, #335C6E)',
+              }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-3 mt-4 rounded-full text-sm font-semibold tracking-widest transition-all duration-300"
+            style={{
+              background: 'linear-gradient(90deg, #040405, #335C6E)',
+            }}
+          >
+            SUBMIT
+          </button>
+        </form>
 
         <div className="text-center mt-4 text-xs">
           <a
@@ -69,4 +84,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default ForgotPassword;
