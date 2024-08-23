@@ -5,7 +5,7 @@ import ForgotPassword from '../login-page-component/ForgotPassword';
 import SignUp from '../sign-up-page-component/SignUp';
 import Confirmation from '../login-page-component/Confirmation';
 import SetPassword from '../login-page-component/SetPassword';
-import PasswordConfirmation from '../login-page-component/PasswordConfirmation'; // Import PasswordConfirmation component
+import PasswordConfirmation from '../login-page-component/PasswordConfirmation';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -27,7 +27,7 @@ export default function LoginPage() {
     };
 
     const handlePasswordSaved = () => {
-        navigate('/login/password-confirmation'); // Navigate to PasswordConfirmation page
+        navigate('/login/password-confirmation'); 
     };
 
     return (
