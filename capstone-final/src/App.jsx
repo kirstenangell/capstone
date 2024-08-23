@@ -11,12 +11,13 @@ import ServicePage from "./pages/ServicePage";
 import ProductPage from "./pages/ProductPage";
 import CartPage from "./pages/CartPage";
 import SignUpPage from "./pages/SignUpPage";
-import LoginPage from "./pages/LoginPage"; // This includes both Login and ForgotPassword routes
+import LoginPage from "./pages/LoginPage"; 
 import ContactUs from "./global/ContactUs";
 import Faqs from "./global/Faqs";
 import Terms from "./global/Terms";
 import Shipping from "./global/Shipping";
 import Returns from "./global/Returns";
+
 
 function App() {
   return (
