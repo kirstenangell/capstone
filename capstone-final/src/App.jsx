@@ -17,6 +17,8 @@ import Faqs from "./global/Faqs";
 import Terms from "./global/Terms";
 import Shipping from "./global/Shipping";
 import Returns from "./global/Returns";
+import ProductDetail from './product-page-component/ProductDetail';
+import CategorySideBar from './product-page-component/CategorySiderBar';
 
 function App() {
   return (
