@@ -7,7 +7,7 @@ const CartPage = () => {
   return (
     <Routes>
       <Route path="/" element={<CartSection />} />
-      <Route path="/checkout-landing" element={<CheckoutLanding />} />
+      <Route path="checkout-landing" element={<CheckoutLanding />} />
     </Routes>
   );
 };
