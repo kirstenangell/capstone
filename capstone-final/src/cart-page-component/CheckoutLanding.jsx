@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FaUser, FaTruck } from 'react-icons/fa';
 import { IoMdPin } from 'react-icons/io';
 import { MdPayments } from 'react-icons/md';
+import { IoArrowForwardCircle } from 'react-icons/io5'; 
 
 const CheckoutLanding = () => {
   const location = useLocation();
   const { cartItems = [], total = 0 } = location.state || {};
 
   const [expandedSection, setExpandedSection] = useState(null);
+  const [addAddressExpanded, setAddAddressExpanded] = useState(false); // New state for Add Address
   const [userInfo, setUserInfo] = useState({
     email: 'loremipsumdolor@gmail.com',
     phone: '912 456 7891',
@@ -16,6 +18,8 @@ const CheckoutLanding = () => {
     firstName: 'Lorem',
     lastName: 'Ipsum',
   });
+
+  const addressSectionRef = useRef(null);
 
   const handleEditClick = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -26,23 +30,46 @@ const CheckoutLanding = () => {
     setUserInfo({ ...userInfo, [name]: value });
   };
 
+  const handleProceedToAddress = () => {
+    setExpandedSection('address');
+    if (addressSectionRef.current) {
+      addressSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleAddAddressClick = () => {
+    setAddAddressExpanded(!addAddressExpanded);
+  };
+
   return (
     <div className="min-h-screen flex bg-black text-white py-10">
       <div className="flex w-full max-w-6xl mx-auto">
         {/* Left Column */}
-        <div className="flex-1 space-y-4 mr-4 bg-black p-6 rounded-lg shadow-lg border border-transparent">
+        <div className="flex-1 space-y-4 mr-4 max-w-lg">
           {/* Information Section */}
           <div className="p-6 rounded-lg shadow-lg bg-black border border-transparent cursor-pointer">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                <FaUser className="text-lg" />
-                <div className="text-lg font-semibold">Information</div>
+                <FaUser className="text-lg align-middle" />
+                <div className="text-lg font-semibold align-middle">Information</div>
               </div>
               <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('information')}>Edit</div>
             </div>
+            {expandedSection !== 'information' && (
+              <div className="mt-4">
+                <div className="text-sm">{userInfo.firstName} {userInfo.lastName}</div>
+                <div className="text-sm">{userInfo.email}</div>
+                <div className="text-sm">{userInfo.countryCode} {userInfo.phone}</div>
+              </div>
+            )}
             {expandedSection === 'information' && (
               <div className="mt-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="mt-4">
+                    <div className="text-sm">{userInfo.firstName} {userInfo.lastName}</div>
+                    <div className="text-sm">{userInfo.email}</div>
+                    <div className="text-sm">{userInfo.countryCode} {userInfo.phone}</div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-4">
                   <div className="relative">
                     <label className="text-xs mb-1 block">First Name</label>
                     <input
@@ -83,15 +110,12 @@ const CheckoutLanding = () => {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-4">
                   <div className="relative">
                     <label className="text-xs mb-1 block">Country Code</label>
-                    <input
-                      type="text"
-                      name="countryCode"
-                      placeholder="Country Code"
-                      value={userInfo.countryCode}
-                      onChange={handleInputChange}
+                    <div
                       className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
                       style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
-                    />
+                    >
+                      {userInfo.countryCode}
+                    </div>
                   </div>
                   <div className="relative">
                     <label className="text-xs mb-1 block">Phone</label>
@@ -106,29 +130,70 @@ const CheckoutLanding = () => {
                     />
                   </div>
                 </div>
-                <button className="mt-4 w-full bg-black p-2 rounded-full">Proceed to Address</button>
+                <button 
+                  className="mt-4 w-full bg-black p-2 rounded-full text-sm bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
+                  onClick={handleProceedToAddress}
+                >
+                  Proceed to Address
+                  <IoArrowForwardCircle className="ml-2" />
+                </button>
               </div>
             )}
           </div>
 
-          {/* Address, Delivery, Payment Sections */}
-          {['address', 'delivery', 'payment'].map((section) => (
+          {/* Address Section */}
+          <div 
+            ref={addressSectionRef} 
+            className="p-6 rounded-lg shadow-lg bg-black border border-transparent cursor-pointer"
+          >
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <IoMdPin className="text-lg align-middle" />
+                <div className="text-lg font-semibold align-middle">Address</div>
+              </div>
+              <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('address')}>Edit</div>
+            </div>
+            {expandedSection === 'address' && (
+              <div className="mt-4">
+                <div
+                  className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs"
+                  style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                >
+                  Loren Ipsum Dolor, Sit Amet Consectetur
+                </div>
+                <div
+                  className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-center text-sm mt-4 cursor-pointer"
+                  style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                  onClick={handleAddAddressClick}
+                >
+                  + Add Address
+                </div>
+                {addAddressExpanded && (
+                  <div className="mt-4">
+                    {/* Add your form or content for adding a new address here */}
+                    <p>Form for adding a new address goes here...</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Delivery, Payment Sections */}
+          {['delivery', 'payment'].map((section) => (
             <div
               key={section}
               className="p-6 rounded-lg shadow-lg bg-black border border-transparent cursor-pointer"
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-2">
-                  {section === 'address' && <IoMdPin className="text-lg" />}
-                  {section === 'delivery' && <FaTruck className="text-lg" />}
-                  {section === 'payment' && <MdPayments className="text-lg" />}
-                  <div className="text-lg font-semibold">{section.charAt(0).toUpperCase() + section.slice(1)}</div>
+                  {section === 'delivery' && <FaTruck className="text-lg align-middle" />}
+                  {section === 'payment' && <MdPayments className="text-lg align-middle" />}
+                  <div className="text-lg font-semibold align-middle">{section.charAt(0).toUpperCase() + section.slice(1)}</div>
                 </div>
                 <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick(section)}>Edit</div>
               </div>
               {expandedSection === section && (
                 <div className="mt-4">
-                  {/* Replace with actual content */}
                   <p>{section.charAt(0).toUpperCase() + section.slice(1)} Content</p>
                 </div>
               )}
@@ -137,7 +202,7 @@ const CheckoutLanding = () => {
         </div>
 
         {/* Right Column: Summary */}
-        <div className="w-1/2 bg-black p-6 rounded-lg">
+        <div className="w-full max-w-xl bg-black p-6 rounded-lg ml-4">
           <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
           {cartItems.length > 0 ? (
             <>
@@ -145,7 +210,7 @@ const CheckoutLanding = () => {
                 {cartItems.map((item, index) => (
                   <div key={index} className="flex justify-between items-center">
                     <div className="flex items-center space-x-4">
-                      <img src={item.image} alt={item.product} className="w-16 h-16 object-cover rounded" />
+                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
                       <div>
                         <div className="font-medium">{item.product}</div>
                         <div className="text-sm text-gray-400">PHP {item.price.toLocaleString()}</div>
