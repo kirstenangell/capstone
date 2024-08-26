@@ -2,11 +2,11 @@ import React from 'react';
 import { IoIosCart } from 'react-icons/io';
 import { NavLink } from 'react-router-dom';
 
-const Navbar = () => {
+const Navbar = ({ cartItemCount }) => {
   return (
     <nav
       className="p-4 flex justify-between items-center sticky top-[52px] z-40"
-      style={{ backgroundColor: 'black' }} // Ensure the background is transparent
+      style={{ backgroundColor: 'black' }} 
     >
       {/* Logo */}
       <NavLink to="/" className="text-white text-2xl font-bold">
@@ -105,6 +105,11 @@ const Navbar = () => {
             }
           >
             <IoIosCart className="text-white w-5 h-5" />
+            {cartItemCount > 0 && (
+              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {cartItemCount}
+              </span>
+            )}
           </NavLink>
           <NavLink
             to="/signup"

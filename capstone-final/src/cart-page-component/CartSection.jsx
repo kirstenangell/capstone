@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import { IoIosRemove, IoIosAdd } from 'react-icons/io';
-import { IoArrowForwardCircle } from 'react-icons/io5';
-import { IoCartOutline } from 'react-icons/io5'; // Importing the cart icon
+import { IoArrowForwardCircle } from 'react-icons/io5'; 
 import { NavLink } from 'react-router-dom'; 
 import cartImg from '../assets/CartSection.jpeg';
-import partWheel from '../assets/wheel1.png';
 import { LiaOpencart } from "react-icons/lia";
 
-const CartSection = () => {
-  const initialPrice = 30000;
-  const [quantities, setQuantities] = useState([1, 1, 1, 1]);
-  const [showModal, setShowModal] = useState(false);
+const CartSection = ({ cartItems, onRemoveFromCart }) => {
+  const [quantities, setQuantities] = useState(cartItems.map(item => item.quantity || 1));
+  const [showModal, setShowModal] = useState(false); 
   const [removeIndex, setRemoveIndex] = useState(null);
 
   const calculateSubtotal = () => {
-    return quantities.reduce((total, quantity) => total + quantity * initialPrice, 0);
+    return quantities.reduce((total, quantity, index) => {
+      return total + quantity * cartItems[index].price;
+    }, 0);
   };
 
   const handleQuantityChange = (index, action) => {
@@ -28,14 +27,17 @@ const CartSection = () => {
       const newQuantities = [...prevQuantities];
       if (action === 'increase') {
         newQuantities[index] += 1;
-      } else if (action === 'decrease' && newQuantities[index] > 1) {
-        newQuantities[index] -= 1;
+      } else if (action === 'decrease') {
+        if (newQuantities[index] > 1) {
+          newQuantities[index] -= 1;
+        }
       }
       return newQuantities;
     });
   };
 
   const handleConfirmRemove = () => {
+    onRemoveFromCart(removeIndex); // Remove item from cart
     setQuantities((prevQuantities) => prevQuantities.filter((_, i) => i !== removeIndex));
     setShowModal(false);
   };
@@ -84,38 +86,37 @@ const CartSection = () => {
             boxShadow: '0 10px 30px rgba(0,0,0,0.5)' 
           }}
         >
-          {quantities.length === 0 ? (
+          {cartItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
-            <LiaOpencart size={100} className="mx-auto mb-8 text-gray-500" />
-            <h1 className="text-lg font-medium mb-4">Your Cart Is Currently Empty!</h1>
-            <p className="text-gray-400 mb-8 text-xs">
-              Before proceeding to checkout you must add some products to your shopping cart.
-            </p>
-            <NavLink
-              to="/products"
-              className="inline-block bg-gradient-to-r from-black to-[#4B88A3] text-white py-2 px-6 rounded-full font-normal text-xs"
-            >
-              Return To Shop
-            </NavLink>
-          </div>
-          
+              <LiaOpencart size={100} className="mx-auto mb-8 text-gray-500" />
+              <h1 className="text-lg font-medium mb-4">Your Cart Is Currently Empty!</h1>
+              <p className="text-gray-400 mb-8 text-xs">
+                Before proceeding to checkout you must add some products to your shopping cart.
+              </p>
+              <NavLink
+                to="/products"
+                className="inline-block bg-gradient-to-r from-black to-[#4B88A3] text-white py-2 px-6 rounded-full font-normal text-xs"
+              >
+                Return To Shop
+              </NavLink>
+            </div>
           ) : (
             <>
               <h1 className="text-2xl font-semibold text-left mb-4">Shopping Cart</h1>
               <div className="space-y-4">
-                {quantities.map((quantity, index) => (
+                {cartItems.map((item, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between py-4 border-b border-gray-700"
                   >
                     <div className="flex items-center">
                       <img
-                        src={partWheel}
+                        src={item.image}
                         alt="Product"
                         className="w-12 h-12 mr-4"
                       />
                       <div>
-                        <p className="font-semibold text-sm">PRODUCT NAME</p>
+                        <p className="font-semibold text-sm">{item.name}</p>
                         <p className="text-xs text-gray-400">Consectetur adipiscing</p>
                       </div>
                     </div>
@@ -129,7 +130,7 @@ const CartSection = () => {
                         >
                           <IoIosRemove size={14} />
                         </button>
-                        <span className="text-md">{quantity}</span>
+                        <span className="text-md">{quantities[index]}</span>
                         <button
                           onClick={() => handleQuantityChange(index, 'increase')}
                           className="focus:outline-none"
@@ -138,7 +139,7 @@ const CartSection = () => {
                         </button>
                       </div>
                     </div>
-                    <div className="font-semibold text-blue-400 text-sm">PHP {initialPrice.toLocaleString()}</div>
+                    <div className="font-semibold text-blue-400 text-sm">PHP {item.price.toLocaleString()}</div>
                   </div>
                 ))}
               </div>
@@ -160,7 +161,11 @@ const CartSection = () => {
                 </div>
               </div>
 
-              <NavLink to="/cart/checkout-landing" className="w-full mt-8"> 
+              <NavLink 
+                to="checkout-landing" // Relative path
+                state={{ cartItems, total }}
+                className="w-full mt-8"
+              >
                 <button
                   className="w-full py-2 rounded-full font-semibold bg-gradient-to-r from-[#4B88A3] via-[#000000] to-[#4B88A3] flex items-center justify-center"
                 >
@@ -172,6 +177,7 @@ const CartSection = () => {
           )}
         </div>
 
+        {/* Add back the image beside the cart section */}
         <div className="hidden lg:block lg:w-full lg:ml-8 lg:mr-8">
           <img
             src={cartImg}
