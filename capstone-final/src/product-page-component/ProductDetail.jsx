@@ -146,15 +146,16 @@ const ProductDetail = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
             <div
-              key={product.id}
-              className="bg-gray-900 text-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => handleProductClick(product)}
-            >
+            key={product.id}
+            className="text-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer"
+            style={{ backgroundColor: 'rgba(217, 217, 217, 0.04)' }} // Updated background color
+            onClick={() => handleProductClick(product)}
+          >
               <img src={product.image} alt={product.name} className="w-full h-64 object-contain rounded-md" />
               <div className="mt-4">
                 <p className="text-sm text-gray-400">LOREM IPSUM</p>
                 <h3 className="text-lg font-semibold mt-2">{product.name}</h3>
-                <p className="text-xl font-bold mt-2 bg-gradient-to-r from-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent">
+                <p className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
                   {product.price}
                 </p>
               </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
 import Wheel1 from "../assets/wheel1.png";
 import Wheel2 from "../assets/wheel2.png";
@@ -15,7 +16,7 @@ const products = [
     id: 1, 
     image: Wheel5, 
     name: "PRODUCT NAME", 
-    price: "PHP30,000.00", 
+    price: 30000, 
     reviews: 11, 
     rating: 4,
     relatedImages: [Wheel1, Wheel2, Wheel3] 
@@ -24,7 +25,7 @@ const products = [
     id: 2, 
     image: Wheel6, 
     name: "PRODUCT NAME", 
-    price: "PHP30,000.00", 
+    price: 30000, 
     reviews: 11, 
     rating: 4,
     relatedImages: [Wheel2, Wheel3, Wheel4]
@@ -33,7 +34,7 @@ const products = [
     id: 3, 
     image: Wheel7, 
     name: "PRODUCT NAME", 
-    price: "PHP30,000.00", 
+    price: 30000, 
     reviews: 11, 
     rating: 4,
     relatedImages: [Wheel3, Wheel4, Wheel5]
@@ -42,27 +43,33 @@ const products = [
     id: 4, 
     image: Wheel8, 
     name: "PRODUCT NAME", 
-    price: "PHP30,000.00", 
+    price: 30000, 
     reviews: 11, 
     rating: 4,
     relatedImages: [Wheel4, Wheel5, Wheel6]
   },
 ];
 
-const ProductSection = () => {
+const ProductSection = ({ onAddToCart }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const navigate = useNavigate(); 
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
   const handleProductClick = (product) => {
-    setSelectedProduct(product);
+    setSelectedProduct({ ...product, quantity: 1 });
   };
 
   const handleBackToProducts = () => {
     setSelectedProduct(null);
+  };
+
+  const handleBuyNow = (product) => {
+    onAddToCart(product); 
+    navigate('/cart'); 
   };
 
   return (
@@ -106,7 +113,7 @@ const ProductSection = () => {
               <div className="flex flex-col justify-center space-y-4">
                 {selectedProduct.relatedImages.map((image, index) => (
                   <img 
-                    key={index}
+                    key={index} // Add a key prop here
                     src={image} 
                     alt={`Related image ${index + 1}`} 
                     className={`w-16 h-16 object-contain cursor-pointer ${selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
@@ -146,7 +153,7 @@ const ProductSection = () => {
                 <span className="ml-2 text-sm text-gray-400">({selectedProduct.reviews} Reviews)</span>
               </div>
               <div className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
-                {selectedProduct.price}
+                PHP {selectedProduct.price.toLocaleString()}
               </div>
 
               {/* Quantity Selector */}
@@ -176,10 +183,16 @@ const ProductSection = () => {
               <div className="flex mt-6 space-x-4">
                 <button 
                   className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
-                >ADD TO CART</button>
+                  onClick={() => onAddToCart(selectedProduct)}
+                >
+                  ADD TO CART
+                </button>
                 <button 
                   className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
-                >BUY NOW</button>
+                  onClick={() => handleBuyNow(selectedProduct)} 
+                >
+                  BUY NOW
+                </button>
               </div>
             </div>
           </div>
@@ -233,12 +246,12 @@ const ProductSection = () => {
                 <div className="mt-4">
                   <h2 className="text-sm font-light italic text-gray-400">LOREM IPSUM</h2>
                   <p className="text-lg font-bold text-white mt-1">{product.name}</p>
-                  <p className="text-lg font-semibold text-gray-400 mt-1">{product.price}</p>
+                  <p className="text-lg font-semibold text-gray-400 mt-1">PHP {product.price.toLocaleString()}</p>
                   <button 
                     className="mt-4 bg-gradient-to-r from-[#4B88A3]/[0.3] via-[#040405] to-[#4B88A3]/[0.3] text-white py-2 px-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 w-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle add to cart logic
+                      onAddToCart({ ...product, quantity: 1 }); 
                     }}
                   >
                     Add to Cart
