@@ -5,14 +5,15 @@ import { NavLink } from 'react-router-dom';
 import cartImg from '../assets/CartSection.jpeg';
 import { LiaOpencart } from "react-icons/lia";
 
-const CartSection = ({ cartItems, onRemoveFromCart }) => {
-  const [quantities, setQuantities] = useState(cartItems.map(item => item.quantity || 1));
+const CartSection = () => {
+  const initialPrice = 30000;
+  const [quantities, setQuantities] = useState([1, 1, 1, 1]);
   const [showModal, setShowModal] = useState(false); 
   const [removeIndex, setRemoveIndex] = useState(null);
 
   const calculateSubtotal = () => {
-    return quantities.reduce((total, quantity, index) => {
-      return total + quantity * cartItems[index].price;
+    return quantities.reduce((total, quantity) => {
+      return total + quantity * initialPrice;
     }, 0);
   };
 
@@ -48,6 +49,13 @@ const CartSection = ({ cartItems, onRemoveFromCart }) => {
 
   const subtotal = calculateSubtotal();
   const total = subtotal;
+
+  const cartItems = quantities.map((quantity, index) => ({
+    product: `PRODUCT NAME ${index + 1}`,
+    quantity,
+    price: initialPrice,
+    image: partWheel,
+  }));
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-black text-white py-10 relative">

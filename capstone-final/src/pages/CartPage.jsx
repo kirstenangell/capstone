@@ -6,7 +6,7 @@ import CheckoutLanding from '../cart-page-component/CheckoutLanding';
 const CartPage = ({ cartItems, onRemoveFromCart }) => {
   return (
     <Routes>
-      <Route path="/" element={<CartSection cartItems={cartItems} onRemoveFromCart={onRemoveFromCart} />} />
+      <Route path="/" element={<CartSection />} />
       <Route path="checkout-landing" element={<CheckoutLanding />} />
     </Routes>
   );
