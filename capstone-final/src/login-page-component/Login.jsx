@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 
-const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
+const Login = ({ onForgotPasswordClick, onSignUpClick, onLoginSuccess }) => {
     const [showPassword, setShowPassword] = useState(false);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
+    const handleLoginSubmit = (e) => {
+        e.preventDefault();
+        // You would normally validate the user input and handle authentication here
+        onLoginSuccess(); // Redirect to ManageAcc after successful login
+    };
+
     return (
-      <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]"> 
+        <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]"> 
             <div className="w-full max-w-sm space-y-6 p-8 rounded-lg">
                 <h1 className="text-2xl font-medium text-center mb-4">WELCOME BACK!</h1>
 
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={handleLoginSubmit}>
                     <div className="relative">
                         <label className="text-xs  mb-1 block">EMAIL ADDRESS</label>
                         <input
