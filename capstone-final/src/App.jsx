@@ -17,6 +17,7 @@ import Terms from "./global/Terms";
 import Shipping from "./global/Shipping";
 import Returns from "./global/Returns";
 
+
 function App() {
   const [cartItems, setCartItems] = useState(() => {
     // Load cart items from localStorage, if they exist
