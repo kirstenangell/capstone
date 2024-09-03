@@ -6,6 +6,7 @@ import SignUp from '../sign-up-page-component/SignUp';
 import Confirmation from '../login-page-component/Confirmation';
 import SetPassword from '../login-page-component/SetPassword';
 import PasswordConfirmation from '../login-page-component/PasswordConfirmation';
+import ManageAcc from '../login-page-component/ManageAcc';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -30,11 +31,15 @@ export default function LoginPage() {
         navigate('/login/password-confirmation'); 
     };
 
+    const handleLoginSuccess = () => {
+        navigate('/manage-account'); // Redirect to ManageAcc after login
+    };
+
     return (
         <Routes>
             <Route 
                 path="/" 
-                element={<Login onForgotPasswordClick={handleForgotPasswordClick} onSignUpClick={handleSignUpClick} />} 
+                element={<Login onForgotPasswordClick={handleForgotPasswordClick} onSignUpClick={handleSignUpClick} onLoginSuccess={handleLoginSuccess} />} 
             />
             <Route 
                 path="/forgot-password" 
@@ -50,11 +55,15 @@ export default function LoginPage() {
             />
             <Route 
                 path="/set-password" 
-                element={<SetPassword onSubmit={handlePasswordSaved} />} // Pass handlePasswordSaved as the onSubmit prop
+                element={<SetPassword onSubmit={handlePasswordSaved} />} 
             />
             <Route 
                 path="/password-confirmation" 
-                element={<PasswordConfirmation />} // Add route for PasswordConfirmation component
+                element={<PasswordConfirmation />} 
+            />
+            <Route 
+                path="/manage-account" 
+                element={<ManageAcc />} 
             />
         </Routes>
     );

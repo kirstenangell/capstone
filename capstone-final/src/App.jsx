@@ -16,6 +16,8 @@ import Faqs from "./global/Faqs";
 import Terms from "./global/Terms";
 import Shipping from "./global/Shipping";
 import Returns from "./global/Returns";
+import ManageAcc from "./login-page-component/ManageAcc"; // Import ManageAcc component
+
 
 function App() {
   const [cartItems, setCartItems] = useState(() => {
@@ -75,6 +77,7 @@ function App() {
           />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/login/*" element={<LoginPage />} />
+          <Route path="/manage-account" element={<ManageAcc />} /> {/* Add the ManageAcc route */}
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/faqs" element={<Faqs />} />
           <Route path="/terms" element={<Terms />} />
