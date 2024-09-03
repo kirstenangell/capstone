@@ -10,7 +10,7 @@ const CheckoutLanding = () => {
   const { cartItems = [], total = 0 } = location.state || {};
 
   const [expandedSection, setExpandedSection] = useState(null);
-  const [addAddressExpanded, setAddAddressExpanded] = useState(false); // New state for Add Address
+  const [addAddressExpanded, setAddAddressExpanded] = useState(false); 
   const [userInfo, setUserInfo] = useState({
     email: 'loremipsumdolor@gmail.com',
     phone: '912 456 7891',
@@ -18,6 +18,22 @@ const CheckoutLanding = () => {
     firstName: 'Lorem',
     lastName: 'Ipsum',
   });
+
+  const [addressInfo, setAddressInfo] = useState({
+    houseNumber: '',
+    streetName: '',
+    barangay: '',
+    city: '',
+  });
+
+  const [addresses, setAddresses] = useState([
+    {
+      houseNumber: '123',
+      streetName: 'Main Street',
+      barangay: 'Barangay 1',
+      city: 'Cityname',
+    },
+  ]); // List to hold all addresses, starting with the default address
 
   const addressSectionRef = useRef(null);
 
@@ -30,6 +46,11 @@ const CheckoutLanding = () => {
     setUserInfo({ ...userInfo, [name]: value });
   };
 
+  const handleAddressInputChange = (e) => {
+    const { name, value } = e.target;
+    setAddressInfo({ ...addressInfo, [name]: value });
+  };
+
   const handleProceedToAddress = () => {
     setExpandedSection('address');
     if (addressSectionRef.current) {
@@ -39,6 +60,12 @@ const CheckoutLanding = () => {
 
   const handleAddAddressClick = () => {
     setAddAddressExpanded(!addAddressExpanded);
+  };
+
+  const handleAddNewAddress = () => {
+    setAddresses([...addresses, addressInfo]); // Add the new address to the addresses list
+    setAddressInfo({ houseNumber: '', streetName: '', barangay: '', city: '' }); // Clear the input fields
+    setAddAddressExpanded(false); // Collapse the add address section
   };
 
   return (
@@ -153,14 +180,34 @@ const CheckoutLanding = () => {
               </div>
               <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('address')}>Edit</div>
             </div>
-            {expandedSection === 'address' && (
+            {expandedSection !== 'address' && (
               <div className="mt-4">
-                <div
-                  className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs"
-                  style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
-                >
-                  Loren Ipsum Dolor, Sit Amet Consectetur
+                {addresses.map((address, index) => (
+                  <div key={index} className="text-sm mt-2">
+                  {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
                 </div>
+                ))}
+              </div>
+            )}
+            {expandedSection === 'address' && (
+              
+              <div className="mt-4">
+                <div className="mt-4">
+                {addresses.map((address, index) => (
+                  <div key={index} className="text-sm mt-2">
+                  {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
+                </div>
+                ))}
+              </div>
+                {addresses.map((address, index) => (
+                  <div
+                    key={index}
+                    className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs mt-2"
+                    style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                  >
+                    {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
+                  </div>
+                ))}
                 <div
                   className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-center text-sm mt-4 cursor-pointer"
                   style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
@@ -169,9 +216,65 @@ const CheckoutLanding = () => {
                   + Add Address
                 </div>
                 {addAddressExpanded && (
-                  <div className="mt-4">
-                    {/* Add your form or content for adding a new address here */}
-                    <p>Form for adding a new address goes here...</p>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="relative">
+                      <label className="text-xs mb-1 block">House Number</label>
+                      <input
+                        type="text"
+                        name="houseNumber"
+                        placeholder="Lorem"
+                        value={addressInfo.houseNumber}
+                        onChange={handleAddressInputChange}
+                        className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                        style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                      />
+                    </div>
+                    <div className="relative">
+                      <label className="text-xs mb-1 block">Street Name</label>
+                      <input
+                        type="text"
+                        name="streetName"
+                        placeholder="Lorem"
+                        value={addressInfo.streetName}
+                        onChange={handleAddressInputChange}
+                        className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                        style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                      />
+                    </div>
+                    <div className="relative">
+                      <label className="text-xs mb-1 block">Barangay</label>
+                      <input
+                        type="text"
+                        name="barangay"
+                        placeholder="Lorem"
+                        value={addressInfo.barangay}
+                        onChange={handleAddressInputChange}
+                        className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                        style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                      />
+                    </div>
+                    <div className="relative">
+                      <label className="text-xs mb-1 block">City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        placeholder="Lorem"
+                        value={addressInfo.city}
+                        onChange={handleAddressInputChange}
+                        className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                        style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                      />
+                    </div>
+                    <div className="col-span-2 mt-4">
+                      <button
+                        type="button"
+                        className="w-full p-3 bg-black text-white rounded-md text-xs"
+                        style={{ background: '#007BFF' }}
+                        onClick={handleAddNewAddress}
+                      >
+                        Add Address
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
