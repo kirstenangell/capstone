@@ -7,6 +7,7 @@ import Confirmation from '../login-page-component/Confirmation';
 import SetPassword from '../login-page-component/SetPassword';
 import PasswordConfirmation from '../login-page-component/PasswordConfirmation';
 import ManageAcc from '../login-page-component/ManageAcc';
+import DashboardLanding from '../dashboard-page-component/DashboardLanding';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function LoginPage() {
     };
 
     const handleLoginSuccess = () => {
-        navigate('/manage-account'); // Redirect to ManageAcc after login
+        navigate('/login/dashboard-landing'); // Redirect to ManageAcc after login
     };
 
     return (
@@ -62,8 +63,8 @@ export default function LoginPage() {
                 element={<PasswordConfirmation />} 
             />
             <Route 
-                path="/manage-account" 
-                element={<ManageAcc />} 
+                path="/dashboard-landing" 
+                element={<DashboardLanding/>} 
             />
         </Routes>
     );
