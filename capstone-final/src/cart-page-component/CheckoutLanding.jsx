@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FaUser, FaTruck } from 'react-icons/fa';
 import { IoMdPin } from 'react-icons/io';
 import { MdPayments } from 'react-icons/md';
-import { IoArrowForwardCircle } from 'react-icons/io5'; 
+import { IoArrowForwardCircle, IoArrowBackOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import QRCode from 'react-qr-code';
@@ -13,6 +13,7 @@ const CheckoutLanding = () => {
   const navigate = useNavigate();
   const { cartItems = [], total = 0 } = location.state || {};
 
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const [expandedSection, setExpandedSection] = useState(null);
   const [addAddressExpanded, setAddAddressExpanded] = useState(false);
   const [selectedDeliveryOption, setSelectedDeliveryOption] = useState(null);
@@ -43,7 +44,7 @@ const CheckoutLanding = () => {
       barangay: 'Barangay 1',
       city: 'Cityname',
     },
-  ]); // List to hold all addresses, starting with the default address
+  ]);
 
   const addressSectionRef = useRef(null);
 
@@ -74,31 +75,35 @@ const CheckoutLanding = () => {
 
   const handleDeliveryOptionClick = (option) => {
     setSelectedDeliveryOption(option);
-    setSelectedCourier(null); // Reset courier selection when changing delivery option
-    setBookingMethod(null); // Reset booking method selection when changing delivery option
-    setPickupTime(null); // Reset pickup time when changing delivery option
+    setSelectedCourier(null);
+    setBookingMethod(null);
+    setPickupTime(null);
   };
 
   const handlePaymentOptionClick = (method) => {
     setSelectedPaymentMethod(method);
   };
 
+  const handlePlaceOrder = () => {
+    setOrderPlaced(true); // Show the modal when checkout is clicked
+  };
+
   const isFutureDate = (date) => {
     const today = new Date();
-    return date >= today && date <= new Date(today.setMonth(today.getMonth() + 3)); // Limit to 3 months in the future
+    return date >= today && date <= new Date(today.setMonth(today.getMonth() + 3));
   };
 
   return (
-    <div className="min-h-screen flex bg-black text-white py-10">
+    <div className="min-h-screen flex bg-black text-white py-10 relative">
       <div className="flex w-full max-w-6xl mx-auto">
         {/* Left Column */}
         <div className="flex-1 space-y-4 mr-4 max-w-lg">
           {/* Back to Products Button */}
           <button
             onClick={() => navigate('/products')}
-            className="mb-4 p-4 rounded-md bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.3)] transition-shadow"
+            className="flex items-center text-xs mb-2 p-2 rounded-md bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.3)] transition-shadow"
           >
-            Back to Products
+            <IoArrowBackOutline className="mr-2" /> Back to Products
           </button>
 
           {/* Information Section */}
@@ -212,21 +217,13 @@ const CheckoutLanding = () => {
               <div className="mt-4">
                 {addresses.map((address, index) => (
                   <div key={index} className="text-sm mt-2">
-                  {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
-                </div>
+                    {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
+                  </div>
                 ))}
               </div>
             )}
             {expandedSection === 'address' && (
-              
               <div className="mt-4">
-                <div className="mt-4">
-                {addresses.map((address, index) => (
-                  <div key={index} className="text-sm mt-2">
-                  {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
-                </div>
-                ))}
-              </div>
                 {addresses.map((address, index) => (
                   <div
                     key={index}
@@ -261,305 +258,322 @@ const CheckoutLanding = () => {
               </div>
               <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('delivery')}>Edit</div>
             </div>
+            {expandedSection !== 'delivery' && selectedDeliveryOption && (
+              <div className="mt-4 text-sm">
+                {selectedDeliveryOption === 'courier' ? (
+                  <>
+                    <p>Via Courier</p>
+                    {selectedCourier && <p>{selectedCourier}</p>}
+                    {bookingMethod && <p>{bookingMethod === 'self' ? 'Self-Managed' : 'Flacko-Managed'}</p>}
+                  </>
+                ) : (
+                  <>
+                    <p>Via Pickup</p>
+                    <p>{pickupDate.toDateString()}</p>
+                    {pickupTime && <p>{pickupTime}</p>}
+                  </>
+                )}
+              </div>
+            )}
+          
             {expandedSection === 'delivery' && (
               <div className="mt-4">
                 <p className="mb-4 text-sm">Available Delivery Options</p>
                 <div className="flex space-x-4">
-                <button 
-                className={`w-full h-12 text-xs p-4 rounded-md ${selectedDeliveryOption === 'courier' ? 'bg-blue-600' : ''}`}
-                style={{ 
-                background: selectedDeliveryOption === 'courier' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
-                borderWidth: '0.5px', 
-                borderColor: 'white', 
-                border: '1px solid gray',
-                transition: 'box-shadow 0.3s ease',
-              }}
-            onClick={() => handleDeliveryOptionClick('courier')}
-            onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-            onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-            onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-          >
-           Via Courier
-          </button>
-          <button 
-          className={`w-full h-12 text-xs p-4 rounded-md ${selectedDeliveryOption === 'pickup' ? 'bg-blue-600' : ''}`}
-          style={{ 
-            background: selectedDeliveryOption === 'pickup' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
-            borderWidth: '0.5px', 
-            borderColor: 'white', 
-            border: '1px solid gray',
-            transition: 'box-shadow 0.3s ease',
-          }}
-          onClick={() => handleDeliveryOptionClick('pickup')}
-          onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-          onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-        >
-          Via Pickup
-        </button>
-          </div>
+                  <button 
+                    className={`w-full h-12 text-xs p-4 rounded-md ${selectedDeliveryOption === 'courier' ? 'bg-blue-600' : ''}`}
+                    style={{ 
+                      background: selectedDeliveryOption === 'courier' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
+                      borderWidth: '0.5px', 
+                      borderColor: 'white', 
+                      border: '1px solid gray',
+                      transition: 'box-shadow 0.3s ease',
+                    }}
+                    onClick={() => handleDeliveryOptionClick('courier')}
+                    onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
+                    onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
+                    onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                    onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                  >
+                    Via Courier
+                  </button>
+                  <button 
+                    className={`w-full h-12 text-xs p-4 rounded-md ${selectedDeliveryOption === 'pickup' ? 'bg-blue-600' : ''}`}
+                    style={{ 
+                      background: selectedDeliveryOption === 'pickup' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
+                      borderWidth: '0.5px', 
+                      borderColor: 'white', 
+                      border: '1px solid gray',
+                      transition: 'box-shadow 0.3s ease',
+                    }}
+                    onClick={() => handleDeliveryOptionClick('pickup')}
+                    onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
+                    onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
+                    onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                    onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                  >
+                    Via Pickup
+                  </button>
+                </div>
 
-{/* Courier Options */}
-{selectedDeliveryOption === 'courier' && (
-  <div className="mt-4">
-    <p className="text-sm mb-2">Select a courier</p>
-    <div className="grid grid-cols-2 gap-4">
-      {['Grab Express', 'Lalamove', 'Angkas Padala', 'Move It'].map((courier) => (
-        <button
-          key={courier}
-          className={`w-full h-12 text-xs p-4 rounded-md ${selectedCourier === courier ? 'bg-blue-600' : ''}`}
-          style={{ 
-            background: selectedCourier === courier ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)',
-            borderWidth: '0.5px', 
-            borderColor: 'white', 
-            border: '1px solid gray',
-            transition: 'box-shadow 0.3s ease',
-          }}
-          onClick={() => setSelectedCourier(courier)}
-          onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-          onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-        >
-          {courier}
-        </button>
-      ))}
-    </div>
+                {/* Courier Options */}
+                {selectedDeliveryOption === 'courier' && (
+                  <div className="mt-4">
+                    <p className="text-sm mb-2">Select a courier</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {['Grab Express', 'Lalamove', 'Angkas Padala', 'Move It'].map((courier) => (
+                        <button
+                          key={courier}
+                          className={`w-full h-12 text-xs p-4 rounded-md ${selectedCourier === courier ? 'bg-blue-600' : ''}`}
+                          style={{ 
+                            background: selectedCourier === courier ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)',
+                            borderWidth: '0.5px', 
+                            borderColor: 'white', 
+                            border: '1px solid gray',
+                            transition: 'box-shadow 0.3s ease',
+                          }}
+                          onClick={() => setSelectedCourier(courier)}
+                          onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
+                          onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
+                          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                        >
+                          {courier}
+                        </button>
+                      ))}
+                    </div>
 
-    {/* Booking Method */}
-    {selectedCourier && (
-      <div className="mt-4">
-        <p className="text-sm mb-2">Choose your Booking Method</p>
-        <div className="flex space-x-4">
-          <button 
-            className={`w-1/2 h-12 text-xs p-4 rounded-md ${bookingMethod === 'self' ? 'bg-blue-600' : ''}`}
-            style={{ 
-              background: bookingMethod === 'self' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)',
-              borderWidth: '0.5px', 
-              borderColor: 'white', 
-              border: '1px solid gray',
-              transition: 'box-shadow 0.3s ease',
-            }}
-            onClick={() => setBookingMethod('self')}
-            onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-            onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-            onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-          >
-            Self-Managed Booking
-          </button>
-          <button 
-            className={`w-1/2 h-12 text-xs p-4 rounded-md ${bookingMethod === 'flacko' ? 'bg-blue-600' : ''}`}
-            style={{ 
-              background: bookingMethod === 'flacko' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)',
-                    borderWidth: '0.5px', 
-                    borderColor: 'white', 
-                    border: '1px solid gray',
-                    transition: 'box-shadow 0.3s ease',
-                  }}
-                  onClick={() => setBookingMethod('flacko')}
-                  onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-                  onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-                  onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-                  onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-          >
-            Flacko-Managed Booking
-          </button>
-        </div>
-      </div>
-    )}
+                    {/* Booking Method */}
+                    {selectedCourier && (
+                      <div className="mt-4">
+                        <p className="text-sm mb-2">Choose your Booking Method</p>
+                        <div className="flex space-x-4">
+                          <button 
+                            className={`w-1/2 h-12 text-xs p-4 rounded-md ${bookingMethod === 'self' ? 'bg-blue-600' : ''}`}
+                            style={{ 
+                              background: bookingMethod === 'self' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)',
+                              borderWidth: '0.5px', 
+                              borderColor: 'white', 
+                              border: '1px solid gray',
+                              transition: 'box-shadow 0.3s ease',
+                            }}
+                            onClick={() => setBookingMethod('self')}
+                            onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
+                            onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
+                            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                            onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                          >
+                            Self-Managed Booking
+                          </button>
+                          <button 
+                            className={`w-1/2 h-12 text-xs p-4 rounded-md ${bookingMethod === 'flacko' ? 'bg-blue-600' : ''}`}
+                            style={{ 
+                              background: bookingMethod === 'flacko' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)',
+                              borderWidth: '0.5px', 
+                              borderColor: 'white', 
+                              border: '1px solid gray',
+                              transition: 'box-shadow 0.3s ease',
+                            }}
+                            onClick={() => setBookingMethod('flacko')}
+                            onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
+                            onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
+                            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                            onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                          >
+                            Flacko-Managed Booking
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
-  {/* Address Selection */}
-{bookingMethod && (
-  <div className="mt-4">
-    <p className="text-sm mb-2">Select your Address</p>
-    <div 
-      className="p-4 bg-transparent rounded-md mb-4 cursor-pointer"
-      style={{ 
-        background: 'linear-gradient(90deg, #040405, #335C6E)', 
-        borderWidth: '0.5px', 
-        borderColor: 'white', 
-        border: '1px solid gray',
-        transition: 'box-shadow 0.3s ease',
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-      onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-    >
-      <div className="text-xs flex justify-between items-center">
-        <span>Current Address</span>
-        <span className="text-xs text-blue-400">Default</span>
-      </div>
-      <p className="text-xs text-gray-400">Loren Ipsum Dolor, Sit Amet Consectetur</p>
-    </div>
-    <div 
-      className="p-4 bg-transparent rounded-md text-center text-xs cursor-pointer"
-      style={{ 
-        background: 'linear-gradient(90deg, #040405, #335C6E)', 
-        borderWidth: '0.5px', 
-        borderColor: 'white', 
-        border: '1px solid gray',
-        transition: 'box-shadow 0.3s ease',
-      }}
-      onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-      onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-    >
-      + Add New Address
-    </div>
-  </div>
-)}
-  </div>
-)}
+                    {/* Address Selection */}
+                    {bookingMethod && (
+                      <div className="mt-4">
+                        <p className="text-sm mb-2">Select your Address</p>
+                        <div 
+                          className="p-4 bg-transparent rounded-md mb-4 cursor-pointer"
+                          style={{ 
+                            background: 'linear-gradient(90deg, #040405, #335C6E)', 
+                            borderWidth: '0.5px', 
+                            borderColor: 'white', 
+                            border: '1px solid gray',
+                            transition: 'box-shadow 0.3s ease',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                        >
+                          <div className="text-xs flex justify-between items-center">
+                            <span>Current Address</span>
+                            <span className="text-xs text-blue-400">Default</span>
+                          </div>
+                          <p className="text-xs text-gray-400">Loren Ipsum Dolor, Sit Amet Consectetur</p>
+                        </div>
+                        <div 
+                          className="p-4 bg-transparent rounded-md text-center text-xs cursor-pointer"
+                          style={{ 
+                            background: 'linear-gradient(90deg, #040405, #335C6E)', 
+                            borderWidth: '0.5px', 
+                            borderColor: 'white', 
+                            border: '1px solid gray',
+                            transition: 'box-shadow 0.3s ease',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                        >
+                          + Add New Address
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-               {/* Pickup Options */}
-{selectedDeliveryOption === 'pickup' && (
-  <div className="mt-4">
-    <p className="text-sm mb-2">Select a pickup date</p>
-    <DatePicker
-      selected={pickupDate}
-      onChange={(date) => setPickupDate(date)}
-      inline
-      filterDate={isFutureDate}
-      calendarClassName="bg-[#333] text-white rounded-lg border border-gray-900" // Tailwind-style classes for calendar
-      dayClassName={date => "text-white hover:bg-[#335C6E] rounded-lg"} // Day styles
-      monthClassName="text-white bg-[#040405] border-b border-gray-700" // Month styles
-      todayButton="Today"
-      className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs" // Custom input styling
-    />
-<p className="text-sm mt-4 mb-2">Select a pickup time</p>
-<div className="grid grid-cols-2 gap-4">
-  {['09:00 AM', '10:00 AM', '02:00 PM', '04:30 PM'].map((time) => (
-    <button
-      key={time}
-      className={`w-full h-12 text-xs p-4 rounded-md ${pickupTime === time ? 'bg-blue-700' : ''}`}
-      style={{ 
-        background: pickupTime === time ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
-        borderWidth: '0.5px', 
-        borderColor: 'white', 
-        border: '1px solid gray',
-        transition: 'box-shadow 0.3s ease',
-      }}
-      onClick={() => setPickupTime(time)} // Update the state to keep the selected time highlighted
-      onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-      onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-    >
-      {time}
-    </button>
-  ))}
-</div>
-    <p className="text-sm mt-4 mb-2">Flacko Pickup Location</p>
-    <div 
-      className="text-xs p-4 rounded-md"
-      style={{ 
-        background: 'linear-gradient(90deg, #040405, #335C6E)', 
-        border: '1px solid gray',
-        cursor: 'default' // This removes the hover pointer
-      }}
-    >
-      <p>Flacko Auto Parts and Accessories</p>
-      <p>Loren Ipsum Dolor, Sit Amet Consectetur</p>
-    </div>
-  </div>
-)}
-
+                {/* Pickup Options */}
+                {selectedDeliveryOption === 'pickup' && (
+                  <div className="mt-4">
+                    <p className="text-sm mb-2">Select a pickup date</p>
+                    <DatePicker
+                      selected={pickupDate}
+                      onChange={(date) => setPickupDate(date)}
+                      inline
+                      filterDate={isFutureDate}
+                      calendarClassName="bg-[#333] text-white rounded-lg border border-gray-900"
+                      dayClassName={date => "text-white hover:bg-[#335C6E] rounded-lg"}
+                      monthClassName="text-white bg-[#040405] border-b border-gray-700"
+                      todayButton="Today"
+                      className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs"
+                    />
+                    <p className="text-sm mt-4 mb-2">Select a pickup time</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {['09:00 AM', '10:00 AM', '02:00 PM', '04:30 PM'].map((time) => (
+                        <button
+                          key={time}
+                          className={`w-full h-12 text-xs p-4 rounded-md ${pickupTime === time ? 'bg-blue-700' : ''}`}
+                          style={{ 
+                            background: pickupTime === time ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
+                            borderWidth: '0.5px', 
+                            borderColor: 'white', 
+                            border: '1px solid gray',
+                            transition: 'box-shadow 0.3s ease',
+                          }}
+                          onClick={() => setPickupTime(time)}
+                          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-sm mt-4 mb-2">Flacko Pickup Location</p>
+                    <div 
+                      className="text-xs p-4 rounded-md"
+                      style={{ 
+                        background: 'linear-gradient(90deg, #040405, #335C6E)', 
+                        border: '1px solid gray',
+                        cursor: 'default'
+                      }}
+                    >
+                      <p>Flacko Auto Parts and Accessories</p>
+                      <p>Loren Ipsum Dolor, Sit Amet Consectetur</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-{/* Payment Section */}
-<div 
-  className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer"
->
-  <div className="flex justify-between items-center">
-    <div className="flex items-center space-x-2">
-      <MdPayments className="text-lg align-middle" />
-      <div className="text-lg font-semibold align-middle">Payment</div>
-    </div>
-    <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('payment')}>Edit</div>
-  </div>
-  {expandedSection === 'payment' && (
-    <div className="mt-4">
-      <p className="text-sm mb-4">Select your Payment Method</p>
-      <div className="flex space-x-4">
-        <button 
-          className={`w-full h-12 text-xs p-4 rounded-md ${selectedPaymentMethod === 'gcash' ? 'bg-blue-600' : ''}`}
-          style={{ 
-            background: selectedPaymentMethod === 'gcash' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
-            borderWidth: '0.5px', 
-            borderColor: 'white', 
-            border: '1px solid gray',
-            transition: 'box-shadow 0.3s ease',
-          }}
-          onClick={() => handlePaymentOptionClick('gcash')}
-          onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-          onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-        >
-          Via GCash
-        </button>
-        <button 
-          className={`w-full h-12 text-xs p-4 rounded-md ${selectedPaymentMethod === 'store' ? 'bg-blue-600' : ''}`}
-          style={{ 
-            background: selectedPaymentMethod === 'store' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
-            borderWidth: '0.5px', 
-            borderColor: 'white', 
-            border: '1px solid gray',
-            transition: 'box-shadow 0.3s ease',
-          }}
-          onClick={() => handlePaymentOptionClick('store')}
-          onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-          onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-        >
-          Via Physical Store
-        </button>
-      </div>
+          {/* Payment Section */}
+          <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <MdPayments className="text-lg align-middle" />
+                <div className="text-lg font-semibold align-middle">Payment</div>
+              </div>
+              <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('payment')}>Edit</div>
+            </div>
+            {expandedSection !== 'payment' && selectedPaymentMethod && (
+              <div className="mt-4 text-sm">
+                <p>Payment Method: {selectedPaymentMethod === 'gcash' ? 'Via GCash' : 'Via Physical Store'}</p>
+              </div>
+            )}
+            {expandedSection === 'payment' && (
+              <div className="mt-4">
+                <p className="text-sm mb-4">Select your Payment Method</p>
+                <div className="flex space-x-4">
+                  <button 
+                    className={`w-full h-12 text-xs p-4 rounded-md ${selectedPaymentMethod === 'gcash' ? 'bg-blue-600' : ''}`}
+                    style={{ 
+                      background: selectedPaymentMethod === 'gcash' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
+                      borderWidth: '0.5px', 
+                      borderColor: 'white', 
+                      border: '1px solid gray',
+                      transition: 'box-shadow 0.3s ease',
+                    }}
+                    onClick={() => handlePaymentOptionClick('gcash')}
+                    onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
+                    onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
+                    onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                    onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                  >
+                    Via GCash
+                  </button>
+                  <button 
+                    className={`w-full h-12 text-xs p-4 rounded-md ${selectedPaymentMethod === 'store' ? 'bg-blue-600' : ''}`}
+                    style={{ 
+                      background: selectedPaymentMethod === 'store' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
+                      borderWidth: '0.5px', 
+                      borderColor: 'white', 
+                      border: '1px solid gray',
+                      transition: 'box-shadow 0.3s ease',
+                    }}
+                    onClick={() => handlePaymentOptionClick('store')}
+                    onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
+                    onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
+                    onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
+                    onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+                  >
+                    Via Physical Store
+                  </button>
+                </div>
 
-      {/* Display QR Code for GCash */}
-{selectedPaymentMethod === 'gcash' && (
-  <div 
-    className="mt-4 p-6 rounded-md text-center"
-    style={{ 
-      background: 'linear-gradient(90deg, #040405, #335C6E)', 
-      border: '1px solid gray',
-      cursor: 'default' // This removes the hover pointer
-    }}
-  >
-    <p className="mb-4">Scan the QR code below to pay via GCash:</p>
-    <div 
-      className="p-4 inline-block rounded-md" 
-      style={{ 
-        background: 'white', 
-        border: '1px solid gray',
-      }}
-    >
-      <QRCode value="GCash Payment Info" size={128} />
-    </div>
-  </div>
-)}
+                {/* Display QR Code for GCash */}
+                {selectedPaymentMethod === 'gcash' && (
+                  <div 
+                    className="mt-4 p-6 rounded-md text-center"
+                    style={{ 
+                      background: 'linear-gradient(90deg, #040405, #335C6E)', 
+                      border: '1px solid gray',
+                      cursor: 'default'
+                    }}
+                  >
+                    <p className="mb-4">Scan the QR code below to pay via GCash:</p>
+                    <div 
+                      className="p-4 inline-block rounded-md" 
+                      style={{ 
+                        background: 'white', 
+                        border: '1px solid gray',
+                      }}
+                    >
+                      <QRCode value="GCash Payment Info" size={128} />
+                    </div>
+                  </div>
+                )}
 
-
- {/* Display confirmation for Physical Store */}
-{selectedPaymentMethod === 'store' && (
-  <div 
-    className="text-xs mt-4 p-6 rounded-md text-left"
-    style={{ 
-      background: 'linear-gradient(90deg, #040405, #335C6E)', 
-      cursor: 'default' // This removes the hover pointer
-    }}
-  >
-    <p>Payment will be completed in store.</p>
-    <p>Thank you for choosing to pay at our physical store. Please visit us to complete your transaction.</p>
-  </div>
-)}
-
-    </div>
-  )}
-</div>
-
+                {/* Display confirmation for Physical Store */}
+                {selectedPaymentMethod === 'store' && (
+                  <div 
+                    className="text-xs mt-4 p-6 rounded-md text-left"
+                    style={{ 
+                      background: 'linear-gradient(90deg, #040405, #335C6E)', 
+                      cursor: 'default'
+                    }}
+                  >
+                    <p>Payment will be completed in store.</p>
+                    <p>Thank you for choosing to pay at our physical store. Please visit us to complete your transaction.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Column: Summary */}
@@ -573,7 +587,7 @@ const CheckoutLanding = () => {
                     <div className="flex items-center space-x-4">
                       <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
                       <div>
-                        <div className="font-medium">{item.name}</div> {/* Updated to show product name */}
+                        <div className="font-medium">{item.name}</div>
                         <div className="text-sm text-gray-400">PHP {item.price.toLocaleString()}</div>
                       </div>
                     </div>
@@ -604,8 +618,40 @@ const CheckoutLanding = () => {
               <h2 className="text-lg font-medium">Your Cart is Empty</h2>
             </div>
           )}
+
+          {/* Checkout Button (aligned to the right of the summary) */}
+          <div className="flex justify-center">
+            <button 
+              className="text-sm mt-4 w-36 h-10 p-2 rounded-full text-white bg-gradient-to-r from-[#4B88A3] via-[#040405] to-[#4B88A3] hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.3)] transition-shadow"
+              onClick={handlePlaceOrder}
+            >
+              CHECKOUT
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Modal for Order Placed */}
+      {orderPlaced && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur">
+          <div className="bg-gradient-to-r from-[rgba(75,136,163,0.4)] via-[rgba(4,4,5,0.7)] to-[rgba(75,136,163,0.3)] p-10 rounded-lg shadow-xl text-center">
+            <h2 className="text-2xl font-bold mb-4">YOUR ORDER HAS BEEN PLACED</h2>
+            <p className="text-sm mb-2">OID-0000</p>
+            <p className="text-sm mb-6">Wait for your order confirmation.</p>
+            <div className="w-16 h-28 mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <button
+              className="text-xs p-4 rounded-md bg-gradient-to-r from-[#4B88A3] via-[#040405] to-[#4B88A3] hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.3)] transition-shadow"
+              onClick={() => navigate('/products')}
+            >
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
