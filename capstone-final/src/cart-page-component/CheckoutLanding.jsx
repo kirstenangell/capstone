@@ -72,7 +72,13 @@ const CheckoutLanding = () => {
   const handleAddAddressClick = () => {
     setAddAddressExpanded(!addAddressExpanded);
   };
-
+  
+  const handleAddNewAddress = () => {
+    setAddresses([...addresses, addressInfo]); // Add the new address to the addresses list
+    setAddressInfo({ houseNumber: '', streetName: '', barangay: '', city: '' }); // Clear the input fields
+    setAddAddressExpanded(false); // Collapse the add address section
+  
+  };
   const handleDeliveryOptionClick = (option) => {
     setSelectedDeliveryOption(option);
     setSelectedCourier(null);
@@ -107,7 +113,7 @@ const CheckoutLanding = () => {
           </button>
 
           {/* Information Section */}
-          <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer">
+          <div className="p-6 rounded-lg shadow-lg bg-black border border-transparent cursor-pointer">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <FaUser className="text-lg align-middle" />
@@ -241,13 +247,70 @@ const CheckoutLanding = () => {
                   + Add Address
                 </div>
                 {addAddressExpanded && (
-                  <div className="mt-4">
-                    <p>Form for adding a new address goes here...</p>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="relative">
+                    <label className="text-xs mb-1 block">House Number</label>
+                    <input
+                      type="text"
+                      name="houseNumber"
+                      placeholder="Lorem"
+                      value={addressInfo.houseNumber}
+                      onChange={handleAddressInputChange}
+                      className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                      style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                    />
                   </div>
-                )}
-              </div>
-            )}
-          </div>
+                  <div className="relative">
+                    <label className="text-xs mb-1 block">Street Name</label>
+                    <input
+                      type="text"
+                      name="streetName"
+                      placeholder="Lorem"
+                      value={addressInfo.streetName}
+                      onChange={handleAddressInputChange}
+                      className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                      style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                    />
+                  </div>
+                  <div className="relative">
+                    <label className="text-xs mb-1 block">Barangay</label>
+                    <input
+                      type="text"
+                      name="barangay"
+                      placeholder="Lorem"
+                      value={addressInfo.barangay}
+                      onChange={handleAddressInputChange}
+                      className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                      style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                    />
+                  </div>
+                  <div className="relative">
+                    <label className="text-xs mb-1 block">City</label>
+                    <input
+                      type="text"
+                      name="city"
+                      placeholder="Lorem"
+                      value={addressInfo.city}
+                      onChange={handleAddressInputChange}
+                      className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                      style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                    />
+                  </div>
+                  <div className="col-span-2 mt-4">
+                    <button
+                      type="button"
+                      className="w-full p-3 bg-black text-white rounded-md text-xs"
+                      style={{ background: '#007BFF' }}
+                      onClick={handleAddNewAddress}
+                    >
+                      Add Address
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
           {/* Delivery Section */}
           <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer">
