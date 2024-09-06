@@ -8,8 +8,9 @@ import SetPassword from '../login-page-component/SetPassword';
 import PasswordConfirmation from '../login-page-component/PasswordConfirmation';
 import ManageAcc from '../login-page-component/ManageAcc';
 import DashboardLanding from '../dashboard-page-component/DashboardLanding';
+import Dashboard from '../inventory/Dashboard';
 
-export default function LoginPage() {
+export default function LoginPage({ setIsLoggedIn }) {
     const navigate = useNavigate();
 
     const handleForgotPasswordClick = () => {
@@ -29,11 +30,12 @@ export default function LoginPage() {
     };
 
     const handlePasswordSaved = () => {
-        navigate('/login/password-confirmation'); 
+        navigate('/login/password-confirmation');
     };
 
     const handleLoginSuccess = () => {
-        navigate('/login/dashboard-landing'); // Redirect to ManageAcc after login
+        setIsLoggedIn(true); // Set login state to true
+        navigate('/dashboard'); // Redirect to DashboardLanding after login
     };
 
     return (
@@ -63,8 +65,8 @@ export default function LoginPage() {
                 element={<PasswordConfirmation />} 
             />
             <Route 
-                path="/dashboard-landing" 
-                element={<DashboardLanding/>} 
+                path="/dashboard" 
+                element={<Dashboard />} 
             />
         </Routes>
     );

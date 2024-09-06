@@ -30,7 +30,7 @@ const InventoryNavbar = ({ cartItemCount }) => {
         {/* Links with Extended Rounded Background Hover Animation and Drop Shadow */}
         <div className="flex items-center ml-8">
           <NavLink
-            to="/about"
+            to="/dashboard"
             className={({ isActive }) =>
               `text-white mr-16 relative group transition-all duration-300 transform ${
                 isActive ? 'rounded-full py-2 px-4' : ''
@@ -47,7 +47,7 @@ const InventoryNavbar = ({ cartItemCount }) => {
             <span className="relative">DASHBOARD</span>
           </NavLink>
           <NavLink
-            to="/services"
+            to="/inventory"
             className={({ isActive }) =>
               `text-white mr-20 relative group transition-all duration-300 transform ${
                 isActive ? 'rounded-full py-2 px-4' : ''
@@ -64,7 +64,7 @@ const InventoryNavbar = ({ cartItemCount }) => {
             <span className="relative">INVENTORY</span>
           </NavLink>
           <NavLink
-            to="/services"
+            to="/order"
             className={({ isActive }) =>
               `text-white mr-20 relative group transition-all duration-300 transform ${
                 isActive ? 'rounded-full py-2 px-4' : ''
@@ -81,7 +81,7 @@ const InventoryNavbar = ({ cartItemCount }) => {
             <span className="relative">ORDER</span>
           </NavLink>
           <NavLink
-            to="/services"
+            to="/customer"
             className={({ isActive }) =>
               `text-white mr-20 relative group transition-all duration-300 transform ${
                 isActive ? 'rounded-full py-2 px-4' : ''
@@ -120,13 +120,13 @@ const InventoryNavbar = ({ cartItemCount }) => {
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 bg-black text-white rounded-lg shadow-lg">
                 <NavLink
-                  to="/settings"
+                  to="/user"
                   className="block px-4 py-2 hover:bg-gray-700"
                 >
                   Settings
                 </NavLink>
                 <NavLink
-                  to="/logout"
+                  to="/"
                   className="block px-4 py-2 hover:bg-gray-700"
                 >
                   Logout
