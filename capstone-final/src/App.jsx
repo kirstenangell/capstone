@@ -22,6 +22,7 @@ import CustomerPage from "./inventory/CustomerPage";
 import InventoryPage from "./inventory/InventoryPage";
 import OrderPage from "./inventory/OrderPage";
 import UserPage from "./inventory/UserPage";
+import SupplierPage from './inventory/SupplierPage';
 
 function App() {
   const [cartItems, setCartItems] = useState(() => {
@@ -78,7 +79,7 @@ function App() {
             }
           />
           <Route
-            path="/customer"
+            path="/customer/*"
             element={
               <>
                 <InventoryNavbar cartItemCount={cartItemCount} />
@@ -113,8 +114,15 @@ function App() {
               </>
             }
           />
-
-          {/* Default routes */}
+          <Route
+            path="/supplier"
+            element={
+              <>
+                <InventoryNavbar cartItemCount={cartItemCount} />
+                <SupplierPage />
+              </>
+            }
+          />
           <Route
             path="*"
             element={

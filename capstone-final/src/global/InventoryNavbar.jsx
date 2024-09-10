@@ -97,6 +97,23 @@ const InventoryNavbar = ({ cartItemCount }) => {
           >
             <span className="relative">CUSTOMER</span>
           </NavLink>
+          <NavLink
+            to="/supplier"
+            className={({ isActive }) =>
+              `text-white mr-20 relative group transition-all duration-300 transform ${
+                isActive ? 'rounded-full py-2 px-4' : ''
+              }`
+            }
+            style={({ isActive }) =>
+              isActive
+                ? {
+                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                  }
+                : {}
+            }
+          >
+            <span className="relative">SUPPLIER</span>
+          </NavLink>
         </div>
 
         {/* User Icon and Dropdown */}
