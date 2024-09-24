@@ -1,10 +1,10 @@
-// src/components/CustomerLanding.js
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { FaOpencart } from 'react-icons/fa';
 import { CustomerContext } from '../context/CustomerContext';
+import { BsBoxArrowRight } from "react-icons/bs";
 
 const CustomerLanding = () => {
   const { customers, archiveCustomer } = useContext(CustomerContext);
@@ -13,6 +13,9 @@ const CustomerLanding = () => {
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  // State to track search input
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Handle customer click to show modal
   const handleCustomerClick = (customer) => {
@@ -39,10 +42,15 @@ const CustomerLanding = () => {
 
   // Handle Edit button click
   const handleEditCustomer = () => {
-    // Navigate to CustomerInformation with selected customer data
     navigate('/customer/customer-information', { state: { customer: selectedCustomer, isEdit: true } });
     setShowModal(false);
   };
+
+  // Filter customers based on search query (name or CID)
+  const filteredCustomers = customers.filter((customer) =>
+    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    `CID-${customer.id}`.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
@@ -50,10 +58,13 @@ const CustomerLanding = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">CUSTOMER</h1>
           <div className="flex items-center">
+            {/* Search input */}
             <input
               type="text"
               placeholder="Search customer"
               className="bg-transparent border-b border-gray-600 text-white px-4 py-2 w-80 focus:outline-none"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)} // Track input changes
             />
             <button
               onClick={handleAddCustomerClick}
@@ -77,24 +88,31 @@ const CustomerLanding = () => {
 
           <div className="col-span-3">
             <div className="space-y-6">
-              {customers.map((customer) => (
-                <div
-                  key={customer.id}
-                  className="bg-gradient-to-r from-[#040405] to-[#335C6E] p-6 rounded-lg shadow-md flex items-center cursor-pointer"
-                  onClick={() => handleCustomerClick(customer)}
-                >
-                  <div className="w-16 h-16 flex items-center justify-center text-white text-lg font-bold">
-                    {`CID-${customer.id}`}
-                  </div>
-                  <div className="ml-6">
-                    <h2 className="text-xl font-semibold">{customer.name}</h2>
-                    <p className="text-gray-400 text-sm mt-2">
-                      {customer.orderID} | {customer.phone} | {customer.email} |{' '}
-                      {customer.status}
-                    </p>
-                  </div>
+              {/* If no customers are found, display the message */}
+              {filteredCustomers.length === 0 ? (
+                <div className="text-center text-gray-400">
+                  No customer found
                 </div>
-              ))}
+              ) : (
+                filteredCustomers.map((customer) => (
+                  <div
+                    key={customer.id}
+                    className="bg-gradient-to-r from-[#040405] to-[#335C6E] p-6 rounded-lg shadow-md flex items-center cursor-pointer"
+                    onClick={() => handleCustomerClick(customer)}
+                  >
+                    <div className="w-16 h-16 flex items-center justify-center text-white text-lg font-bold">
+                      {`CID-${customer.id}`}
+                    </div>
+                    <div className="ml-6">
+                      <h2 className="text-xl font-semibold">{customer.name}</h2>
+                      <p className="text-gray-400 text-sm mt-2">
+                        {customer.orderID} | {customer.phone} | {customer.email} |{' '}
+                        {customer.status}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -103,18 +121,32 @@ const CustomerLanding = () => {
       {/* Modal Section */}
       {showModal && selectedCustomer && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-          <div className="bg-[#040405] p-6 rounded-lg shadow-lg max-w-3xl w-full h-[600px] flex flex-col">
+          <div className="bg-[#040405] p-6 rounded-lg shadow-lg max-w-3xl w-full h-[500px] flex flex-col">
             {/* Customer Info Section */}
             <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center">
-                <div className="w-24 h-24 flex justify-center items-center text-white text-lg font-bold">
-                  {`CID-${selectedCustomer.id}`}
-                </div>
-                <div className="ml-4">
-                  <h2 className="text-2xl font-bold">{selectedCustomer.name}</h2>
-                  <p className="text-gray-400">Manually Added</p>
+              {/* Left Section: Icon above the entire customer information */}
+              <div className="flex flex-col items-start">
+                {/* Icon at the top */}
+                <button
+                  onClick={handleCloseModal}
+                  className="bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg p-2 mb-2 shadow-md"
+                >
+                  <BsBoxArrowRight className="text-white text-md" />
+                </button>
+
+                {/* Customer Information */}
+                <div className="flex items-center">
+                  <div className="w-24 h-24 flex justify-center items-center text-white text-lg font-bold">
+                    {`CID-${selectedCustomer.id}`}
+                  </div>
+                  <div className="ml-4">
+                    <h2 className="text-2xl font-bold">{selectedCustomer.name}</h2>
+                    <p className="text-gray-400">Manually Added</p>
+                  </div>
                 </div>
               </div>
+
+              {/* Right Section: Edit and Archive buttons */}
               <div className="space-x-4">
                 <button
                   onClick={handleEditCustomer}
@@ -130,8 +162,6 @@ const CustomerLanding = () => {
                 </button>
               </div>
             </div>
-
-            {/* Tabs */}
             <div className="flex space-x-4 mb-6">
               <button
                 className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
@@ -175,7 +205,7 @@ const CustomerLanding = () => {
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto">
               {activeTab === 'general' && (
-                <div className="grid grid-cols-1 gap-8">
+                <div className="grid grid-cols-1 gap-4">
                   {/* Customer Details Section */}
                   <div>
                     <h3 className="text-white text-md font-semibold mb-2">
@@ -229,7 +259,7 @@ const CustomerLanding = () => {
               )}
 
               {activeTab === 'delivery' && (
-                <div className="grid grid-cols-1 gap-8">
+                <div className="grid grid-cols-1 gap-4">
                   {/* Current Address Section */}
                   <div>
                     <h3 className="text-white text-md font-semibold mb-2">
@@ -328,7 +358,7 @@ const CustomerLanding = () => {
               )}
 
               {activeTab === 'orders' && (
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="text-white font-semibold mb-2">Orders</h3>
                     {selectedCustomer.orders.length > 0 ? (
@@ -354,16 +384,6 @@ const CustomerLanding = () => {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Close Button */}
-            <div className="flex justify-end mt-4">
-              <button
-                className="px-6 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg"
-                onClick={handleCloseModal}
-              >
-                CLOSE
-              </button>
             </div>
           </div>
         </div>
