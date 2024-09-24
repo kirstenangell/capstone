@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from "./global/Header";
@@ -23,6 +24,9 @@ import InventoryPage from "./inventory/InventoryPage";
 import OrderPage from "./inventory/OrderPage";
 import UserPage from "./inventory/UserPage";
 import SupplierPage from './inventory/SupplierPage';
+
+// Import CustomerProvider
+import { CustomerProvider } from './context/CustomerContext'; // Adjust the path if necessary
 
 function App() {
   const [cartItems, setCartItems] = useState(() => {
@@ -68,7 +72,7 @@ function App() {
       <div style={{ background: 'black' }}>
         <Header />
         <Routes>
-          {/* Inventory routes with InventoryNavbar */}
+          {/* Dashboard Route */}
           <Route
             path="/dashboard"
             element={
@@ -78,15 +82,21 @@ function App() {
               </>
             }
           />
+          
+          {/* Customer Routes Wrapped with CustomerProvider */}
           <Route
             path="/customer/*"
             element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <CustomerPage />
-              </>
+              <CustomerProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <CustomerPage />
+                </>
+              </CustomerProvider>
             }
           />
+          
+          {/* Inventory Routes */}
           <Route
             path="/inventory"
             element={
@@ -123,6 +133,8 @@ function App() {
               </>
             }
           />
+          
+          {/* Public Routes */}
           <Route
             path="*"
             element={

@@ -1,28 +1,47 @@
-import React, { useState } from 'react';
-import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; 
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+// src/components/CustomerLanding.js
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { IoIosInformationCircle } from 'react-icons/io';
+import { GiStorkDelivery } from 'react-icons/gi';
+import { FaOpencart } from 'react-icons/fa';
+import { CustomerContext } from '../context/CustomerContext';
 
 const CustomerLanding = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [password, setPassword] = useState(''); // State for the password input
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const { customers, archiveCustomer } = useContext(CustomerContext);
+  const navigate = useNavigate();
 
-  const handleAddCustomerClick = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  // Handle customer click to show modal
+  const handleCustomerClick = (customer) => {
+    setSelectedCustomer(customer);
+    setActiveTab('general');
     setShowModal(true);
   };
 
+  // Close modal
   const handleCloseModal = () => {
-    setShowModal(false); // Close modal
-
-    // Use setTimeout to ensure modal closes before navigation
-    setTimeout(() => {
-      navigate('/customer/customer-information'); // Redirect to CustomerInformation.jsx page
-    }, 150); // Adjust the timeout if needed
+    setShowModal(false);
   };
 
-  const togglePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
+  // Redirect to Add Customer page when the "Add Customer" button is clicked
+  const handleAddCustomerClick = () => {
+    navigate('/customer/customer-information');
+  };
+
+  // Archive customer
+  const handleArchiveCustomer = (customerToArchive) => {
+    archiveCustomer(customerToArchive.id);
+    setShowModal(false);
+  };
+
+  // Handle Edit button click
+  const handleEditCustomer = () => {
+    // Navigate to CustomerInformation with selected customer data
+    navigate('/customer/customer-information', { state: { customer: selectedCustomer, isEdit: true } });
+    setShowModal(false);
   };
 
   return (
@@ -38,7 +57,7 @@ const CustomerLanding = () => {
             />
             <button
               onClick={handleAddCustomerClick}
-              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-white rounded-lg text-sm"
+              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
             >
               Add Customer
             </button>
@@ -50,19 +69,7 @@ const CustomerLanding = () => {
             {/* Sidebar filters */}
             <div className="mb-6">
               <h2 className="text-sm font-bold">CUSTOMER SOURCE</h2>
-              <button className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#335C6E] rounded-lg text-left">
-                Lorem Ipsum Dolor
-              </button>
-            </div>
-            <div className="mb-6">
-              <h2 className="text-sm font-bold">CUSTOMER TYPE</h2>
-              <button className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#335C6E] rounded-lg text-left">
-                Lorem Ipsum Dolor
-              </button>
-            </div>
-            <div className="mb-6">
-              <h2 className="text-sm font-bold">CUSTOMER LOCATION</h2>
-              <button className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#335C6E] rounded-lg text-left">
+              <button className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left">
                 Lorem Ipsum Dolor
               </button>
             </div>
@@ -70,20 +77,20 @@ const CustomerLanding = () => {
 
           <div className="col-span-3">
             <div className="space-y-6">
-              {Array.from({ length: 1 }).map((_, index) => (
+              {customers.map((customer) => (
                 <div
-                  key={index}
-                  className="bg-gradient-to-r from-[#040405] to-[#335C6E] p-6 rounded-lg shadow-md flex items-center"
+                  key={customer.id}
+                  className="bg-gradient-to-r from-[#040405] to-[#335C6E] p-6 rounded-lg shadow-md flex items-center cursor-pointer"
+                  onClick={() => handleCustomerClick(customer)}
                 >
-                  <img
-                    src={`https://via.placeholder.com/50`} 
-                    alt="Customer"
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
+                  <div className="w-16 h-16 flex items-center justify-center text-white text-lg font-bold">
+                    {`CID-${customer.id}`}
+                  </div>
                   <div className="ml-6">
-                    <h2 className="text-xl font-semibold">Last Name, First Name, M.I</h2>
+                    <h2 className="text-xl font-semibold">{customer.name}</h2>
                     <p className="text-gray-400 text-sm mt-2">
-                      Order ID | Contact Number | Email Address | Current Address | Status
+                      {customer.orderID} | {customer.phone} | {customer.email} |{' '}
+                      {customer.status}
                     </p>
                   </div>
                 </div>
@@ -94,35 +101,268 @@ const CustomerLanding = () => {
       </div>
 
       {/* Modal Section */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center">
-          <div className="bg-[#040405] p-8 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-lg font-bold mb-4 text-center">ACCESS INVENTORY</h2>
-            <p className="mb-4 text-sm text-center">Enter your password to add a new customer to the inventory</p>
-            <label className="block text-xs font-bold mb-2">PASSWORD</label>
-            <div className="relative">
-              <input
-                type={passwordVisible ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
-                style={{ background: 'linear-gradient(90deg, #040405, #335C6E)' }}
-              />
+      {showModal && selectedCustomer && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-[#040405] p-6 rounded-lg shadow-lg max-w-3xl w-full h-[600px] flex flex-col">
+            {/* Customer Info Section */}
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center">
+                <div className="w-24 h-24 flex justify-center items-center text-white text-lg font-bold">
+                  {`CID-${selectedCustomer.id}`}
+                </div>
+                <div className="ml-4">
+                  <h2 className="text-2xl font-bold">{selectedCustomer.name}</h2>
+                  <p className="text-gray-400">Manually Added</p>
+                </div>
+              </div>
+              <div className="space-x-4">
+                <button
+                  onClick={handleEditCustomer}
+                  className="text-sm text-white hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleArchiveCustomer(selectedCustomer)}
+                  className="text-sm text-white hover:underline"
+                >
+                  Archive
+                </button>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex space-x-4 mb-6">
               <button
-                type="button"
-                className="absolute right-3 top-3 text-white"
-                onClick={togglePasswordVisibility}
+                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
+                  activeTab === 'general'
+                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
+                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
+                }`}
+                onClick={() => setActiveTab('general')}
               >
-                {passwordVisible ? <IoIosEyeOff /> : <IoIosEye />}
+                <IoIosInformationCircle className="mr-2 text-xl" />
+                General Information
+              </button>
+
+              {/* Delivery Details Button */}
+              <button
+                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
+                  activeTab === 'delivery'
+                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
+                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
+                }`}
+                onClick={() => setActiveTab('delivery')}
+              >
+                <GiStorkDelivery className="mr-2 text-xl" />
+                Delivery Details
+              </button>
+
+              {/* Order Lists Button */}
+              <button
+                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
+                  activeTab === 'orders'
+                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
+                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
+                }`}
+                onClick={() => setActiveTab('orders')}
+              >
+                <FaOpencart className="mr-2 text-xl" />
+                Order Lists
               </button>
             </div>
-            <div className="flex justify-center mt-6">
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto">
+              {activeTab === 'general' && (
+                <div className="grid grid-cols-1 gap-8">
+                  {/* Customer Details Section */}
+                  <div>
+                    <h3 className="text-white text-md font-semibold mb-2">
+                      Customer Details
+                    </h3>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">
+                        CUSTOMER NAME:
+                      </span>
+                      <span className="text-xs">{selectedCustomer.name}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">
+                        CUSTOMER TYPE:
+                      </span>
+                      <span className="text-xs">{selectedCustomer.type}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">
+                        PAYMENT STATUS:
+                      </span>
+                      <span className="text-xs">
+                        {selectedCustomer.paymentStatus || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">
+                        PAYMENT REFERENCE:
+                      </span>
+                      <span className="text-xs">
+                        {selectedCustomer.paymentReference || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Contact Information Section */}
+                  <div>
+                    <h3 className="text-white text-md font-semibold mb-2">
+                      Contact Information
+                    </h3>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">EMAIL:</span>
+                      <span className="text-xs">{selectedCustomer.email}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">PHONE:</span>
+                      <span className="text-xs">{selectedCustomer.phone}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'delivery' && (
+                <div className="grid grid-cols-1 gap-8">
+                  {/* Current Address Section */}
+                  <div>
+                    <h3 className="text-white text-md font-semibold mb-2">
+                      Current Address
+                    </h3>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">STREET:</span>
+                      <span className="text-xs">
+                        {selectedCustomer?.currentAddress?.street || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">CITY:</span>
+                      <span className="text-xs">
+                        {selectedCustomer?.currentAddress?.city || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">
+                        PROVINCE:
+                      </span>
+                      <span className="text-xs">
+                        {selectedCustomer?.currentAddress?.province || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">
+                        ZIP CODE:
+                      </span>
+                      <span className="text-xs">
+                        {selectedCustomer?.currentAddress?.zipCode || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">
+                        LANDMARK:
+                      </span>
+                      <span className="text-xs">
+                        {selectedCustomer?.currentAddress?.landmark || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Conditionally render New Address section only if there is any data */}
+                  {selectedCustomer?.newAddress?.street ||
+                  selectedCustomer?.newAddress?.city ||
+                  selectedCustomer?.newAddress?.province ||
+                  selectedCustomer?.newAddress?.zipCode ? (
+                    <div>
+                      <h3 className="text-white text-md font-semibold mb-2">
+                        New Address
+                      </h3>
+                      <div className="flex">
+                        <span className="text-xs text-gray-400 w-40">
+                          STREET:
+                        </span>
+                        <span className="text-xs">
+                          {selectedCustomer?.newAddress?.street || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-xs text-gray-400 w-40">CITY:</span>
+                        <span className="text-xs">
+                          {selectedCustomer?.newAddress?.city || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-xs text-gray-400 w-40">
+                          PROVINCE:
+                        </span>
+                        <span className="text-xs">
+                          {selectedCustomer?.newAddress?.province || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-xs text-gray-400 w-40">
+                          ZIP CODE:
+                        </span>
+                        <span className="text-xs">
+                          {selectedCustomer?.newAddress?.zipCode || 'N/A'}
+                        </span>
+                      </div>
+                      {selectedCustomer?.newAddress?.landmark && (
+                        <div className="flex">
+                          <span className="text-xs text-gray-400 w-40">
+                            LANDMARK:
+                          </span>
+                          <span className="text-xs">
+                            {selectedCustomer.newAddress.landmark}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {activeTab === 'orders' && (
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-white font-semibold mb-2">Orders</h3>
+                    {selectedCustomer.orders.length > 0 ? (
+                      selectedCustomer.orders.map((order) => (
+                        <div key={order.id} className="mb-4">
+                          <p>
+                            <strong>Order ID:</strong> {order.id}
+                          </p>
+                          <p>
+                            <strong>Item:</strong> {order.item}
+                          </p>
+                          <p>
+                            <strong>Price:</strong> {order.price}
+                          </p>
+                          <p>
+                            <strong>Status:</strong> {order.status}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No orders available.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <div className="flex justify-end mt-4">
               <button
-                className="w-full px-6 text-sm py-2 text-white rounded-lg"
+                className="px-6 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg"
                 onClick={handleCloseModal}
               >
-                SUBMIT
+                CLOSE
               </button>
             </div>
           </div>
