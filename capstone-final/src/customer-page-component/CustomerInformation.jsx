@@ -53,6 +53,25 @@ const CustomerInformation = () => {
     navigate('/customer');
   };
 
+  const [isOpen, setIsOpen] = useState(false);
+  const customerTypes = ['Online Store', 'Physical Store'];
+
+  // Toggle the dropdown visibility
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  // Handle selection of customer type
+  const handleSelect = (type) => {
+    handleInputChange({
+      target: {
+        name: 'type',
+        value: type,
+      },
+    });
+    setIsOpen(false); // Close the dropdown after selection
+  };
+
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       <div className="mb-10 mt-16 text-center">
@@ -93,16 +112,32 @@ const CustomerInformation = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Customer Type</label>
-            <input
-              type="text"
-              name="type"
-              value={generalInfo.type}
-              onChange={handleInputChange}
-              placeholder="Customer Type"
-              className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-              required
-            />
+            <label className="block text-sm font-medium mb-1 text-white">Customer Type</label>
+
+            {/* Dropdown Button */}
+            <button
+              onClick={toggleDropdown}
+              className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left"
+            >
+              {generalInfo.type || 'Select Customer Type'}
+            </button>
+
+            {/* Dropdown Menu */}
+            {isOpen && (
+              <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
+                <ul className="text-sm text-white">
+                  {customerTypes.map((type) => (
+                    <li
+                      key={type}
+                      onClick={() => handleSelect(type)}
+                      className="p-2 hover:bg-[#122127] cursor-pointer"
+                    >
+                      {type}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div>

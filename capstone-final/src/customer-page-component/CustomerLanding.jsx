@@ -5,6 +5,7 @@ import { GiStorkDelivery } from 'react-icons/gi';
 import { FaOpencart } from 'react-icons/fa';
 import { CustomerContext } from '../context/CustomerContext';
 import { BsBoxArrowRight } from "react-icons/bs";
+import { CiSearch } from "react-icons/ci"; // Search icon
 
 const CustomerLanding = () => {
   const { customers, archiveCustomer } = useContext(CustomerContext);
@@ -52,20 +53,36 @@ const CustomerLanding = () => {
     `CID-${customer.id}`.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const [activeStatus, setActiveStatus] = useState('All'); // Default is 'All'
+
+  // Function to handle button click
+  const handleStatusClick = (status) => {
+    setActiveStatus(status); // Set the active status
+  };
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Function to toggle dropdown visibility
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white py-10">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">CUSTOMER</h1>
           <div className="flex items-center">
-            {/* Search input */}
-            <input
-              type="text"
-              placeholder="Search customer"
-              className="bg-transparent border-b border-gray-600 text-white px-4 py-2 w-80 focus:outline-none"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} // Track input changes
-            />
+            <div className="flex items-center border-b border-gray-600">
+              <CiSearch className="text-gray-600 text-xl mr-2" /> {/* Icon before the input */}
+              <input
+                type="text"
+                placeholder="Search customer"
+                className="bg-transparent text-gray-600  px-4 py-2 focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} // Track input changes
+              />
+            </div>
             <button
               onClick={handleAddCustomerClick}
               className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
@@ -77,13 +94,69 @@ const CustomerLanding = () => {
 
         <div className="grid grid-cols-4 gap-6">
           <div className="col-span-1">
-            {/* Sidebar filters */}
-            <div className="mb-6">
-              <h2 className="text-sm font-bold">CUSTOMER SOURCE</h2>
-              <button className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left">
-                Lorem Ipsum Dolor
-              </button>
-            </div>
+          <div className="mb-6">
+            <h2 className="text-sm font-bold text-white mb-2">FILTER BY</h2>
+            
+            {/* Dropdown Button */}
+            <button
+              onClick={toggleDropdown}
+              className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+            >
+              CUSTOMER TYPE
+            </button>
+
+            {/* Dropdown Menu */}
+            {isOpen && (
+              <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
+                <ul className="text-sm text-white">
+                  <li className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127]  cursor-pointer">Online Store</li>
+                  <li className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127]  cursor-pointer">Physical Store</li>
+                </ul>
+              </div>
+            )}
+          </div>
+            <div className="mb-6 mt-2">
+        <h2 className="text-sm font-bold text-white mb-2">STATUS</h2>
+        <div className="flex space-x-2">
+          {/* 'All' Button */}
+          <button
+            onClick={() => handleStatusClick('All')}
+            className={`text-sm px-6 py-2 rounded-lg ${
+              activeStatus === 'All'
+                ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+            }`}
+          >
+            All
+          </button>
+
+          {/* 'Active' Button */}
+          <button
+            onClick={() => handleStatusClick('Active')}
+            className={`text-sm px-6 py-2 rounded-lg ${
+              activeStatus === 'Active'
+                ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+            }`}
+          >
+            Active
+          </button>
+
+          {/* 'Inactive' Button */}
+          <button
+            onClick={() => handleStatusClick('Inactive')}
+            className={`text-sm px-6 py-2 rounded-lg ${
+              activeStatus === 'Inactive'
+                ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+            }`}
+          >
+            Inactive
+          </button>
+        </div>
+      </div>
+
+
           </div>
 
           <div className="col-span-3">
