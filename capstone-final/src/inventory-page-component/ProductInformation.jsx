@@ -2,12 +2,9 @@ import React, { useState } from 'react';
 import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { FaBoxes, FaRulerCombined } from 'react-icons/fa';
-import { useParams } from 'react-router-dom'; // Import useParams to get the product id
 
 const ProductInformation = () => {
   const [step, setStep] = useState(1);
-  const { id } = useParams(); // Get the product ID from the URL
-  console.log('Product ID:', id);
 
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
@@ -17,12 +14,12 @@ const ProductInformation = () => {
       {/* Header */}
       <div className="text-white text-center mb-10 mt-16">
         <h1 className="text-xl font-bold">GENERAL INFORMATION</h1>
-        <h2 className="text-sm font-bold mt-2">Viewing details for Product ID: {id}</h2>
+        <h2 className="text-sm font-bold mt-2">Add New Product</h2>
       </div>
 
       <div className="flex flex-col md:flex-row w-full max-w-6xl mx-auto">
         {/* Step Sidebar */}
-        <div className="space-y-4 pr-4">
+        <div className="space-y-4 pr-4"> {/* Added pr-4 for spacing */}
           <div className={`mb-4 flex items-center space-x-2 p-4 rounded-lg ${step === 1 ? 'bg-gray-800' : 'bg-gray-700'}`}>
             <IoIosInformationCircle className={`text-2xl ${step === 1 ? 'text-white' : 'text-gray-400'}`} />
             <div>
@@ -54,7 +51,7 @@ const ProductInformation = () => {
         </div>
 
         {/* Form Container */}
-        <div className="w-full md:w-3/4 bg-gradient-to-b from-gray-800 to-black rounded-lg p-10 shadow-lg text-white ml-12">
+        <div className="w-full md:w-3/4 bg-gradient-to-b from-gray-800 to-black rounded-lg p-10 shadow-lg text-white ml-12"> {/* Adjusted spacing here */}
           <div className="flex-1">
             {step === 1 && (
               <div>
