@@ -1,30 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoMdClose } from 'react-icons/io'; // Close Icon
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Password Visibility Icons
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
 import Wheel1 from '../assets/wheel1.png'; // Replace with your actual image path
-
-const products = [
-  {
-    id: 1,
-    image: Wheel1,
-    name: 'PRODUCT NAME 1',
-    price: 'PHP30,000.00',
-    type: 'Loren Ipsum',
-    brand: 'Loren Ipsum',
-    category: 'Loren Ipsum',
-    description: 'Loren Ipsum Acit Dolores',
-    dimensions: 'Loren Ipsum',
-    color: 'Loren Ipsum',
-    finish: 'Loren Ipsum',
-    material: 'Loren Ipsum',
-    model: 'Loren Ipsum',
-    tax: 'Loren Ipsum',
-    discount: 'Loren Ipsum',
-    totalPrice: 'PHP33,000.00',
-  },
-  // Add more product entries as needed
-];
+import { CiSearch } from "react-icons/ci"; // Search icon
+import { BsBoxArrowRight } from "react-icons/bs";
 
 const InventoryLanding = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -34,6 +14,37 @@ const InventoryLanding = () => {
   const [actionType, setActionType] = useState(''); // Track action type (add/edit/archive)
 
   const navigate = useNavigate(); // Use navigate to handle redirection
+  const location = useLocation(); // Get location to access passed state
+
+  // Move products to useState
+  const [products, setProducts] = useState([
+    {
+      id: 1,
+      image: Wheel1,
+      name: 'PRODUCT NAME 1',
+      price: 'PHP30,000.00',
+      type: 'Loren Ipsum',
+      brand: 'Loren Ipsum',
+      category: 'Loren Ipsum',
+      description: 'Loren Ipsum Acit Dolores',
+      dimensions: 'Loren Ipsum',
+      color: 'Loren Ipsum',
+      finish: 'Loren Ipsum',
+      material: 'Loren Ipsum',
+      model: 'Loren Ipsum',
+      tax: 'Loren Ipsum',
+      discount: 'Loren Ipsum',
+      totalPrice: 'PHP33,000.00',
+    },
+    // Add more product entries as needed
+  ]);
+
+  // Update products list if new product is added
+  useEffect(() => {
+    if (location.state && location.state.newProduct) {
+      setProducts((prevProducts) => [...prevProducts, location.state.newProduct]);
+    }
+  }, [location.state]);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product); // Set selected product when clicked
@@ -68,7 +79,7 @@ const InventoryLanding = () => {
 
   // Handle submit logic for the modal
   const handleSubmit = () => {
-    if (password === '12345') { // Replace 'your_password' with the actual password logic
+    if (password === '12345') { // Replace '12345' with the actual password logic
       // Navigate to ProductInformation.jsx with the selectedProduct id
       navigate(`/product-information/${selectedProduct?.id}`);
     } else {
@@ -83,12 +94,26 @@ const InventoryLanding = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold">PRODUCT</h1>
-          <button
-            onClick={handleAddProductClick}
-            className="ml-4 px-4 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-white rounded-lg text-sm"
-          >
-            Add Product
-          </button>
+
+          <div className="flex items-center">
+            {/* Search input with icon */}
+            <div className="flex items-center border-b border-gray-600">
+              <CiSearch className="text-gray-600 text-xl mr-2" /> {/* Icon before the input */}
+              <input
+                type="text"
+                placeholder="Search product"
+                className="bg-transparent text-gray-600 px-4 py-2 focus:outline-none"
+              />
+            </div>
+
+            {/* Add Product Button */}
+            <button
+              onClick={handleAddProductClick}
+              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-white rounded-lg text-sm"
+            >
+              Add Product
+            </button>
+          </div>
         </div>
 
         {/* Sidebar Filters */}
@@ -115,14 +140,6 @@ const InventoryLanding = () => {
 
           {/* Product List */}
           <div className="col-span-3">
-            <div className="mb-4">
-              <input
-                type="text"
-                className="w-full p-3 bg-transparent border border-gray-600 rounded-md text-sm placeholder-gray-400"
-                placeholder="Search product"
-              />
-            </div>
-
             {/* Product Cards */}
             <div className="space-y-4">
               {products.map((product) => (
@@ -150,29 +167,32 @@ const InventoryLanding = () => {
         {selectedProduct && (
           <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
             <div className="bg-[#040405] p-10 rounded-lg shadow-xl max-w-3xl w-full relative">
-              {/* Close Button */}
-              <button
-                onClick={handleExit}
-                className="absolute top-4 right-4 p-2 bg-gray-800 rounded-full text-white"
-              >
-                <IoMdClose size={24} />
-              </button>
+              <div className="flex justify-between items-start mb-4">
+                {/* Left Section: Close Button */}
+                <div className="flex flex-col items-start">
+                  <button
+                    onClick={handleExit}
+                    className="bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg p-2 mb-2 shadow-md"
+                  >
+                    <BsBoxArrowRight className="text-white text-md" />
+                  </button>
+                </div>
 
-              <div className="mb-6 flex space-x-4">
-                {/* Edit Button */}
-                <button
-                  onClick={handleEditClick}
-                  className="px-4 py-2 bg-blue-600 rounded-lg text-sm"
-                >
-                  Edit
-                </button>
-                {/* Archive Button */}
-                <button
-                  onClick={handleArchiveClick}
-                  className="px-4 py-2 bg-red-600 rounded-lg text-sm"
-                >
-                  Archive
-                </button>
+                {/* Right Section: Edit and Archive buttons */}
+                <div className="space-x-4">
+                  <button
+                    onClick={handleEditClick}
+                    className="text-sm text-white hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleArchiveClick}
+                    className="text-sm text-white hover:underline"
+                  >
+                    Archive
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-col md:flex-row">
@@ -181,7 +201,7 @@ const InventoryLanding = () => {
                     {selectedProduct.name}
                   </h1>
                   <p className="text-sm text-gray-400">{selectedProduct.description}</p>
-                  
+
                   {/* Product Image with Faint Gray Background */}
                   <div className="mt-4 bg-gray-700 p-2 rounded-lg">
                     <img
@@ -274,7 +294,7 @@ const InventoryLanding = () => {
               <div className="flex justify-center mt-6">
                 <button
                   className="w-full px-6 text-sm py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 transition"
-                  onClick={handleSubmit} // Add handleSubmit function for password submission
+                  onClick={handleSubmit}
                 >
                   SUBMIT
                 </button>

@@ -2,12 +2,95 @@ import React, { useState } from 'react';
 import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { FaBoxes, FaRulerCombined } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { IoMdClose } from "react-icons/io";
+import Wheel1 from '../assets/wheel1.png'; // Import placeholder image
 
 const ProductInformation = () => {
   const [step, setStep] = useState(1);
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const navigate = useNavigate();
 
-  const nextStep = () => setStep(step + 1);
-  const prevStep = () => setStep(step - 1);
+  // State to store form data
+  const [formData, setFormData] = useState({
+    productName: '',
+    productType: '',
+    productBrand: '',
+    productCategory: '',
+    productDescription: '',
+    // Sales Information
+    retailSalePrice: '',
+    discount: '',
+    totalPrice: '',
+    // Quantity
+    totalQuantity: '',
+    quantity: '',
+    status: '',
+    // Measurement
+    dimensions: {
+      length: '',
+      width: '',
+      height: '',
+      weight: ''
+    },
+    color: '',
+    finish: [], // array of selected finishes
+    material: '',
+    model: '',
+  });
+
+  const nextStep = () => {
+    setStep(step + 1);
+    window.scrollTo(0, 0); // Scroll to top when moving to the next step
+  };
+
+  const prevStep = () => {
+    setStep(step - 1);
+    window.scrollTo(0, 0); // Scroll to top when moving to the previous step
+  };
+
+  const handleCancelClick = () => {
+    window.scrollTo(0, 0);
+    navigate('/inventory-landing');
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && uploadedImages.length < 4) {
+      setUploadedImages([...uploadedImages, file]);
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    const updatedImages = uploadedImages.filter((_, i) => i !== index);
+    setUploadedImages(updatedImages);
+  };
+
+  // Handle Save button click
+  const handleSave = () => {
+    // Collect all form data
+    const newProduct = {
+      id: Date.now(),
+      name: formData.productName || 'Untitled Product',
+      image: uploadedImages[0] ? URL.createObjectURL(uploadedImages[0]) : Wheel1, // Use first uploaded image or placeholder
+      price: formData.retailSalePrice || 'PHP 0.00',
+      type: formData.productType || 'N/A',
+      brand: formData.productBrand || 'N/A',
+      category: formData.productCategory || 'N/A',
+      description: formData.productDescription || 'No description provided.',
+      dimensions: `${formData.dimensions.length || '0'} x ${formData.dimensions.width || '0'} x ${formData.dimensions.height || '0'}`,
+      color: formData.color || 'N/A',
+      finish: formData.finish.length > 0 ? formData.finish.join(', ') : 'N/A',
+      material: formData.material || 'N/A',
+      model: formData.model || 'N/A',
+      tax: 'N/A', // Placeholder
+      discount: formData.discount || 'PHP 0.00',
+      totalPrice: formData.totalPrice || 'PHP 0.00',
+    };
+
+    // Navigate to InventoryLanding and pass the new product data
+    navigate('/inventory-landing', { state: { newProduct } });
+  };
 
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
@@ -17,6 +100,7 @@ const ProductInformation = () => {
         <h2 className="text-sm font-bold mt-2">Add New Product</h2>
       </div>
 
+      {/* Steps Sidebar */}
       <div className="absolute left-10 top-1/4">
         <div className={`mb-4 flex items-center space-x-2 p-4 rounded-lg ${step === 1 ? 'bg-gray-800' : ''}`}>
           <IoIosInformationCircle className={`text-2xl ${step === 1 ? 'text-white' : 'text-gray-400'}`} />
@@ -48,7 +132,8 @@ const ProductInformation = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-2xl p-10 bg-gradient-to-b from-gray-800 to-black text-white rounded-lg shadow-lg">
+      {/* Form Container */}
+      <div className="w-full max-w-2xl p-10 bg-gradient-to-b from-gray-800 to-black text-white rounded-lg shadow-lg h-full min-h-[600px] flex flex-col justify-between">
         <div className="flex-1">
           {step === 1 && (
             <div>
@@ -59,6 +144,8 @@ const ProductInformation = () => {
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Product Name"
+                  value={formData.productName}
+                  onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
                 />
               </div>
 
@@ -69,6 +156,8 @@ const ProductInformation = () => {
                     type="text"
                     className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                     placeholder="Product Type"
+                    value={formData.productType}
+                    onChange={(e) => setFormData({ ...formData, productType: e.target.value })}
                   />
                 </div>
                 <div className="flex-1">
@@ -77,16 +166,19 @@ const ProductInformation = () => {
                     type="text"
                     className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                     placeholder="Product Brand"
+                    value={formData.productBrand}
+                    onChange={(e) => setFormData({ ...formData, productBrand: e.target.value })}
                   />
                 </div>
               </div>
-
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-1">Product Category</label>
                 <input
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Product Category"
+                  value={formData.productCategory}
+                  onChange={(e) => setFormData({ ...formData, productCategory: e.target.value })}
                 />
               </div>
 
@@ -96,7 +188,68 @@ const ProductInformation = () => {
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Product Description"
                   style={{ height: '242px' }}
+                  value={formData.productDescription}
+                  onChange={(e) => setFormData({ ...formData, productDescription: e.target.value })}
                 ></textarea>
+              </div>
+
+              {/* Attachment Section */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-1">Attachments (4)</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Plus box to add images */}
+                  {uploadedImages.length < 4 && (
+                    <label className="w-full h-40 bg-gray-900 border border-gray-600 rounded-lg flex justify-center items-center cursor-pointer">
+                      <span className="text-white text-4xl">+</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                      />
+                    </label>
+                  )}
+
+                  {/* Uploaded images */}
+                  {uploadedImages.map((image, index) => (
+                    <div key={index} className="relative w-full h-40 bg-gray-900 border border-gray-600 rounded-lg flex flex-col justify-center items-center">
+                      {/* Image preview */}
+                      <div className="w-full h-full rounded-lg overflow-hidden">
+                        <img src={URL.createObjectURL(image)} alt={`attachment-${index}`} className="object-cover w-full h-full" />
+                      </div>
+
+                      {/* Display file name */}
+                      <div className="text-center text-white text-xs mt-2">
+                        <p>{image.name}</p>
+                      </div>
+
+                      {/* Remove icon on hover */}
+                      <button
+                        onClick={() => handleRemoveImage(index)}
+                        className="absolute top-2 right-2 bg-gradient-to-r from-[#040405] to-[#122127] p-1 rounded-full text-white opacity-20 hover:opacity-100 transition-opacity"
+                      >
+                        <IoMdClose size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Cancel and Next Buttons */}
+              <div className="flex justify-between mt-6">
+                <button
+                  type="button"
+                  onClick={handleCancelClick}
+                  className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={nextStep}
+                  className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
+                >
+                  Next
+                </button>
               </div>
             </div>
           )}
@@ -110,15 +263,8 @@ const ProductInformation = () => {
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="P 0.00"
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-1">Tax</label>
-                <input
-                  type="text"
-                  className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="P 00.00"
+                  value={formData.retailSalePrice}
+                  onChange={(e) => setFormData({ ...formData, retailSalePrice: e.target.value })}
                 />
               </div>
 
@@ -128,6 +274,8 @@ const ProductInformation = () => {
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="P 00.00"
+                  value={formData.discount}
+                  onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
                 />
               </div>
 
@@ -137,7 +285,23 @@ const ProductInformation = () => {
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="P 00.00"
+                  value={formData.totalPrice}
+                  onChange={(e) => setFormData({ ...formData, totalPrice: e.target.value })}
                 />
+              </div>
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={prevStep}
+                  className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={nextStep}
+                  className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
+                >
+                  Next
+                </button>
               </div>
             </div>
           )}
@@ -151,6 +315,8 @@ const ProductInformation = () => {
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Total Quantity"
+                  value={formData.totalQuantity}
+                  onChange={(e) => setFormData({ ...formData, totalQuantity: e.target.value })}
                 />
               </div>
 
@@ -160,6 +326,8 @@ const ProductInformation = () => {
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Quantity"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                 />
               </div>
 
@@ -169,7 +337,23 @@ const ProductInformation = () => {
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Status"
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 />
+              </div>
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={prevStep}
+                  className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={nextStep}
+                  className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
+                >
+                  Next
+                </button>
               </div>
             </div>
           )}
@@ -178,39 +362,138 @@ const ProductInformation = () => {
             <div>
               {/* Measurement Form */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-1">Measurement Details</label>
+                <label className="block text-sm font-medium mb-1">Dimensions</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Length"
+                    value={formData.dimensions.length}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        dimensions: { ...formData.dimensions, length: e.target.value },
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Width"
+                    value={formData.dimensions.width}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        dimensions: { ...formData.dimensions, width: e.target.value },
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Height"
+                    value={formData.dimensions.height}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        dimensions: { ...formData.dimensions, height: e.target.value },
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Weight"
+                    value={formData.dimensions.weight}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        dimensions: { ...formData.dimensions, weight: e.target.value },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-1">Color (optional)</label>
                 <input
                   type="text"
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="Measurement"
+                  placeholder="Color (optional)"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                 />
               </div>
-            </div>
-          )}
-        </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
-          {step > 1 && (
-            <button
-              onClick={prevStep}
-              className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
-            >
-              Back
-            </button>
-          )}
-          {step < 4 && (
-            <button
-              onClick={nextStep}
-              className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
-            >
-              Next
-            </button>
-          )}
-          {step === 4 && (
-            <button className="w-32 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-500">
-              Finish
-            </button>
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-1">Finish</label>
+                <div className="p-3 bg-black border border-gray-600 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4">
+                    {['Matte', 'Powder Coated', 'Glossy', 'Metallic', 'Satin', 'Textured'].map((finishOption) => (
+                      <label key={finishOption} className="inline-flex items-center">
+                        <input
+                          type="checkbox"
+                          className="form-checkbox h-4 w-4 text-blue-600"
+                          checked={formData.finish.includes(finishOption)}
+                          onChange={(e) => {
+                            const isChecked = e.target.checked;
+                            setFormData((prevState) => {
+                              let newFinish = [...prevState.finish];
+                              if (isChecked) {
+                                newFinish.push(finishOption);
+                              } else {
+                                newFinish = newFinish.filter((item) => item !== finishOption);
+                              }
+                              return { ...prevState, finish: newFinish };
+                            });
+                          }}
+                        />
+                        <span className="ml-2 text-white">{finishOption}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-1">Material (optional)</label>
+                <input
+                  type="text"
+                  className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Material (optional)"
+                  value={formData.material}
+                  onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-1">Model</label>
+                <input
+                  type="text"
+                  className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Make / Model / Year Compatibility"
+                  value={formData.model}
+                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                />
+              </div>
+
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={prevStep}
+                  className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
+                >
+                  SAVE
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
