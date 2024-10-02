@@ -1,4 +1,6 @@
-import React, { createContext, useState } from 'react';
+// src/context/ProductContext.js
+import React, { createContext, useState, useEffect } from 'react';
+import Wheel1 from '../assets/wheel1.png'; // Adjust the path to your actual image
 
 // Create the context
 export const ProductContext = createContext();
@@ -8,7 +10,7 @@ export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([
     {
       id: 1,
-      image: 'path/to/default/image.png',
+      image: Wheel1,
       name: 'PRODUCT NAME 1',
       price: 'PHP30,000.00',
       type: 'Loren Ipsum',
@@ -38,7 +40,9 @@ export const ProductProvider = ({ children }) => {
   // Function to update an existing product
   const updateProduct = (updatedProduct) => {
     setProducts((prevProducts) =>
-      prevProducts.map((product) => (product.id === updatedProduct.id ? updatedProduct : product))
+      prevProducts.map((product) =>
+        product.id === updatedProduct.id ? updatedProduct : product
+      )
     );
   };
 

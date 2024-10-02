@@ -1,50 +1,24 @@
-import React, { useState, useEffect } from 'react';
+// src/inventory-page-component/InventoryLanding.jsx
+import React, { useState, useEffect, useContext } from 'react';
 import { IoMdClose } from 'react-icons/io'; // Close Icon
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Password Visibility Icons
-import { useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
+import { useNavigate } from 'react-router-dom';
 import Wheel1 from '../assets/wheel1.png'; // Replace with your actual image path
 import { CiSearch } from "react-icons/ci"; // Search icon
 import { BsBoxArrowRight } from "react-icons/bs";
+import { ProductContext } from '../context/ProductContext'; // Import ProductContext
 
 const InventoryLanding = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [password, setPassword] = useState('');
   const [actionType, setActionType] = useState(''); // Track action type (add/edit/archive)
 
-  const navigate = useNavigate(); // Use navigate to handle redirection
-  const location = useLocation(); // Get location to access passed state
+  const navigate = useNavigate();
 
-  // Move products to useState
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      image: Wheel1,
-      name: 'PRODUCT NAME 1',
-      price: 'PHP30,000.00',
-      type: 'Loren Ipsum',
-      brand: 'Loren Ipsum',
-      category: 'Loren Ipsum',
-      description: 'Loren Ipsum Acit Dolores',
-      dimensions: 'Loren Ipsum',
-      color: 'Loren Ipsum',
-      finish: 'Loren Ipsum',
-      material: 'Loren Ipsum',
-      model: 'Loren Ipsum',
-      tax: 'Loren Ipsum',
-      discount: 'Loren Ipsum',
-      totalPrice: 'PHP33,000.00',
-    },
-    // Add more product entries as needed
-  ]);
-
-  // Update products list if new product is added
-  useEffect(() => {
-    if (location.state && location.state.newProduct) {
-      setProducts((prevProducts) => [...prevProducts, location.state.newProduct]);
-    }
-  }, [location.state]);
+  // Use ProductContext
+  const { products, archiveProduct } = useContext(ProductContext);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product); // Set selected product when clicked
@@ -55,21 +29,21 @@ const InventoryLanding = () => {
   };
 
   const handleAddProductClick = () => {
-    navigate('/product-information'); // Navigate to ProductInformation page
+    navigate('/inventory/product-information');
   };
 
   const handleEditClick = () => {
     setActionType('edit'); // Set action to edit
-    setShowModal(true); // Show password modal when editing
+    setShowPasswordModal(true); // Show password modal when editing
   };
 
   const handleArchiveClick = () => {
     setActionType('archive'); // Set action to archive
-    setShowModal(true); // Show password modal when archiving
+    setShowPasswordModal(true); // Show password modal when archiving
   };
 
   const handleCloseModal = () => {
-    setShowModal(false);
+    setShowPasswordModal(false);
     setPassword(''); // Reset the password input
   };
 
@@ -77,15 +51,21 @@ const InventoryLanding = () => {
     setPasswordVisible(!passwordVisible); // Toggle password visibility
   };
 
-  // Handle submit logic for the modal
-  const handleSubmit = () => {
+  // Handle submit logic for the password modal
+  const handlePasswordSubmit = () => {
     if (password === '12345') { // Replace '12345' with the actual password logic
-      // Navigate to ProductInformation.jsx with the selectedProduct id
-      navigate(`/product-information/${selectedProduct?.id}`);
+      if (actionType === 'edit') {
+        // Navigate to ProductInformation.jsx with the selectedProduct data for editing
+        navigate('/inventory/product-information', { state: { product: selectedProduct, isEdit: true } });
+      } else if (actionType === 'archive') {
+        // Archive the product
+        archiveProduct(selectedProduct.id);
+        setSelectedProduct(null);
+      }
     } else {
       alert('Incorrect Password'); // Add any error handling logic if needed
     }
-    setShowModal(false);
+    setShowPasswordModal(false);
     setPassword(''); // Clear the password field after submission
   };
 
@@ -142,23 +122,29 @@ const InventoryLanding = () => {
           <div className="col-span-3">
             {/* Product Cards */}
             <div className="space-y-4">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-4 shadow-lg flex justify-between items-center cursor-pointer"
-                  onClick={() => handleProductClick(product)}
-                >
-                  <div className="flex items-center">
-                    <div className="w-24 h-24 bg-gray-800 rounded-lg mr-6">
-                      <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
-                    </div>
-                    <div className="text-left">
-                      <h2 className="text-lg font-bold text-white">{product.name}</h2>
-                      <p className="text-sm text-gray-400">Retail Price | Stock | Variant | Timestamp</p>
+              {products.length === 0 ? (
+                <div className="text-center text-gray-400">
+                  No products found
+                </div>
+              ) : (
+                products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-4 shadow-lg flex justify-between items-center cursor-pointer"
+                    onClick={() => handleProductClick(product)}
+                  >
+                    <div className="flex items-center">
+                      <div className="w-24 h-24 bg-gray-800 rounded-lg mr-6">
+                        <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
+                      </div>
+                      <div className="text-left">
+                        <h2 className="text-lg font-bold text-white">{product.name}</h2>
+                        <p className="text-sm text-gray-400">Retail Price | Stock | Variant | Timestamp</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -264,7 +250,7 @@ const InventoryLanding = () => {
         )}
 
         {/* Password Modal */}
-        {showModal && (
+        {showPasswordModal && (
           <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
             <div className="bg-[#040405] p-8 rounded-lg shadow-lg max-w-md w-full">
               <h2 className="text-lg font-bold mb-4 text-center">
@@ -294,7 +280,7 @@ const InventoryLanding = () => {
               <div className="flex justify-center mt-6">
                 <button
                   className="w-full px-6 text-sm py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 transition"
-                  onClick={handleSubmit}
+                  onClick={handlePasswordSubmit}
                 >
                   SUBMIT
                 </button>

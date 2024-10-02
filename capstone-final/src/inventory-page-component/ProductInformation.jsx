@@ -1,43 +1,61 @@
-import React, { useState } from 'react';
+// src/inventory-page-component/ProductInformation.jsx
+import React, { useState, useContext, useEffect } from 'react';
 import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { FaBoxes, FaRulerCombined } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { IoMdClose } from "react-icons/io";
 import Wheel1 from '../assets/wheel1.png'; // Import placeholder image
+import { ProductContext } from '../context/ProductContext'; // Import ProductContext
 
 const ProductInformation = () => {
   const [step, setStep] = useState(1);
   const [uploadedImages, setUploadedImages] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { addProduct, updateProduct } = useContext(ProductContext);
+
+  // Check if we're editing an existing product
+  const isEdit = location.state?.isEdit || false;
+  const existingProduct = location.state?.product || {};
 
   // State to store form data
   const [formData, setFormData] = useState({
-    productName: '',
-    productType: '',
-    productBrand: '',
-    productCategory: '',
-    productDescription: '',
+    id: existingProduct.id || null,
+    productName: existingProduct.name || '',
+    productType: existingProduct.type || '',
+    productBrand: existingProduct.brand || '',
+    productCategory: existingProduct.category || '',
+    productDescription: existingProduct.description || '',
     // Sales Information
-    retailSalePrice: '',
-    discount: '',
-    totalPrice: '',
+    retailSalePrice: existingProduct.price || '',
+    discount: existingProduct.discount || '',
+    totalPrice: existingProduct.totalPrice || '',
     // Quantity
-    totalQuantity: '',
-    quantity: '',
-    status: '',
+    totalQuantity: existingProduct.totalQuantity || '',
+    quantity: existingProduct.quantity || '',
+    status: existingProduct.status || '',
     // Measurement
     dimensions: {
-      length: '',
-      width: '',
-      height: '',
-      weight: ''
+      length: existingProduct.dimensions?.split(' x ')[0] || '',
+      width: existingProduct.dimensions?.split(' x ')[1] || '',
+      height: existingProduct.dimensions?.split(' x ')[2] || '',
+      weight: existingProduct.dimensions?.split(' x ')[3] || '',
     },
-    color: '',
-    finish: [], // array of selected finishes
-    material: '',
-    model: '',
+    color: existingProduct.color || '',
+    finish: existingProduct.finish ? existingProduct.finish.split(', ') : [], // array of selected finishes
+    material: existingProduct.material || '',
+    model: existingProduct.model || '',
   });
+
+  useEffect(() => {
+    // If editing, set the uploadedImages to include the existing image
+    if (isEdit && existingProduct.image) {
+      // Here, you might need to handle the existing image differently
+      // For simplicity, we'll assume existingProduct.image is a URL
+      setUploadedImages([existingProduct.image]);
+    }
+  }, [isEdit, existingProduct]);
 
   const nextStep = () => {
     setStep(step + 1);
@@ -51,7 +69,7 @@ const ProductInformation = () => {
 
   const handleCancelClick = () => {
     window.scrollTo(0, 0);
-    navigate('/inventory-landing');
+    navigate('/inventory');
   };
 
   const handleImageUpload = (e) => {
@@ -69,10 +87,11 @@ const ProductInformation = () => {
   // Handle Save button click
   const handleSave = () => {
     // Collect all form data
-    const newProduct = {
-      id: Date.now(),
+    const productData = {
+      ...existingProduct,
+      id: existingProduct.id || Date.now(),
       name: formData.productName || 'Untitled Product',
-      image: uploadedImages[0] ? URL.createObjectURL(uploadedImages[0]) : Wheel1, // Use first uploaded image or placeholder
+      image: uploadedImages[0] ? (typeof uploadedImages[0] === 'string' ? uploadedImages[0] : URL.createObjectURL(uploadedImages[0])) : Wheel1,
       price: formData.retailSalePrice || 'PHP 0.00',
       type: formData.productType || 'N/A',
       brand: formData.productBrand || 'N/A',
@@ -83,21 +102,27 @@ const ProductInformation = () => {
       finish: formData.finish.length > 0 ? formData.finish.join(', ') : 'N/A',
       material: formData.material || 'N/A',
       model: formData.model || 'N/A',
-      tax: 'N/A', // Placeholder
+      tax: formData.tax || 'N/A', // Placeholder
       discount: formData.discount || 'PHP 0.00',
       totalPrice: formData.totalPrice || 'PHP 0.00',
     };
 
-    // Navigate to InventoryLanding and pass the new product data
-    navigate('/inventory-landing', { state: { newProduct } });
+    if (isEdit) {
+      updateProduct(productData);
+    } else {
+      addProduct(productData);
+    }
+
+    // Navigate back to InventoryLanding
+    navigate('/inventory');
   };
 
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       {/* Header */}
       <div className="text-white text-center mb-10 mt-16">
-        <h1 className="text-xl font-bold">GENERAL INFORMATION</h1>
-        <h2 className="text-sm font-bold mt-2">Add New Product</h2>
+        <h1 className="text-xl font-bold">{isEdit ? 'EDIT PRODUCT' : 'GENERAL INFORMATION'}</h1>
+        <h2 className="text-sm font-bold mt-2">{isEdit ? `Edit Product #${existingProduct.id}` : 'Add New Product'}</h2>
       </div>
 
       {/* Steps Sidebar */}
@@ -215,12 +240,12 @@ const ProductInformation = () => {
                     <div key={index} className="relative w-full h-40 bg-gray-900 border border-gray-600 rounded-lg flex flex-col justify-center items-center">
                       {/* Image preview */}
                       <div className="w-full h-full rounded-lg overflow-hidden">
-                        <img src={URL.createObjectURL(image)} alt={`attachment-${index}`} className="object-cover w-full h-full" />
+                        <img src={typeof image === 'string' ? image : URL.createObjectURL(image)} alt={`attachment-${index}`} className="object-cover w-full h-full" />
                       </div>
 
                       {/* Display file name */}
                       <div className="text-center text-white text-xs mt-2">
-                        <p>{image.name}</p>
+                        <p>{typeof image === 'string' ? 'Existing Image' : image.name}</p>
                       </div>
 
                       {/* Remove icon on hover */}
@@ -490,7 +515,7 @@ const ProductInformation = () => {
                   onClick={handleSave}
                   className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
                 >
-                  SAVE
+                  {isEdit ? 'UPDATE' : 'SAVE'}
                 </button>
               </div>
             </div>

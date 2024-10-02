@@ -27,6 +27,7 @@ import InventoryLanding from './inventory-page-component/InventoryLanding'; // I
 import OrderDetails from './order-page-component/OrderDetails'; // Correct path to OrderDetails.jsx
 import ProductInformation from './inventory-page-component/ProductInformation'; // Correct path to ProductInformation.jsx
 import { CustomerProvider } from './context/CustomerContext'; // Adjust the path if necessary
+import { ProductProvider } from './context/ProductContext'; 
 
 function App() {
   const [cartItems, setCartItems] = useState(() => {
@@ -98,12 +99,14 @@ function App() {
           
           {/* Inventory Routes */}
           <Route
-            path="/inventory"
+            path="/inventory/*"
             element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <InventoryPage />
-              </>
+              <ProductProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <InventoryPage />
+                </>
+              </ProductProvider>
             }
           />
           <Route
@@ -147,23 +150,27 @@ function App() {
           
           {/* Route for InventoryLanding */}
           <Route
-            path="/inventory-landing"
+            path="/inventory"
             element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <InventoryLanding />
-              </>
+              <ProductProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <InventoryLanding />
+                </>
+              </ProductProvider>
             }
           />
 
           {/* Route for ProductInformation */}
           <Route
-            path="/product-information"
+            path="/inventory/product-information"
             element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <ProductInformation />
-              </>
+              <ProductProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <ProductInformation />
+                </>
+              </ProductProvider>
             }
           />
 
