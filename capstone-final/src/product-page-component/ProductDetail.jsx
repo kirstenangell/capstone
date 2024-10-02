@@ -18,34 +18,7 @@ const products = [
     rating: 4,
     relatedImages: [Wheel1, Wheel2, Wheel3] // Add related images here
   },
-  { 
-    id: 2, 
-    image: Wheel6, 
-    name: "PRODUCT NAME", 
-    price: "PHP30,000.00", 
-    reviews: 11, 
-    rating: 4,
-    relatedImages: [Wheel2, Wheel3, Wheel4]
-  },
-  { 
-    id: 3, 
-    image: Wheel7, 
-    name: "PRODUCT NAME", 
-    price: "PHP30,000.00", 
-    reviews: 11, 
-    rating: 4,
-    relatedImages: [Wheel3, Wheel4, Wheel5]
-  },
-  { 
-    id: 4, 
-    image: Wheel8, 
-    name: "PRODUCT NAME", 
-    price: "PHP30,000.00", 
-    reviews: 11, 
-    rating: 4,
-    relatedImages: [Wheel4, Wheel5, Wheel6]
-  },
-  // ... add more products as needed
+
 ];
 
 const ProductDetail = () => {

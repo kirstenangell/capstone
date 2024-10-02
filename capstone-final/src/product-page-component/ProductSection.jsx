@@ -21,33 +21,7 @@ const products = [
     rating: 4,
     relatedImages: [Wheel1, Wheel2, Wheel3] 
   },
-  { 
-    id: 2, 
-    image: Wheel6, 
-    name: "PRODUCT NAME", 
-    price: 30000, 
-    reviews: 11, 
-    rating: 4,
-    relatedImages: [Wheel2, Wheel3, Wheel4]
-  },
-  { 
-    id: 3, 
-    image: Wheel7, 
-    name: "PRODUCT NAME", 
-    price: 30000, 
-    reviews: 11, 
-    rating: 4,
-    relatedImages: [Wheel3, Wheel4, Wheel5]
-  },
-  { 
-    id: 4, 
-    image: Wheel8, 
-    name: "PRODUCT NAME", 
-    price: 30000, 
-    reviews: 11, 
-    rating: 4,
-    relatedImages: [Wheel4, Wheel5, Wheel6]
-  },
+  
 ];
 
 const ProductSection = ({ onAddToCart }) => {
@@ -71,6 +45,7 @@ const ProductSection = ({ onAddToCart }) => {
     onAddToCart(product); 
     navigate('/cart'); 
   };
+  
 
   return (
     <div className="relative min-h-screen bg-black text-white pb-80">

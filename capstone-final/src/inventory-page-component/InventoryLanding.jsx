@@ -68,6 +68,11 @@ const InventoryLanding = () => {
     setShowPasswordModal(false);
     setPassword(''); // Clear the password field after submission
   };
+  const handlePublish = () => {
+    // Implement the publish functionality here
+    console.log('Publish button clicked');
+  };
+  
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
@@ -183,10 +188,10 @@ const InventoryLanding = () => {
 
               <div className="flex flex-col md:flex-row">
                 <div className="md:w-1/2">
-                  <h1 className="text-2xl font-bold text-white mb-2">
+                  <h1 className="text-xl font-bold text-white mb-2">
                     {selectedProduct.name}
                   </h1>
-                  <p className="text-sm text-gray-400">{selectedProduct.description}</p>
+                  <p className="text-xs text-gray-400">{selectedProduct.description}</p>
 
                   {/* Product Image with Faint Gray Background */}
                   <div className="mt-4 bg-gray-700 p-2 rounded-lg">
@@ -199,29 +204,29 @@ const InventoryLanding = () => {
                 </div>
                 <div className="md:w-1/2 mt-6 md:mt-0 md:ml-10">
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-                    <h2 className="col-span-2 text-lg font-bold text-white mb-2">Basic Information</h2>
-                    <div className="text-gray-400">
+                    <h2 className="col-span-2 text-sm font-bold text-white mb-2">Basic Information</h2>
+                    <div className="text-gray-400 text-xs">
                       <p>Product Type:</p>
                       <p>Product Brand:</p>
                       <p>Product Category:</p>
                       <p>Product Description:</p>
                     </div>
-                    <div className="text-white">
+                    <div className="text-white text-xs">
                       <p>{selectedProduct.type}</p>
                       <p>{selectedProduct.brand}</p>
                       <p>{selectedProduct.category}</p>
                       <p>{selectedProduct.description}</p>
                     </div>
 
-                    <h2 className="col-span-2 text-lg font-bold text-white mt-4 mb-2">Measurement</h2>
-                    <div className="text-gray-400">
+                    <h2 className="col-span-2 text-sm font-bold text-white mt-4 mb-2">Measurement</h2>
+                    <div className="text-gray-400 text-xs">
                       <p>Dimensions:</p>
                       <p>Color:</p>
                       <p>Finish:</p>
                       <p>Material:</p>
                       <p>Model:</p>
                     </div>
-                    <div className="text-white">
+                    <div className="text-white text-xs">
                       <p>{selectedProduct.dimensions}</p>
                       <p>{selectedProduct.color}</p>
                       <p>{selectedProduct.finish}</p>
@@ -229,14 +234,14 @@ const InventoryLanding = () => {
                       <p>{selectedProduct.model}</p>
                     </div>
 
-                    <h2 className="col-span-2 text-lg font-bold text-white mt-4 mb-2">Sales Information</h2>
-                    <div className="text-gray-400">
+                    <h2 className="col-span-2 text-sm font-bold text-white mt-4 mb-2">Sales Information</h2>
+                    <div className="text-gray-400 text-xs">
                       <p>Retail Price:</p>
                       <p>Tax:</p>
                       <p>Discount:</p>
                       <p>Total Price:</p>
                     </div>
-                    <div className="text-white">
+                    <div className="text-white text-xs">
                       <p>{selectedProduct.price}</p>
                       <p>{selectedProduct.tax}</p>
                       <p>{selectedProduct.discount}</p>
@@ -245,9 +250,20 @@ const InventoryLanding = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Publish Button */}
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={handlePublish}
+                  className="px-6 py-2 bg-gradient-to-r from-[#040405] to-[#2c505f] text-white rounded-md text-sm"
+                >
+                  Publish
+                </button>
+              </div>
             </div>
           </div>
         )}
+
 
         {/* Password Modal */}
         {showPasswordModal && (
