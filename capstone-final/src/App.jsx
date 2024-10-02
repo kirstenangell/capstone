@@ -25,6 +25,9 @@ import OrderPage from "./inventory/OrderPage";
 import UserPage from "./inventory/UserPage";
 import SupplierPage from './inventory/SupplierPage';
 
+// Import OrderDetails page
+import OrderDetails from './order-page-component/OrderDetails'; // Correct path to OrderDetails.jsx
+
 // Import CustomerProvider
 import { CustomerProvider } from './context/CustomerContext'; // Adjust the path if necessary
 
@@ -130,6 +133,17 @@ function App() {
               <>
                 <InventoryNavbar cartItemCount={cartItemCount} />
                 <SupplierPage />
+              </>
+            }
+          />
+
+          {/* Route for OrderDetails */}
+          <Route
+            path="/order-details"
+            element={
+              <>
+                <InventoryNavbar cartItemCount={cartItemCount} />
+                <OrderDetails />
               </>
             }
           />
