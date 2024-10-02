@@ -1,33 +1,12 @@
 // src/context/ProductContext.js
 import React, { createContext, useState, useEffect } from 'react';
-import Wheel1 from '../assets/wheel1.png'; // Adjust the path to your actual image
 
 // Create the context
 export const ProductContext = createContext();
 
 // Create the provider component
 export const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      image: Wheel1,
-      name: 'PRODUCT NAME 1',
-      price: 'PHP30,000.00',
-      type: 'Loren Ipsum',
-      brand: 'Loren Ipsum',
-      category: 'Loren Ipsum',
-      description: 'Loren Ipsum Acit Dolores',
-      dimensions: 'Loren Ipsum',
-      color: 'Loren Ipsum',
-      finish: 'Loren Ipsum',
-      material: 'Loren Ipsum',
-      model: 'Loren Ipsum',
-      tax: 'Loren Ipsum',
-      discount: 'Loren Ipsum',
-      totalPrice: 'PHP33,000.00',
-    },
-    // Add more initial products as needed
-  ]);
+  const [products, setProducts] = useState([]);
 
   // Function to add a new product
   const addProduct = (product) => {

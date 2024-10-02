@@ -115,6 +115,7 @@ const ProductInformation = () => {
 
     // Navigate back to InventoryLanding
     navigate('/inventory');
+    window.scrollTo(0, 0);
   };
 
   return (

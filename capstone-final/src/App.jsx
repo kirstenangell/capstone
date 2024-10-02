@@ -184,7 +184,17 @@ function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/about" element={<AboutUsPage />} />
                   <Route path="/services" element={<ServicePage />} />
-                  <Route path="/products" element={<ProductPage onAddToCart={handleAddToCart} />} />
+                  <Route
+                  path="/products"
+                  element={
+                    <ProductProvider>
+                      <>
+                        <Navbar cartItemCount={cartItemCount} />
+                        <ProductPage onAddToCart={handleAddToCart} />
+                      </>
+                    </ProductProvider>
+                  }
+                />
                   <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
                   <Route path="/signup" element={<SignUpPage />} />
                   <Route path="/login/*" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
