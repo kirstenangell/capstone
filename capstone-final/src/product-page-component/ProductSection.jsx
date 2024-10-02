@@ -1,27 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
 import Wheel1 from "../assets/wheel1.png";
 import Wheel2 from "../assets/wheel2.png";
 import Wheel3 from "../assets/wheel3.png";
-import Wheel4 from "../assets/wheel4.png";
 import Wheel5 from "../assets/wheel5.png";
-import Wheel6 from "../assets/wheel6.png";
-import Wheel7 from "../assets/wheel7.png";
-import Wheel8 from "../assets/wheel8.png";
 import dashboardImage from '../assets/dashboard.png';
 
 const products = [
   { 
     id: 1, 
     image: Wheel5, 
-    name: "PRODUCT NAME", 
+    name: "Wheel A", 
     price: 30000, 
     reviews: 11, 
     rating: 4,
-    relatedImages: [Wheel1, Wheel2, Wheel3] 
+    relatedImages: [Wheel1, Wheel2, Wheel3],
+    category: "wheels",
   },
-  
+  { 
+    id: 2, 
+    image: Wheel2, 
+    name: "Wheel B", 
+    price: 32000, 
+    reviews: 8, 
+    rating: 5,
+    relatedImages: [Wheel1, Wheel3],
+    category: "wheels",
+  },
+  { 
+    id: 3, 
+    image: Wheel1, 
+    name: "Wheel C", 
+    price: 35000, 
+    reviews: 15, 
+    rating: 3,
+    relatedImages: [Wheel2, Wheel3],
+    category: "wheels",
+  }
 ];
 
 const ProductSection = ({ onAddToCart }) => {
@@ -34,7 +50,8 @@ const ProductSection = ({ onAddToCart }) => {
   };
 
   const handleProductClick = (product) => {
-    setSelectedProduct({ ...product, quantity: 1 });
+    setSelectedProduct({ ...product, quantity: 0 });
+    window.scrollTo(0, 0); // Scroll to the top when a product is clicked
   };
 
   const handleBackToProducts = () => {
@@ -45,7 +62,11 @@ const ProductSection = ({ onAddToCart }) => {
     onAddToCart(product); 
     navigate('/cart'); 
   };
-  
+
+  // Filtering related products by category (for recommendations)
+  const getRelatedProducts = (product) => {
+    return products.filter(p => p.category === product.category && p.id !== product.id);
+  };
 
   return (
     <div className="relative min-h-screen bg-black text-white pb-80">
@@ -80,6 +101,7 @@ const ProductSection = ({ onAddToCart }) => {
           >
             Back to Products
           </button>
+
           {/* Product Detail View */}
           <div className="flex">
             {/* Left Side - Thumbnails and Main Image */}
@@ -88,7 +110,7 @@ const ProductSection = ({ onAddToCart }) => {
               <div className="flex flex-col justify-center space-y-4">
                 {selectedProduct.relatedImages.map((image, index) => (
                   <img 
-                    key={index} // Add a key prop here
+                    key={index}
                     src={image} 
                     alt={`Related image ${index + 1}`} 
                     className={`w-16 h-16 object-contain cursor-pointer ${selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
@@ -113,16 +135,15 @@ const ProductSection = ({ onAddToCart }) => {
             <div className="ml-12 flex-1">
               <h1 className="text-3xl font-medium">{selectedProduct.name}</h1>
               <p className="mt-4 text-gray-400">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim 
-                veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex eado consequat.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
               </p>
               <div className="flex items-center mt-4">
                 <span className="text-[#335C6E]">
                   {Array.from({ length: selectedProduct.rating }, (_, index) => (
-                    <>&#9733; </>
+                    <>&#9733; </> // Filled star
                   ))}
                   {Array.from({ length: 5 - selectedProduct.rating }, (_, index) => (
-                    <>&#9734; </>
+                    <>&#9734; </> // Empty star
                   ))}
                 </span>
                 <span className="ml-2 text-sm text-gray-400">({selectedProduct.reviews} Reviews)</span>
@@ -134,23 +155,20 @@ const ProductSection = ({ onAddToCart }) => {
               {/* Quantity Selector */}
               <div className="flex items-center mt-4">
                 <button 
-                  onClick={() => setSelectedProduct({ ...selectedProduct, quantity: selectedProduct.quantity > 1 ? selectedProduct.quantity - 1 : 1 })}
+                  onClick={() => setSelectedProduct({ ...selectedProduct, quantity: selectedProduct.quantity > 0 ? selectedProduct.quantity - 1 : 0 })}
                   className="px-4 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none hover:bg-gray-700"
                 >-</button>
                 <div className="px-4 py-2 bg-gray-900 text-white">
-                  {selectedProduct.quantity || 1}
+                  {selectedProduct.quantity || 0}
                 </div>
                 <button 
-                  onClick={() => setSelectedProduct({ ...selectedProduct, quantity: (selectedProduct.quantity || 1) + 1 })}
+                  onClick={() => setSelectedProduct({ ...selectedProduct, quantity: (selectedProduct.quantity || 0) + 1 })}
                   className="px-4 py-2 bg-gray-800 text-white rounded-r-md focus:outline-none hover:bg-gray-700"
                 >+</button>
               </div>
 
               {/* Product Description */}
               <div className="mt-6 space-y-2 text-gray-400 font-thin">
-                <p>Loren Ipsum: Sed do eiusmod tempor incididunt ut labore et</p>
-                <p>Loren Ipsum: Sed do eiusmod tempor incididunt ut labore et</p>
-                <p>Loren Ipsum: Sed do eiusmod tempor incididunt ut labore et</p>
                 <p>Loren Ipsum: Sed do eiusmod tempor incididunt ut labore et</p>
               </div>
 
@@ -169,6 +187,28 @@ const ProductSection = ({ onAddToCart }) => {
                   BUY NOW
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Related Products Section */}
+          <div className="mt-12">
+            <h2 className="text-2xl font-semibold text-white">Related Products</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-6">
+              {getRelatedProducts(selectedProduct).map((product) => (
+                <div 
+                  key={product.id} 
+                  className="bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-4 shadow-lg cursor-pointer"
+                  onClick={() => handleProductClick(product)}
+                >
+                  <div className="w-full h-80 rounded-t-lg flex items-center justify-center">
+                    <img src={product.image} alt="Wheel" className="object-contain h-full rounded-md" />
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-lg font-bold text-white mt-1">{product.name}</p>
+                    <p className="text-lg font-semibold text-gray-400 mt-1">PHP {product.price.toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

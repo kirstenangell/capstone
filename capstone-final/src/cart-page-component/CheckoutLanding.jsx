@@ -22,6 +22,7 @@ const CheckoutLanding = () => {
   const [pickupDate, setPickupDate] = useState(new Date());
   const [pickupTime, setPickupTime] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({
     email: 'loremipsumdolor@gmail.com',
     phone: '912 456 7891',
@@ -99,6 +100,22 @@ const CheckoutLanding = () => {
     return date >= today && date <= new Date(today.setMonth(today.getMonth() + 3));
   };
 
+  // Validation for required fields
+const missingFields = [];
+
+if (!userInfo.firstName || !userInfo.lastName || !userInfo.email || !userInfo.phone) {
+  missingFields.push('Information');
+}
+if (!addresses.length) {
+  missingFields.push('Address');
+}
+if (!selectedDeliveryOption || (selectedDeliveryOption === 'courier' && !selectedCourier)) {
+  missingFields.push('Delivery');
+}
+if (!selectedPaymentMethod) {
+  missingFields.push('Payment');
+}
+
   return (
     <div className="min-h-screen flex bg-black text-white py-10 relative">
       <div className="flex w-full max-w-6xl mx-auto">
@@ -113,23 +130,23 @@ const CheckoutLanding = () => {
           </button>
 
           {/* Information Section */}
-          <div className="p-6 rounded-lg shadow-lg bg-black border border-transparent cursor-pointer">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <FaUser className="text-lg align-middle" />
-                <div className="text-lg font-semibold align-middle">Information</div>
-              </div>
-              <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('information')}>Edit</div>
-            </div>
-            {expandedSection !== 'information' && (
-              <div className="mt-4">
-                <div className="text-sm">{userInfo.firstName} {userInfo.lastName}</div>
-                <div className="text-sm">{userInfo.email}</div>
-                <div className="text-sm">{userInfo.countryCode} {userInfo.phone}</div>
-              </div>
-            )}
-            {expandedSection === 'information' && (
-              <div className="mt-4">
+          <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer">
+  <div className="flex justify-between items-center">
+    <div className="flex items-center space-x-2">
+      <FaUser className="text-lg align-middle" />
+      <div className="text-lg font-semibold align-middle">Information</div>
+    </div>
+    <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('information')}>Edit</div>
+  </div>
+  {expandedSection !== 'information' && (
+    <div className="mt-4">
+      <div className="text-sm">{userInfo.firstName} {userInfo.lastName}</div>
+      <div className="text-sm">{userInfo.email}</div>
+      <div className="text-sm">{userInfo.countryCode} {userInfo.phone}</div>
+    </div>
+  )}
+  {expandedSection === 'information' && (
+    <div className="mt-4">
                 <div className="mt-4">
                     <div className="text-sm">{userInfo.firstName} {userInfo.lastName}</div>
                     <div className="text-sm">{userInfo.email}</div>
@@ -239,13 +256,6 @@ const CheckoutLanding = () => {
                     {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
                   </div>
                 ))}
-                <div
-                  className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-center text-sm mt-4 cursor-pointer"
-                  style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
-                  onClick={handleAddAddressClick}
-                >
-                  + Add Address
-                </div>
                 {addAddressExpanded && (
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="relative">
@@ -311,7 +321,7 @@ const CheckoutLanding = () => {
             </div>
           )}
         </div>
-
+          
           {/* Delivery Section */}
           <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer">
             <div className="flex justify-between items-center">
@@ -492,19 +502,22 @@ const CheckoutLanding = () => {
 
                 {/* Pickup Options */}
                 {selectedDeliveryOption === 'pickup' && (
-                  <div className="mt-4">
-                    <p className="text-sm mb-2">Select a pickup date</p>
-                    <DatePicker
-                      selected={pickupDate}
-                      onChange={(date) => setPickupDate(date)}
-                      inline
-                      filterDate={isFutureDate}
-                      calendarClassName="bg-[#333] text-white rounded-lg border border-gray-900"
-                      dayClassName={date => "text-white hover:bg-[#335C6E] rounded-lg"}
-                      monthClassName="text-white bg-[#040405] border-b border-gray-700"
-                      todayButton="Today"
-                      className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs"
-                    />
+  <div className="mt-4">
+    <p className="text-sm mb-2">Select a pickup date</p>
+    <div className="cursor-pointer" onClick={() => setCalendarOpen(!calendarOpen)}>
+      <DatePicker
+        selected={pickupDate}
+        onChange={(date) => setPickupDate(date)}
+        open={calendarOpen} // This will control if the calendar is shown or not
+        inline
+        filterDate={isFutureDate}
+        calendarClassName="bg-[#333] text-white rounded-lg border border-gray-900"
+        dayClassName={(date) => "text-white hover:bg-[#335C6E] rounded-lg"}
+        monthClassName="text-white bg-[#040405] border-b border-gray-700"
+        todayButton="Today"
+        className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs"
+      />
+    </div>
                     <p className="text-sm mt-4 mb-2">Select a pickup time</p>
                     <div className="grid grid-cols-2 gap-4">
                       {['09:00 AM', '10:00 AM', '02:00 PM', '04:30 PM'].map((time) => (
@@ -675,25 +688,37 @@ const CheckoutLanding = () => {
                   <span className="text-blue-400">PHP {total.toLocaleString()}</span>
                 </div>
               </div>
-            </>
-          ) : (
-            <div className="text-center mt-10">
-              <h2 className="text-lg font-medium">Your Cart is Empty</h2>
-            </div>
-          )}
-
-          {/* Checkout Button (aligned to the right of the summary) */}
-          <div className="flex justify-center">
-            <button 
-              className="text-sm mt-4 w-36 h-10 p-2 rounded-full text-white bg-gradient-to-r from-[#4B88A3] via-[#040405] to-[#4B88A3] hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.3)] transition-shadow"
-              onClick={handlePlaceOrder}
-            >
-              CHECKOUT
-            </button>
-          </div>
+              
+                 {/* Insert the conditional checkout button and warning here */}
+      {missingFields.length === 0 && cartItems.length > 0 && (
+        <div className="flex justify-center">
+          <button
+            className="text-sm mt-4 w-36 h-10 p-2 rounded-full text-white bg-gradient-to-r from-[#4B88A3] via-[#040405] to-[#4B88A3] hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.3)] transition-shadow"
+            onClick={handlePlaceOrder}
+          >
+            CHECKOUT
+          </button>
         </div>
-      </div>
+      )}
 
+      {/* Warning if fields are missing */}
+      {missingFields.length > 0 && (
+        <div className="text-red-500 text-sm mt-4 text-center">
+          <p>Please fill in the following sections:</p>
+          <ul>
+            {missingFields.map((field, index) => (
+              <li key={index}>{field}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  ) : (
+    <div className="text-center mt-10">
+      <h2 className="text-lg font-medium">Your Cart is Empty</h2>
+    </div>
+  )}
+</div>
       {/* Modal for Order Placed */}
       {orderPlaced && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur">
@@ -715,6 +740,7 @@ const CheckoutLanding = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };
