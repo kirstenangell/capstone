@@ -44,8 +44,7 @@ const InventoryLanding = () => {
   };
 
   const handleAddProductClick = () => {
-    setActionType('add'); // Set action to add
-    setShowModal(true); // Show password modal when adding a product
+    navigate('/product-information'); // Navigate to ProductInformation page
   };
 
   const handleEditClick = () => {

@@ -172,17 +172,6 @@ const OrderDetails = () => {
                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Address</label>
-                <textarea
-                  name="address"
-                  placeholder="House/Unit no., Street, Barangay, City, Region, Zip code"
-                  value={formData.address}
-                  onChange={handleChange}
-                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  rows="2"
-                ></textarea>
-              </div>
             </>
           ) : currentStep === 2 ? (
             <>
@@ -292,61 +281,35 @@ const OrderDetails = () => {
 
               {formData.deliveryOption === 'Pick Up' && (
                 <>
-                  {/* Calendar */}
                   <div className="mt-6">
                     <label className="block text-sm font-medium mb-1">Pick-Up Date</label>
-                    <div className="bg-black p-4 rounded-lg shadow-md">
-                      <div className="grid grid-cols-7 gap-4 text-center">
-                        <div className="text-gray-400">Sun</div>
-                        <div className="text-gray-400">Mon</div>
-                        <div className="text-gray-400">Tue</div>
-                        <div className="text-gray-400">Wed</div>
-                        <div className="text-gray-400">Thu</div>
-                        <div className="text-gray-400">Fri</div>
-                        <div className="text-gray-400">Sat</div>
-                        {[...Array(31).keys()].map((day) => (
-                          <div key={day} className="text-white">
-                            {day + 1}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                    <input
+                      type="date"
+                      name="pickUpDate"
+                      value={formData.pickUpDate}
+                      onChange={handleChange}
+                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    />
                   </div>
 
-                  {/* Pick-Up Time */}
                   <div className="mt-6">
                     <label className="block text-sm font-medium mb-1">Select a Pickup Time</label>
                     <div className="grid grid-cols-2 gap-4">
-                      <button
-                        className={`p-3 rounded-lg text-white bg-black border border-gray-600 ${formData.pickUpTime === '09:00 AM' ? 'bg-gray-700' : ''}`}
-                        onClick={() => setFormData({ ...formData, pickUpTime: '09:00 AM' })}
-                      >
-                        09:00 AM
-                      </button>
-                      <button
-                        className={`p-3 rounded-lg text-white bg-black border border-gray-600 ${formData.pickUpTime === '10:00 AM' ? 'bg-gray-700' : ''}`}
-                        onClick={() => setFormData({ ...formData, pickUpTime: '10:00 AM' })}
-                      >
-                        10:00 AM
-                      </button>
-                      <button
-                        className={`p-3 rounded-lg text-white bg-black border border-gray-600 ${formData.pickUpTime === '02:00 PM' ? 'bg-gray-700' : ''}`}
-                        onClick={() => setFormData({ ...formData, pickUpTime: '02:00 PM' })}
-                      >
-                        02:00 PM
-                      </button>
-                      <button
-                        className={`p-3 rounded-lg text-white bg-black border border-gray-600 ${formData.pickUpTime === '04:30 PM' ? 'bg-gray-700' : ''}`}
-                        onClick={() => setFormData({ ...formData, pickUpTime: '04:30 PM' })}
-                      >
-                        04:30 PM
-                      </button>
+                      {['09:00 AM', '10:00 AM', '02:00 PM', '04:30 PM'].map((time) => (
+                        <button
+                          key={time}
+                          type="button"
+                          className={`p-3 rounded-lg text-white bg-black border border-gray-600 ${formData.pickUpTime === time ? 'bg-gray-700' : ''}`}
+                          onClick={() => setFormData({ ...formData, pickUpTime: time })}
+                        >
+                          {time}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </>
               )}
 
-              {/* Payment Option */}
               {(formData.deliveryOption === 'Via Courier' || formData.deliveryOption === 'Pick Up') && (
                 <div className="mt-6">
                   <label className="block text-sm font-medium mb-1">Payment Option</label>
@@ -419,35 +382,41 @@ const OrderDetails = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="text-gray-400">Name</h3>
-                    <p className="text-white">Jane Doe</p>
+                    <p className="text-white">{formData.firstName} {formData.lastName}</p>
                   </div>
                   <div>
                     <h3 className="text-gray-400">Email Address</h3>
-                    <p className="text-white">janedoe@gmail.com</p>
+                    <p className="text-white">{formData.email}</p>
                   </div>
                   <div>
                     <h3 className="text-gray-400">Contact No.</h3>
-                    <p className="text-white">09876543210</p>
+                    <p className="text-white">{formData.contactNumber}</p>
                   </div>
                   <div>
                     <h3 className="text-gray-400">Address</h3>
-                    <p className="text-white">123 House ABC St., Brgy. Quezon City 1102</p>
+                    <p className="text-white">
+                      {formData.houseNumber} {formData.streetName}, {formData.barangay}, {formData.city}, {formData.region} {formData.zipCode}
+                    </p>
                   </div>
                   <div>
                     <h3 className="text-gray-400">Delivery Option</h3>
-                    <p className="text-white">Pick Up</p>
+                    <p className="text-white">{formData.deliveryOption}</p>
                   </div>
-                  <div>
-                    <h3 className="text-gray-400">Pick Up Date</h3>
-                    <p className="text-white">May 25, 2024</p>
-                  </div>
-                  <div>
-                    <h3 className="text-gray-400">Pick Up Time</h3>
-                    <p className="text-white">2:00 PM</p>
-                  </div>
+                  {formData.deliveryOption === 'Pick Up' && (
+                    <>
+                      <div>
+                        <h3 className="text-gray-400">Pick Up Date</h3>
+                        <p className="text-white">{formData.pickUpDate}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-gray-400">Pick Up Time</h3>
+                        <p className="text-white">{formData.pickUpTime}</p>
+                      </div>
+                    </>
+                  )}
                   <div>
                     <h3 className="text-gray-400">Payment Option</h3>
-                    <p className="text-white">GCash</p>
+                    <p className="text-white">{formData.paymentOption}</p>
                   </div>
                 </div>
 
@@ -482,8 +451,6 @@ const OrderDetails = () => {
                     <span className="font-bold text-white">PHP 30,000</span>
                   </div>
                 </div>
-
-                
               </div>
             </>
           )}

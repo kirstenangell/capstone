@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from "./global/Header";
@@ -24,11 +23,9 @@ import InventoryPage from "./inventory/InventoryPage";
 import OrderPage from "./inventory/OrderPage";
 import UserPage from "./inventory/UserPage";
 import SupplierPage from './inventory/SupplierPage';
-
-// Import OrderDetails page
+import InventoryLanding from './inventory-page-component/InventoryLanding'; // Import InventoryLanding
 import OrderDetails from './order-page-component/OrderDetails'; // Correct path to OrderDetails.jsx
-
-// Import CustomerProvider
+import ProductInformation from './inventory-page-component/ProductInformation'; // Correct path to ProductInformation.jsx
 import { CustomerProvider } from './context/CustomerContext'; // Adjust the path if necessary
 
 function App() {
@@ -148,6 +145,28 @@ function App() {
             }
           />
           
+          {/* Route for InventoryLanding */}
+          <Route
+            path="/inventory-landing"
+            element={
+              <>
+                <InventoryNavbar cartItemCount={cartItemCount} />
+                <InventoryLanding />
+              </>
+            }
+          />
+
+          {/* Route for ProductInformation */}
+          <Route
+            path="/product-information"
+            element={
+              <>
+                <InventoryNavbar cartItemCount={cartItemCount} />
+                <ProductInformation />
+              </>
+            }
+          />
+
           {/* Public Routes */}
           <Route
             path="*"
