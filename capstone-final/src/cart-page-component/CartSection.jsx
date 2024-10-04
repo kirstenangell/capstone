@@ -9,6 +9,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
   const [quantities, setQuantities] = useState(cartItems.map(item => item.quantity || 1));
   const [showModal, setShowModal] = useState(false); 
   const [removeIndex, setRemoveIndex] = useState(null);
+  
 
   // Prevent infinite loop by making sure `useEffect` only runs when quantities change
   useEffect(() => {

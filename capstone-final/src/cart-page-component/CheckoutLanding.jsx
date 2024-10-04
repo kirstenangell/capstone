@@ -502,22 +502,48 @@ if (!selectedPaymentMethod) {
 
                 {/* Pickup Options */}
                 {selectedDeliveryOption === 'pickup' && (
-  <div className="mt-4">
-    <p className="text-sm mb-2">Select a pickup date</p>
-    <div className="cursor-pointer" onClick={() => setCalendarOpen(!calendarOpen)}>
-      <DatePicker
-        selected={pickupDate}
-        onChange={(date) => setPickupDate(date)}
-        open={calendarOpen} // This will control if the calendar is shown or not
-        inline
-        filterDate={isFutureDate}
-        calendarClassName="bg-[#333] text-white rounded-lg border border-gray-900"
-        dayClassName={(date) => "text-white hover:bg-[#335C6E] rounded-lg"}
-        monthClassName="text-white bg-[#040405] border-b border-gray-700"
-        todayButton="Today"
-        className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs"
-      />
-    </div>
+      <div className="mt-4">
+          <p className="text-sm mb-2">Select a pickup date</p>
+          <div className="cursor-pointer w-full flex justify-center" onClick={() => setCalendarOpen(!calendarOpen)}>
+        <DatePicker
+          selected={pickupDate}
+          onChange={(date) => setPickupDate(date)}
+          open={calendarOpen} // Controls calendar visibility
+          inline
+          filterDate={isFutureDate}
+          calendarClassName="bg-transparent text-white border-none" // Transparent background for the calendar
+          dayClassName={(date) => {
+            const isSelected =
+              date.getDate() === pickupDate.getDate() &&
+              date.getMonth() === pickupDate.getMonth() &&
+              date.getFullYear() === pickupDate.getFullYear();
+            
+            return isSelected
+              ? "text-white rounded-full cursor-pointer" // Keeping the class minimal and applying the gradient below
+              : "text-white hover:bg-[#040405] transition-all ease-in-out duration-200 rounded-lg cursor-pointer";
+          }}
+          dayStyle={(date) => {
+            const isSelected =
+              date.getDate() === pickupDate.getDate() &&
+              date.getMonth() === pickupDate.getMonth() &&
+              date.getFullYear() === pickupDate.getFullYear();
+            
+            return isSelected
+              ? { background: "linear-gradient(90deg, #040405, #335C6E)", color: "white" }
+              : {};
+          }}
+          monthClassName="text-white border-none" // Transparent background for month header
+          todayButton="Today"
+          className="p-4 text-xs w-full"
+          style={{ width: '100%', maxWidth: '320px' }} // Restrict width and center calendar
+        />
+      </div>
+
+
+
+
+
+
                     <p className="text-sm mt-4 mb-2">Select a pickup time</p>
                     <div className="grid grid-cols-2 gap-4">
                       {['09:00 AM', '10:00 AM', '02:00 PM', '04:30 PM'].map((time) => (

@@ -8,12 +8,9 @@ const Navbar = ({ cartItemCount }) => {
       className="p-4 flex justify-between items-center sticky top-[52px] z-40"
       style={{ backgroundColor: 'black' }} 
     >
-      {/* Logo */}
       <NavLink to="/" className="text-white text-2xl font-bold">
         LOGO
       </NavLink>
-
-      {/* Combined Links and Buttons with Gradient Background and Rounded Corners */}
       <div
         className="flex items-center py-2 px-4 rounded-full text-xs drop-shadow-2xl"
         style={{
@@ -21,7 +18,6 @@ const Navbar = ({ cartItemCount }) => {
           fontFamily: 'Poppins, sans-serif',
         }}
       >
-        {/* Links with Extended Rounded Background Hover Animation and Drop Shadow */}
         <div className="flex items-center ml-8">
           <NavLink
             to="/about"
@@ -86,8 +82,6 @@ const Navbar = ({ cartItemCount }) => {
             </span>
           </NavLink>
         </div>
-
-        {/* Cart, Sign Up, and Log In with Hover Slide Animation */}
         <div className="flex items-center space-x-2 ml-10">
           <NavLink
             to="/cart"

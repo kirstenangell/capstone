@@ -23,11 +23,12 @@ import InventoryPage from "./inventory/InventoryPage";
 import OrderPage from "./inventory/OrderPage";
 import UserPage from "./inventory/UserPage";
 import SupplierPage from './inventory/SupplierPage';
-import InventoryLanding from './inventory-page-component/InventoryLanding'; // Import InventoryLanding
-import OrderDetails from './order-page-component/OrderDetails'; // Correct path to OrderDetails.jsx
-import ProductInformation from './inventory-page-component/ProductInformation'; // Correct path to ProductInformation.jsx
-import { CustomerProvider } from './context/CustomerContext'; // Adjust the path if necessary
+import InventoryLanding from './inventory-page-component/InventoryLanding';
+import OrderDetails from './order-page-component/OrderDetails';
+import ProductInformation from './inventory-page-component/ProductInformation'; 
+import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
+
 
 function App() {
   const [cartItems, setCartItems] = useState(() => {
@@ -189,7 +190,6 @@ function App() {
                   element={
                     <ProductProvider>
                       <>
-                        <Navbar cartItemCount={cartItemCount} />
                         <ProductPage onAddToCart={handleAddToCart} />
                       </>
                     </ProductProvider>
