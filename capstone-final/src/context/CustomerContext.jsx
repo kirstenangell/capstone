@@ -1,4 +1,4 @@
-// src/context/CustomerContext.js
+// src/context/CustomerContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 
 // Create the context

@@ -80,7 +80,7 @@ const InventoryLanding = () => {
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold">PRODUCT</h1>
+          <h1 className="text-3xl font-bold">PRODUCT</h1>
 
           <div className="flex items-center">
             {/* Search input with icon */}

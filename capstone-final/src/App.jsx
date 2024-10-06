@@ -1,37 +1,47 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// Global Components
 import Header from "./global/Header";
 import Navbar from "./global/Navbar";
 import InventoryNavbar from './global/InventoryNavbar';
 import Footer from "./global/Footer";
-import LandingPage from "./pages/LandingPage";
+import ContactUs from "./global/ContactUs";
+import Faqs from "./global/Faqs";
+import Terms from "./global/Terms";
+import Shipping from "./global/Shipping";
+import Returns from "./global/Returns";
+
+// Page Components
+import LandingPage from './pages/LandingPage';
 import AboutUsPage from "./pages/AboutUsPage";
 import ServicePage from "./pages/ServicePage";
 import ProductPage from "./pages/ProductPage";
 import CartPage from "./pages/CartPage";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
-import ContactUs from "./global/ContactUs";
-import Faqs from "./global/Faqs";
-import Terms from "./global/Terms";
-import Shipping from "./global/Shipping";
-import Returns from "./global/Returns";
 import ManageAcc from "./login-page-component/ManageAcc"; 
 import Dashboard from './inventory/Dashboard';
-import CustomerPage from "./inventory/CustomerPage";
 import InventoryPage from "./inventory/InventoryPage";
 import OrderPage from "./inventory/OrderPage";
+import CustomerPage from "./inventory/CustomerPage";
 import UserPage from "./inventory/UserPage";
-import SupplierPage from './inventory/SupplierPage';
+import SupplierPage from './inventory/SupplierPage'; // Assuming SupplierPage corresponds to SupplierLanding
 import InventoryLanding from './inventory-page-component/InventoryLanding';
 import OrderDetails from './order-page-component/OrderDetails';
 import ProductInformation from './inventory-page-component/ProductInformation'; 
+import SupplierInformation from './supplier-page-component/SupplierInformation'; // New import
+import SupplierAddress from './supplier-page-component/SupplierAddress'; // New import
+
+// Context Providers
 import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
 import { OrderProvider } from './context/OrderContext'; // Import OrderProvider
+import { SupplierProvider } from './context/SupplierContext'; // Import SupplierProvider
 
 function App() {
+  // Cart State Management
   const [cartItems, setCartItems] = useState(() => {
     const savedCartItems = localStorage.getItem('cartItems');
     return savedCartItems ? JSON.parse(savedCartItems) : [];
@@ -41,8 +51,10 @@ function App() {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // Authentication State (if needed)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Cart Functions
   const handleAddToCart = (product) => {
     setCartItems((prevItems) => {
       const existingProductIndex = prevItems.findIndex(item => item.id === product.id);
@@ -136,18 +148,20 @@ function App() {
             }
           />
           
-          {/* Supplier Routes */}
+          {/* Supplier Routes Wrapped with SupplierProvider */}
           <Route
-            path="/supplier"
+            path="/supplier/*"
             element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <SupplierPage />
-              </>
+              <SupplierProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <SupplierPage />
+                </>
+              </SupplierProvider>
             }
           />
 
-          {/* Route for OrderDetails Wrapped with OrderProvider */}
+          {/* OrderDetails Route Wrapped with OrderProvider */}
           <Route
             path="/order-details"
             element={
@@ -160,7 +174,7 @@ function App() {
             }
           />
           
-          {/* Route for InventoryLanding Wrapped with ProductProvider */}
+          {/* InventoryLanding Route Wrapped with ProductProvider */}
           <Route
             path="/inventory"
             element={
@@ -172,8 +186,8 @@ function App() {
               </ProductProvider>
             }
           />
-
-          {/* Route for ProductInformation Wrapped with ProductProvider */}
+  
+          {/* ProductInformation Route Wrapped with ProductProvider */}
           <Route
             path="/inventory/product-information"
             element={
@@ -183,6 +197,31 @@ function App() {
                   <ProductInformation />
                 </>
               </ProductProvider>
+            }
+          />
+          
+          {/* Supplier Information Routes Wrapped with SupplierProvider */}
+          <Route
+            path="/supplier/supplier-information"
+            element={
+              <SupplierProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <SupplierInformation />
+                </>
+              </SupplierProvider>
+            }
+          />
+          
+          <Route
+            path="/supplier/supplier-address"
+            element={
+              <SupplierProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <SupplierAddress />
+                </>
+              </SupplierProvider>
             }
           />
 

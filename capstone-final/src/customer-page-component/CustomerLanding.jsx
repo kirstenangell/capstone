@@ -199,7 +199,6 @@ const CustomerLanding = () => {
             <div className="flex justify-between items-start mb-4">
               {/* Left Section: Icon above the entire customer information */}
               <div className="flex flex-col items-start">
-                {/* Icon at the top */}
                 <button
                   onClick={handleCloseModal}
                   className="bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg p-2 mb-2 shadow-md"

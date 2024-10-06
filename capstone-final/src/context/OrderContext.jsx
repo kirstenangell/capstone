@@ -50,10 +50,11 @@ export const OrderProvider = ({ children }) => {
     localStorage.setItem('orders', JSON.stringify(orders));
   }, [orders]);
 
-  // Function to add a new order with sequential OID
+  // Function to add a new order with sequential OID and unique ID
   const addOrder = (order) => {
     const newOID = generateNextOID(orders);
-    const newOrder = { ...order, oid: newOID };
+    const newId = Date.now(); // Simple unique identifier; consider using UUID for more robustness
+    const newOrder = { ...order, oid: newOID, id: newId };
     setOrders([...orders, newOrder]);
   };
 
@@ -64,7 +65,7 @@ export const OrderProvider = ({ children }) => {
     );
   };
 
-  // Function to archive an order
+  // Function to archive an order based on its ID
   const archiveOrder = (orderId) => {
     setOrders(orders.filter((order) => order.id !== orderId));
   };
