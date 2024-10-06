@@ -1,14 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FaUser } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 
 const InventoryNavbar = ({ cartItemCount }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false); // State to manage dropdown visibility
-
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen); // Toggle the dropdown open state
-  };
-
   return (
     <nav
       className="p-4 flex justify-between items-center sticky top-[52px] z-40"
@@ -116,41 +110,17 @@ const InventoryNavbar = ({ cartItemCount }) => {
           </NavLink>
         </div>
 
-        {/* User Icon and Dropdown */}
+        {/* User Icon and Username */}
         <div className="flex items-center ml-10 space-x-2">
           {/* User Icon */}
           <div className="bg-[rgba(0,0,0,0.7)] rounded-full p-2">
-
             <FaUser className="text-white w-5 h-5" />
           </div>
 
-          {/* Dropdown Button */}
-          <div className="relative flex items-center">
-            <button
-              onClick={toggleDropdown}
-              className={`flex items-center text-white relative group transition-all duration-300 transform ${
-                dropdownOpen ? 'rounded-full py-2 px-4' : ''
-              }`}
-            >
-              <span>Cruz, Juan</span>
-            </button>
-            {dropdownOpen && (
-              <div className="absolute right-0 mt-2 bg-black text-white rounded-lg shadow-lg">
-                <NavLink
-                  to="/user"
-                  className="block px-4 py-2 hover:bg-gray-700"
-                >
-                  Settings
-                </NavLink>
-                <NavLink
-                  to="/"
-                  className="block px-4 py-2 hover:bg-gray-700"
-                >
-                  Logout
-                </NavLink>
-              </div>
-            )}
-          </div>
+          {/* Username Redirect */}
+          <NavLink to="/user" className="text-white cursor-pointer">
+            Cruz, Juan
+          </NavLink>
         </div>
       </div>
     </nav>

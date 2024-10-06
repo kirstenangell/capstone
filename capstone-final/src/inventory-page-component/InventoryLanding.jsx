@@ -98,7 +98,7 @@ const InventoryLanding = () => {
             {/* Add Product Button */}
             <button
               onClick={handleAddProductClick}
-              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-white rounded-lg text-sm"
+              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127]] text-white rounded-lg text-sm"
             >
               Add Product
             </button>

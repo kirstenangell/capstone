@@ -5,7 +5,7 @@ import ManageAcc from '../login-page-component/ManageAcc';
 
 export default function UserPage() {
     return (
-        <ManageAcc/>
+        <ProfileAccount/>
         
     );
 }

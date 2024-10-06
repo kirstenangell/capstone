@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from "./global/Header";
@@ -28,7 +29,7 @@ import OrderDetails from './order-page-component/OrderDetails';
 import ProductInformation from './inventory-page-component/ProductInformation'; 
 import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
-
+import { OrderProvider } from './context/OrderContext'; // Import OrderProvider
 
 function App() {
   const [cartItems, setCartItems] = useState(() => {
@@ -98,7 +99,7 @@ function App() {
             }
           />
           
-          {/* Inventory Routes */}
+          {/* Inventory Routes Wrapped with ProductProvider */}
           <Route
             path="/inventory/*"
             element={
@@ -110,15 +111,21 @@ function App() {
               </ProductProvider>
             }
           />
+          
+          {/* Order Routes Wrapped with OrderProvider */}
           <Route
-            path="/order"
+            path="/order/*"
             element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <OrderPage />
-              </>
+              <OrderProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <OrderPage />
+                </>
+              </OrderProvider>
             }
           />
+          
+          {/* User Routes */}
           <Route
             path="/user"
             element={
@@ -128,6 +135,8 @@ function App() {
               </>
             }
           />
+          
+          {/* Supplier Routes */}
           <Route
             path="/supplier"
             element={
@@ -138,18 +147,20 @@ function App() {
             }
           />
 
-          {/* Route for OrderDetails */}
+          {/* Route for OrderDetails Wrapped with OrderProvider */}
           <Route
             path="/order-details"
             element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <OrderDetails />
-              </>
+              <OrderProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <OrderDetails />
+                </>
+              </OrderProvider>
             }
           />
           
-          {/* Route for InventoryLanding */}
+          {/* Route for InventoryLanding Wrapped with ProductProvider */}
           <Route
             path="/inventory"
             element={
@@ -162,7 +173,7 @@ function App() {
             }
           />
 
-          {/* Route for ProductInformation */}
+          {/* Route for ProductInformation Wrapped with ProductProvider */}
           <Route
             path="/inventory/product-information"
             element={
@@ -186,15 +197,15 @@ function App() {
                   <Route path="/about" element={<AboutUsPage />} />
                   <Route path="/services" element={<ServicePage />} />
                   <Route
-                  path="/products"
-                  element={
-                    <ProductProvider>
-                      <>
-                        <ProductPage onAddToCart={handleAddToCart} />
-                      </>
-                    </ProductProvider>
-                  }
-                />
+                    path="/products"
+                    element={
+                      <ProductProvider>
+                        <>
+                          <ProductPage onAddToCart={handleAddToCart} />
+                        </>
+                      </ProductProvider>
+                    }
+                  />
                   <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
                   <Route path="/signup" element={<SignUpPage />} />
                   <Route path="/login/*" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />

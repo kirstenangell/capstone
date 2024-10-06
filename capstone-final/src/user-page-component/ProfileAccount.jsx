@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { FaUser, FaLock, FaClipboardList } from 'react-icons/fa';
+import { FaUser, FaLock } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
 
 const ProfileAccount = () => {
     const [activeTab, setActiveTab] = useState('profile');
@@ -13,6 +14,7 @@ const ProfileAccount = () => {
     });
 
     const fileInputRef = useRef(null);
+    const navigate = useNavigate(); // useNavigate hook for redirection
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
@@ -42,9 +44,14 @@ const ProfileAccount = () => {
     };
 
     const handleSaveChanges = () => {
-        // Perform save operation here, e.g., send formData to an API
+        // Perform save operation here
         console.log('Form data saved:', formData);
-        // Example: You might use fetch or axios to send data to your server
+    };
+
+    const handleLogout = () => {
+        // Perform any logout logic here (e.g., clearing tokens)
+        console.log('User logged out');
+        navigate('/'); // Redirect to the landing page
     };
 
     return (
@@ -247,6 +254,15 @@ const ProfileAccount = () => {
                     </div>
                 )}
 
+                {/* Logout Button - Below all the tabs */}
+                <div className="mt-10">
+                    <button
+                        onClick={handleLogout}
+                        className="px-6 py-2 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-all"
+                    >
+                        LOGOUT
+                    </button>
+                </div>
             </div>
         </div>
     );
