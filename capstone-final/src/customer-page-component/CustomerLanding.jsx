@@ -1,7 +1,6 @@
-// src/customer-page-component/CustomerLanding.jsx
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IoIosInformationCircle, IoIosEye, IoIosEyeOff } from 'react-icons/io';
+import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { FaOpencart } from 'react-icons/fa';
 import { CustomerContext } from '../context/CustomerContext';
@@ -18,12 +17,6 @@ const CustomerLanding = () => {
 
   // State to track search input
   const [searchQuery, setSearchQuery] = useState('');
-
-  // State for password modal
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [password, setPassword] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [actionType, setActionType] = useState('');
 
   // Handle customer click to show modal
   const handleCustomerClick = (customer) => {
@@ -42,37 +35,16 @@ const CustomerLanding = () => {
     navigate('/customer/customer-information');
   };
 
+  // Archive customer
+  const handleArchiveCustomer = (customerToArchive) => {
+    archiveCustomer(customerToArchive.id);
+    setShowModal(false);
+  };
+
   // Handle Edit button click
   const handleEditCustomer = () => {
-    setActionType('edit');
-    setShowPasswordModal(true);
-  };
-
-  // Handle Archive button click
-  const handleArchiveCustomer = () => {
-    setActionType('archive');
-    setShowPasswordModal(true);
-  };
-
-  // Handle password modal submit
-  const handlePasswordSubmit = () => {
-    if (password === '12345') { // Replace '12345' with your actual password logic
-      if (actionType === 'edit') {
-        navigate('/customer/customer-information', { state: { customer: selectedCustomer, isEdit: true } });
-        setShowModal(false);
-      } else if (actionType === 'archive') {
-        archiveCustomer(selectedCustomer.id);
-        setShowModal(false);
-      }
-    } else {
-      alert('Incorrect Password');
-    }
-    setPassword('');
-    setShowPasswordModal(false);
-  };
-
-  const togglePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
+    navigate('/customer/customer-information', { state: { customer: selectedCustomer, isEdit: true } });
+    setShowModal(false);
   };
 
   // Filter customers based on search query (name or CID)
@@ -122,68 +94,69 @@ const CustomerLanding = () => {
 
         <div className="grid grid-cols-4 gap-6">
           <div className="col-span-1">
-            <div className="mb-6">
-              <h2 className="text-sm font-bold text-white mb-2">FILTER BY</h2>
-
-              {/* Dropdown Button */}
-              <button
-                onClick={toggleDropdown}
-                className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
-              >
-                CUSTOMER TYPE
-              </button>
-
-              {/* Dropdown Menu */}
-              {isOpen && (
-                <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
-                  <ul className="text-sm text-white">
-                    <li className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127]  cursor-pointer">Online Store</li>
-                    <li className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127]  cursor-pointer">Physical Store</li>
-                  </ul>
-                </div>
-              )}
-            </div>
+          <div className="mb-6">
+            <h2 className="text-sm font-bold text-white mb-2">FILTER BY</h2>
             
-            <div className="mb-6 mt-2">
-              <h2 className="text-sm font-bold text-white mb-2">STATUS</h2>
-              <div className="flex space-x-2">
-                {/* 'All' Button */}
-                <button
-                  onClick={() => handleStatusClick('All')}
-                  className={`text-sm px-6 py-2 rounded-lg ${
-                    activeStatus === 'All'
-                      ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
-                      : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
-                  }`}
-                >
-                  All
-                </button>
+            {/* Dropdown Button */}
+            <button
+              onClick={toggleDropdown}
+              className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+            >
+              CUSTOMER TYPE
+            </button>
 
-                {/* 'Active' Button */}
-                <button
-                  onClick={() => handleStatusClick('Active')}
-                  className={`text-sm px-6 py-2 rounded-lg ${
-                    activeStatus === 'Active'
-                      ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
-                      : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
-                  }`}
-                >
-                  Active
-                </button>
-
-                {/* 'Inactive' Button */}
-                <button
-                  onClick={() => handleStatusClick('Inactive')}
-                  className={`text-sm px-6 py-2 rounded-lg ${
-                    activeStatus === 'Inactive'
-                      ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
-                      : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
-                  }`}
-                >
-                  Inactive
-                </button>
+            {/* Dropdown Menu */}
+            {isOpen && (
+              <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
+                <ul className="text-sm text-white">
+                  <li className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127]  cursor-pointer">Online Store</li>
+                  <li className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127]  cursor-pointer">Physical Store</li>
+                </ul>
               </div>
-            </div>
+            )}
+          </div>
+            <div className="mb-6 mt-2">
+        <h2 className="text-sm font-bold text-white mb-2">STATUS</h2>
+        <div className="flex space-x-2">
+          {/* 'All' Button */}
+          <button
+            onClick={() => handleStatusClick('All')}
+            className={`text-sm px-6 py-2 rounded-lg ${
+              activeStatus === 'All'
+                ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+            }`}
+          >
+            All
+          </button>
+
+          {/* 'Active' Button */}
+          <button
+            onClick={() => handleStatusClick('Active')}
+            className={`text-sm px-6 py-2 rounded-lg ${
+              activeStatus === 'Active'
+                ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+            }`}
+          >
+            Active
+          </button>
+
+          {/* 'Inactive' Button */}
+          <button
+            onClick={() => handleStatusClick('Inactive')}
+            className={`text-sm px-6 py-2 rounded-lg ${
+              activeStatus === 'Inactive'
+                ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+            }`}
+          >
+            Inactive
+          </button>
+        </div>
+      </div>
+
+
           </div>
 
           <div className="col-span-3">
@@ -218,7 +191,7 @@ const CustomerLanding = () => {
         </div>
       </div>
 
-      {/* Customer Details Modal */}
+      {/* Modal Section */}
       {showModal && selectedCustomer && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
           <div className="bg-[#040405] p-6 rounded-lg shadow-lg max-w-3xl w-full h-[500px] flex flex-col">
@@ -255,7 +228,7 @@ const CustomerLanding = () => {
                   Edit
                 </button>
                 <button
-                  onClick={handleArchiveCustomer}
+                  onClick={() => handleArchiveCustomer(selectedCustomer)}
                   className="text-sm text-white hover:underline"
                 >
                   Archive
@@ -484,46 +457,6 @@ const CustomerLanding = () => {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Password Modal */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-          <div className="bg-[#040405] p-8 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-lg font-bold mb-4 text-center">
-              ACCESS CUSTOMER DATA TO {actionType === 'edit' ? 'EDIT CUSTOMER #' + selectedCustomer?.id : actionType === 'archive' ? 'ARCHIVE CUSTOMER #' + selectedCustomer?.id : ''}
-            </h2>
-            <p className="mb-4 text-sm text-center">
-              Enter your password to {actionType} the customer data.
-            </p>
-            <label className="block text-xs font-bold mb-2">PASSWORD</label>
-            <div className="relative">
-              <input
-                type={passwordVisible ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
-                style={{ background: 'linear-gradient(90deg, #040405, #335C6E)' }}
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-3 text-white"
-                onClick={togglePasswordVisibility}
-              >
-                {passwordVisible ? <IoIosEyeOff /> : <IoIosEye />}
-              </button>
-            </div>
-            <div className="flex justify-center mt-6">
-              <button
-                className="w-full px-6 text-sm py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 transition"
-                onClick={handlePasswordSubmit}
-              >
-                SUBMIT
-              </button>
             </div>
           </div>
         </div>

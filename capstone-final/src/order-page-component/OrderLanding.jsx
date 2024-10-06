@@ -98,16 +98,7 @@ const OrderLanding = () => {
           {/* Order List */}
           <div className="col-span-3 space-y-6">
             {/* Search Bar */}
-            <div className="mb-4">
-              <div className="flex items-center border-b border-gray-600">
-                <CiSearch className="text-gray-600 text-xl mr-2" /> {/* Icon before the input */}
-                <input
-                  type="text"
-                  placeholder="Search order"
-                  className="w-full p-2 bg-transparent text-gray-600 focus:outline-none"
-                />
-              </div>
-            </div>
+          
 
             {/* Order Cards */}
             {orders.length === 0 ? (
