@@ -1,9 +1,8 @@
 // src/inventory-page-component/InventoryLanding.jsx
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { IoMdClose } from 'react-icons/io'; // Close Icon
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Password Visibility Icons
 import { useNavigate } from 'react-router-dom';
-import Wheel1 from '../assets/wheel1.png'; // Replace with your actual image path
 import { CiSearch } from "react-icons/ci"; // Search icon
 import { BsBoxArrowRight } from "react-icons/bs";
 import { ProductContext } from '../context/ProductContext'; // Import ProductContext
@@ -20,11 +19,11 @@ const InventoryLanding = () => {
 
   // Use ProductContext
   const { products, archiveProduct } = useContext(ProductContext);
+  
   const handleProductClick = (product) => {
     setSelectedProduct(product);
     setUploadedImages(product.images || []); // Ensure images is an array
   };
-  
 
   const handleExit = () => {
     setSelectedProduct(null); // Close product summary
@@ -70,17 +69,16 @@ const InventoryLanding = () => {
     setShowPasswordModal(false);
     setPassword(''); // Clear the password field after submission
   };
+
   const handlePublish = () => {
     // Implement the publish functionality here
     console.log('Publish button clicked');
   };
-  
-  console.log(uploadedImages);
-
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
       <div className="max-w-7xl mx-auto px-6">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold">PRODUCT</h1>
 
@@ -98,7 +96,7 @@ const InventoryLanding = () => {
             {/* Add Product Button */}
             <button
               onClick={handleAddProductClick}
-              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127]] text-white rounded-lg text-sm"
+              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
             >
               Add Product
             </button>
@@ -160,146 +158,149 @@ const InventoryLanding = () => {
 
         {/* Product Summary Modal */}
         {selectedProduct && (
-  <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
-    <div className="bg-[#040405] p-10 rounded-lg shadow-xl max-w-3xl w-full relative">
-      <div className="flex justify-between items-start mb-4">
-        {/* Left Section: Close Button */}
-        <div className="flex flex-col items-start">
-          <button
-            onClick={handleExit}
-            className="bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg p-2 mb-2 shadow-md"
-          >
-            <BsBoxArrowRight className="text-white text-md" />
-          </button>
-        </div>
-
-        {/* Right Section: Edit and Archive buttons */}
-        <div className="space-x-4">
-          <button
-            onClick={handleEditClick}
-            className="text-sm text-white hover:underline"
-          >
-            Edit
-          </button>
-          <button
-            onClick={handleArchiveClick}
-            className="text-sm text-white hover:underline"
-          >
-            Archive
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row">
-        <div className="md:w-1/2">
-          <h1 className="text-xl font-bold text-white mb-2">
-            {selectedProduct.name}
-          </h1>
-          <p className="text-xs text-gray-400">{selectedProduct.description}</p>
-
-          {/* Product Main Image with Faint Gray Background */}
-          <div className="mt-4 bg-gray-700 p-2 rounded-lg">
-            <img
-              src={uploadedImages[0] || selectedProduct.image} // Main image
-              alt={selectedProduct.name}
-              className="w-full h-64 object-contain rounded-lg"
-            />
-          </div>
-
-          {/* Thumbnails of uploaded images */}
-          <div className="grid grid-cols-3 gap-2 mt-4">
-          {uploadedImages.length > 1 && (
-            <div className="grid grid-cols-3 gap-2 mt-4">
-              {uploadedImages.slice(1, 4).map((image, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-700 rounded-lg overflow-hidden cursor-pointer"
-                  onClick={() => setSelectedProduct({ ...selectedProduct, image: image })}
-                >
-                  <img
-                    src={typeof image === 'string' ? image : URL.createObjectURL(image)}
-                    alt={`Thumbnail ${index + 1}`}
-                    className="w-full h-20 object-cover"
-                  />
+          <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50">
+            <div className="bg-[#040405] p-10 rounded-lg shadow-xl max-w-3xl w-full relative">
+              {/* Header with Close, Edit, and Archive Buttons */}
+              <div className="flex justify-between items-start mb-4">
+                {/* Left Section: Close Button */}
+                <div className="flex flex-col items-start">
+                  <button
+                    onClick={handleExit}
+                    className="bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg p-2 mb-2 shadow-md"
+                  >
+                    <BsBoxArrowRight className="text-white text-md" />
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
 
+                {/* Right Section: Edit and Archive buttons */}
+                <div className="space-x-4">
+                  <button
+                    onClick={handleEditClick}
+                    className="text-sm text-white hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleArchiveClick}
+                    className="text-sm text-white hover:underline"
+                  >
+                    Archive
+                  </button>
+                </div>
+              </div>
+
+              {/* Product Details */}
+              <div className="flex flex-col md:flex-row">
+                {/* Left Column: Image and Description */}
+                <div className="md:w-1/2">
+                  <h1 className="text-xl font-bold text-white mb-2">
+                    {selectedProduct.name}
+                  </h1>
+                  <p className="text-xs text-gray-400">{selectedProduct.description}</p>
+
+                  {/* Product Main Image */}
+                  <div className="mt-4 bg-gray-700 p-2 rounded-lg">
+                    <img
+                      src={uploadedImages[0] || selectedProduct.image} // Main image
+                      alt={selectedProduct.name}
+                      className="w-full h-64 object-contain rounded-lg"
+                    />
+                  </div>
+
+                  {/* Thumbnails of uploaded images */}
+                  <div className="grid grid-cols-3 gap-2 mt-4">
+                    {uploadedImages.length > 1 && (
+                      <div className="grid grid-cols-3 gap-2 mt-4">
+                        {uploadedImages.slice(1, 4).map((image, index) => (
+                          <div
+                            key={index}
+                            className="bg-gray-700 rounded-lg overflow-hidden cursor-pointer"
+                            onClick={() => setSelectedProduct({ ...selectedProduct, image: image })}
+                          >
+                            <img
+                              src={typeof image === 'string' ? image : URL.createObjectURL(image)}
+                              alt={`Thumbnail ${index + 1}`}
+                              className="w-full h-20 object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Information and Measurements */}
+                <div className="md:w-1/2 mt-6 md:mt-0 md:ml-10">
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                    {/* Basic Information */}
+                    <h2 className="col-span-2 text-sm font-semibold text-white mb-2">Basic Information</h2>
+                    <div className="text-gray-400 text-xs">
+                      <p>Product Type:</p>
+                      <p>Product Brand:</p>
+                      <p>Product Category:</p>
+                      <p>Product Description:</p>
+                    </div>
+                    <div className="text-white text-xs">
+                      <p>{selectedProduct.type}</p>
+                      <p>{selectedProduct.brand}</p>
+                      <p>{selectedProduct.category}</p>
+                      <p>{selectedProduct.description}</p>
+                    </div>
+
+                    {/* Measurement */}
+                    <h2 className="col-span-2 text-sm font-semibold text-white mt-4 mb-2">Measurement</h2>
+                    <div className="text-gray-400 text-xs">
+                      <p>Dimensions:</p>
+                      <p>Color:</p>
+                      <p>Finish:</p>
+                      <p>Material:</p>
+                      <p>Model:</p>
+                    </div>
+                    <div className="text-white text-xs">
+                      <p>{selectedProduct.dimensions}</p>
+                      <p>{selectedProduct.color}</p>
+                      <p>{selectedProduct.finish}</p>
+                      <p>{selectedProduct.material}</p>
+                      <p>{selectedProduct.model}</p>
+                    </div>
+
+                    {/* Sales Information */}
+                    <h2 className="col-span-2 text-sm font-semibold text-white mt-4 mb-2">Sales Information</h2>
+                    <div className="text-gray-400 text-xs">
+                      <p>Retail Price:</p>
+                      <p>Tax:</p>
+                      <p>Discount:</p>
+                      <p>Total Price:</p>
+                    </div>
+                    <div className="text-white text-xs">
+                      <p>{selectedProduct.price}</p>
+                      <p>{selectedProduct.tax || 'N/A'}</p>
+                      <p>{selectedProduct.discount || 'N/A'}</p>
+                      <p>{selectedProduct.totalPrice}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Publish Button */}
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={handlePublish}
+                  className="px-6 py-2 bg-gradient-to-r from-[#040405] to-[#2c505f] text-white rounded-md text-sm"
+                >
+                  Publish
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className="md:w-1/2 mt-6 md:mt-0 md:ml-10">
-          {/* Information and Measurements */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-            <h2 className="col-span-2 text-sm font-bold text-white mb-2">Basic Information</h2>
-            <div className="text-gray-400 text-xs">
-              <p>Product Type:</p>
-              <p>Product Brand:</p>
-              <p>Product Category:</p>
-              <p>Product Description:</p>
-            </div>
-            <div className="text-white text-xs">
-              <p>{selectedProduct.type}</p>
-              <p>{selectedProduct.brand}</p>
-              <p>{selectedProduct.category}</p>
-              <p>{selectedProduct.description}</p>
-            </div>
-
-            <h2 className="col-span-2 text-sm font-bold text-white mt-4 mb-2">Measurement</h2>
-            <div className="text-gray-400 text-xs">
-              <p>Dimensions:</p>
-              <p>Color:</p>
-              <p>Finish:</p>
-              <p>Material:</p>
-              <p>Model:</p>
-            </div>
-            <div className="text-white text-xs">
-              <p>{selectedProduct.dimensions}</p>
-              <p>{selectedProduct.color}</p>
-              <p>{selectedProduct.finish}</p>
-              <p>{selectedProduct.material}</p>
-              <p>{selectedProduct.model}</p>
-            </div>
-
-            <h2 className="col-span-2 text-sm font-bold text-white mt-4 mb-2">Sales Information</h2>
-            <div className="text-gray-400 text-xs">
-              <p>Retail Price:</p>
-              <p>Tax:</p>
-              <p>Discount:</p>
-              <p>Total Price:</p>
-            </div>
-            <div className="text-white text-xs">
-              <p>{selectedProduct.price}</p>
-              <p>{selectedProduct.tax}</p>
-              <p>{selectedProduct.discount}</p>
-              <p>{selectedProduct.totalPrice}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Publish Button */}
-      <div className="mt-6 flex justify-center">
-        <button
-          onClick={handlePublish}
-          className="px-6 py-2 bg-gradient-to-r from-[#040405] to-[#2c505f] text-white rounded-md text-sm"
-        >
-          Publish
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
+        )}
 
         {/* Password Modal */}
         {showPasswordModal && (
           <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
             <div className="bg-[#040405] p-8 rounded-lg shadow-lg max-w-md w-full">
               <h2 className="text-lg font-bold mb-4 text-center">
-                ACCESS INVENTORY TO {actionType === 'edit' ? 'EDIT PRODUCT #' + selectedProduct?.id : actionType === 'archive' ? 'ARCHIVE PRODUCT #' + selectedProduct?.id : 'ADD NEW PRODUCT'}
+                ACCESS INVENTORY TO {actionType === 'edit' ? `EDIT PRODUCT #${selectedProduct?.id}` : actionType === 'archive' ? `ARCHIVE PRODUCT #${selectedProduct?.id}` : 'ADD NEW PRODUCT'}
               </h2>
               <p className="mb-4 text-sm text-center">
                 Enter your password to {actionType} the product in the inventory.

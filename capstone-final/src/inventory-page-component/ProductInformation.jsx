@@ -51,8 +51,7 @@ const ProductInformation = () => {
   useEffect(() => {
     // If editing, set the uploadedImages to include the existing image
     if (isEdit && existingProduct.image) {
-      // Here, you might need to handle the existing image differently
-      // For simplicity, we'll assume existingProduct.image is a URL
+      // Assuming existingProduct.image is a URL
       setUploadedImages([existingProduct.image]);
     }
   }, [isEdit, existingProduct]);
@@ -97,7 +96,7 @@ const ProductInformation = () => {
       brand: formData.productBrand || 'N/A',
       category: formData.productCategory || 'N/A',
       description: formData.productDescription || 'No description provided.',
-      dimensions: `${formData.dimensions.length || '0'} x ${formData.dimensions.width || '0'} x ${formData.dimensions.height || '0'}`,
+      dimensions: `${formData.dimensions.length || '0'} x ${formData.dimensions.width || '0'} x ${formData.dimensions.height || '0'} x ${formData.dimensions.weight || '0'}`,
       color: formData.color || 'N/A',
       finish: formData.finish.length > 0 ? formData.finish.join(', ') : 'N/A',
       material: formData.material || 'N/A',
@@ -105,6 +104,7 @@ const ProductInformation = () => {
       tax: formData.tax || 'N/A', // Placeholder
       discount: formData.discount || 'PHP 0.00',
       totalPrice: formData.totalPrice || 'PHP 0.00',
+      // Add more fields as necessary
     };
 
     if (isEdit) {
