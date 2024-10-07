@@ -29,16 +29,9 @@ const port = 5000;
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
-
-// Login API
 // Login API
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-
-  // Check if the email contains 'flacko1990'
-  if (!email.includes('flacko1990')) {
-    return res.status(403).json({ message: 'Unauthorized: Only Flacko users can log in' });
-  }
 
   const query = 'SELECT * FROM users WHERE email = ?';
 
@@ -58,9 +51,14 @@ app.post('/login', (req, res) => {
         return res.status(500).json({ message: 'Error comparing passwords' });
       }
       if (isMatch) {
-        res.status(200).json({ message: 'Login successful', user });
+        // Determine user role based on email
+        if (email.includes('flacko1990')) {
+          return res.status(200).json({ message: 'Login successful', role: 'admin' });
+        } else {
+          return res.status(200).json({ message: 'Login successful', role: 'customer' });
+        }
       } else {
-        res.status(400).json({ message: 'Invalid credentials' });
+        return res.status(400).json({ message: 'Invalid credentials' });
       }
     });
   });
