@@ -54,6 +54,8 @@ function App() {
   // Authentication State (if needed)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+
+
   // Cart Functions
   const handleAddToCart = (product) => {
     setCartItems((prevItems) => {

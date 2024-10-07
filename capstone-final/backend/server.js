@@ -31,8 +31,15 @@ app.listen(port, () => {
 });
 
 // Login API
+// Login API
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
+
+  // Check if the email contains 'flacko1990'
+  if (!email.includes('flacko1990')) {
+    return res.status(403).json({ message: 'Unauthorized: Only Flacko users can log in' });
+  }
+
   const query = 'SELECT * FROM users WHERE email = ?';
 
   db.query(query, [email], (err, result) => {
@@ -58,6 +65,7 @@ app.post('/login', (req, res) => {
     });
   });
 });
+
 
 // Register API
 app.post('/register', (req, res) => {
@@ -85,5 +93,4 @@ app.post('/register', (req, res) => {
     res.status(200).json({ message: 'User registered successfully' });
   });
 });
-
 
