@@ -3,11 +3,19 @@ import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 import { IoInformationCircle } from 'react-icons/io5';
 import { IoArrowBackCircle } from 'react-icons/io5'; // Back icon import
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Axios for making API requests
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [firstName, setFirstName] = useState(''); // State for first name
+  const [lastName, setLastName] = useState('');  // State for last name
+  const [email, setEmail] = useState('');        // State for email
+  const [password, setPassword] = useState('');  // State for password
+  const [confirmPassword, setConfirmPassword] = useState(''); // Confirm password
+  const [errorMessage, setErrorMessage] = useState('');        // Error message state
+  const [successMessage, setSuccessMessage] = useState('');    // Success message state
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
@@ -18,11 +26,38 @@ const SignUp = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const handleSignupSubmit = (event) => {
+  const handleSignupSubmit = async (event) => {
     event.preventDefault();
-    // Add your signup logic here
-    // After signup, you can navigate to a different page if necessary
+  
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match');
+      return;
+    }
+  
+    try {
+      const response = await axios.post('http://localhost:5000/register', {
+        first_name: firstName,   // First name being sent
+        last_name: lastName,     // Last name being sent
+        email: email,            // Email being sent
+        password: password       // Password being sent
+      });
+  
+      if (response.data.message === 'User registered successfully') {
+        setSuccessMessage('Sign up successful! You can now log in.');
+        setErrorMessage('');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setErrorMessage(response.data.message);
+        setSuccessMessage('');
+      }
+    } catch (error) {
+      setErrorMessage('An error occurred during sign up.');
+      setSuccessMessage('');
+    }
   };
+  
 
   return (
     <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]">
@@ -34,6 +69,8 @@ const SignUp = () => {
             <input
               type="text"
               placeholder="First Name"
+              value={firstName} // Bind first name state
+              onChange={(e) => setFirstName(e.target.value)} // Handle first name input
               className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
               style={{
                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -42,6 +79,8 @@ const SignUp = () => {
             <input
               type="text"
               placeholder="Last Name"
+              value={lastName} // Bind last name state
+              onChange={(e) => setLastName(e.target.value)} // Handle last name input
               className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
               style={{
                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -52,6 +91,8 @@ const SignUp = () => {
           <input
             type="email"
             placeholder="Email Address"
+            value={email} // Bind email state
+            onChange={(e) => setEmail(e.target.value)} // Handle email input
             className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
             style={{
               background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -62,6 +103,8 @@ const SignUp = () => {
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
+              value={password} // Bind password state
+              onChange={(e) => setPassword(e.target.value)} // Handle password input
               className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
               style={{
                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -79,6 +122,8 @@ const SignUp = () => {
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm Password"
+              value={confirmPassword} // Bind confirm password state
+              onChange={(e) => setConfirmPassword(e.target.value)} // Handle confirm password input
               className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
               style={{
                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -130,6 +175,13 @@ const SignUp = () => {
           >
             SIGN UP
           </button>
+
+          {errorMessage && (
+            <p className="text-red-500 text-sm text-center mt-4">{errorMessage}</p>
+          )}
+          {successMessage && (
+            <p className="text-green-500 text-sm text-center mt-4">{successMessage}</p>
+          )}
         </form>
 
         <div className="text-center mt-4 text-xs">

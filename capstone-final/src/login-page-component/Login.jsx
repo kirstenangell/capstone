@@ -1,17 +1,29 @@
 import React, { useState } from 'react';
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
+import axios from 'axios';  // Import Axios for making API requests
 
 const Login = ({ onForgotPasswordClick, onSignUpClick, onLoginSuccess }) => {
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');        // Add state for email
+    const [password, setPassword] = useState('');  // Add state for password
+    const [errorMessage, setErrorMessage] = useState(''); // Add state for error messages
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
-    const handleLoginSubmit = (e) => {
+    const handleLoginSubmit = async (e) => {
         e.preventDefault();
-        // You would normally validate the user input and handle authentication here
-        onLoginSuccess(); // Redirect to ManageAcc after successful login
+        try {
+            const response = await axios.post('http://localhost:5000/login', { email, password });
+            if (response.data.message === 'Login successful') {
+                onLoginSuccess(); // Redirect to ManageAcc after successful login
+            } else {
+                setErrorMessage(response.data.message);  // Show error message from backend
+            }
+        } catch (error) {
+            setErrorMessage('An error occurred during login.');
+        }
     };
 
     return (
@@ -25,6 +37,8 @@ const Login = ({ onForgotPasswordClick, onSignUpClick, onLoginSuccess }) => {
                         <input
                             type="email"
                             placeholder="Enter email"
+                            value={email} // Set value to state
+                            onChange={(e) => setEmail(e.target.value)} // Update state on input change
                             className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
                             style={{
                                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -37,6 +51,8 @@ const Login = ({ onForgotPasswordClick, onSignUpClick, onLoginSuccess }) => {
                         <input
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Enter password"
+                            value={password} // Set value to state
+                            onChange={(e) => setPassword(e.target.value)} // Update state on input change
                             className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
                             style={{
                                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -57,7 +73,7 @@ const Login = ({ onForgotPasswordClick, onSignUpClick, onLoginSuccess }) => {
                         </label>
                         <a
                             href="#"
-                            className= "hover:underline bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
+                            className="hover:underline bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
                             onClick={onForgotPasswordClick}
                         >
                             Forgot Password?
@@ -73,6 +89,12 @@ const Login = ({ onForgotPasswordClick, onSignUpClick, onLoginSuccess }) => {
                     >
                         LOG IN
                     </button>
+
+                    {errorMessage && (
+                        <div className="text-red-500 text-xs text-center mt-2">
+                            {errorMessage}
+                        </div>
+                    )}
                 </form>
 
                 <div className="text-center mt-4 text-xs">
