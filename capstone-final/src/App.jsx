@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -27,18 +26,18 @@ import InventoryPage from "./inventory/InventoryPage";
 import OrderPage from "./inventory/OrderPage";
 import CustomerPage from "./inventory/CustomerPage";
 import UserPage from "./inventory/UserPage";
-import SupplierPage from './inventory/SupplierPage'; // Assuming SupplierPage corresponds to SupplierLanding
+import SupplierPage from './inventory/SupplierPage'; 
 import InventoryLanding from './inventory-page-component/InventoryLanding';
 import OrderDetails from './order-page-component/OrderDetails';
 import ProductInformation from './inventory-page-component/ProductInformation'; 
-import SupplierInformation from './supplier-page-component/SupplierInformation'; // New import
-import SupplierAddress from './supplier-page-component/SupplierAddress'; // New import
+import SupplierInformation from './supplier-page-component/SupplierInformation'; 
+import SupplierAddress from './supplier-page-component/SupplierAddress'; 
 
 // Context Providers
 import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
-import { OrderProvider } from './context/OrderContext'; // Import OrderProvider
-import { SupplierProvider } from './context/SupplierContext'; // Import SupplierProvider
+import { OrderProvider } from './context/OrderContext'; 
+import { SupplierProvider } from './context/SupplierContext'; 
 
 function App() {
   // Cart State Management
@@ -51,10 +50,7 @@ function App() {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Authentication State (if needed)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-
 
   // Cart Functions
   const handleAddToCart = (product) => {
@@ -163,16 +159,18 @@ function App() {
             }
           />
 
-          {/* OrderDetails Route Wrapped with OrderProvider */}
+          {/* OrderDetails Route Wrapped with CustomerProvider and OrderProvider */}
           <Route
             path="/order-details"
             element={
-              <OrderProvider>
-                <>
-                  <InventoryNavbar cartItemCount={cartItemCount} />
-                  <OrderDetails />
-                </>
-              </OrderProvider>
+              <CustomerProvider>
+                <OrderProvider>
+                  <>
+                    <InventoryNavbar cartItemCount={cartItemCount} />
+                    <OrderDetails />
+                  </>
+                </OrderProvider>
+              </CustomerProvider>
             }
           />
           
