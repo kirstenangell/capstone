@@ -118,8 +118,6 @@ app.get('/verify-email', (req, res) => {
 
 
 // Login API
-
-// Login API
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -148,12 +146,14 @@ app.post('/login', (req, res) => {
         return res.status(500).json({ message: 'Error comparing passwords' });
       }
       if (isMatch) {
-        // Determine user role based on email
-        if (email.includes('flacko1990')) {
-          return res.status(200).json({ message: 'Login successful', role: 'admin' });
-        } else {
-          return res.status(200).json({ message: 'Login successful', role: 'customer' });
-        }
+        const userData = {
+          firstName: user.first_name,
+          lastName: user.last_name,
+          email: user.email,
+        };
+
+        // Save the user data to localStorage
+        res.status(200).json({ message: 'Login successful', userData, role: user.email.includes('flacko1990') ? 'admin' : 'customer' });
       } else {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
@@ -161,28 +161,78 @@ app.post('/login', (req, res) => {
   });
 });
 
+
+
 app.get('/user-details', (req, res) => {
-  const email = req.query.email;  // Fetch user data by email passed as a query parameter
+  const email = req.query.email;
 
-  const query = 'SELECT first_name, last_name, email FROM users WHERE email = ?';
+  const query = `
+    SELECT first_name, last_name, email, contact_number, street, barangay, city, region, province, zip_code 
+    FROM users 
+    WHERE email = ?
+  `;
   db.query(query, [email], (err, result) => {
-      if (err) {
-          console.error('Error fetching user details:', err);
-          return res.status(500).json({ message: 'Server error' });
-      }
+    if (err) {
+      console.error('Error fetching user details:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
 
-      if (result.length === 0) {
-          return res.status(404).json({ message: 'User not found' });
-      }
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-      const user = result[0];
-      res.status(200).json({
-          firstName: user.first_name,
-          lastName: user.last_name,
-          email: user.email,
-      });
+    const user = result[0];
+    res.status(200).json({
+      firstName: user.first_name,
+      lastName: user.last_name,
+      email: user.email,
+      contactNumber: user.contact_number,
+      street: user.street,
+      barangay: user.barangay,
+      city: user.city,
+      region: user.region,
+      province: user.province,
+      zipCode: user.zip_code,
+    });
   });
 });
+
+
+
+
+// Update User Details API
+app.put('/update-user-details', (req, res) => {
+  const {
+    email,
+    contactNumber,
+    street,
+    barangay,
+    city,
+    region,
+    province,
+    zipCode
+  } = req.body;
+
+  const query = `
+    UPDATE users 
+    SET contact_number = ?, street = ?, barangay = ?, city = ?, region = ?, province = ?, zip_code = ?
+    WHERE email = ?
+  `;
+  db.query(query, [contactNumber, street, barangay, city, region, province, zipCode, email], (err, result) => {
+    if (err) {
+      console.error('Error updating user details:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User details updated successfully' });
+  });
+});
+
+
 
 
 

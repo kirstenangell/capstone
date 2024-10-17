@@ -20,12 +20,13 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
             const response = await axios.post('http://localhost:5000/login', { email, password });
             
             if (response.data.message === 'Login successful') {
-                // Store user email in localStorage for fetching later
-                localStorage.setItem('email', email); 
+                // Store user data in localStorage for fetching later
+                const { userData, role } = response.data;
+                localStorage.setItem('userData', JSON.stringify(userData));  // Store the full userData
     
-                if (response.data.role === 'admin') {
+                if (role === 'admin') {
                     navigate('/dashboard');  // Redirect to inventory for admin
-                } else if (response.data.role === 'customer') {
+                } else if (role === 'customer') {
                     navigate('/manage-account');  // Redirect to manage account for customers
                 }
             } else {
@@ -35,6 +36,7 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
             setErrorMessage('An error occurred during login.');
         }
     };
+    
     
 
     return (

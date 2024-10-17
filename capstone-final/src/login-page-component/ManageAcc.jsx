@@ -13,8 +13,14 @@ const ManageAcc = () => {
         lastName: '',
         email: '',
         contactNumber: '',
-        address: '',
+        street: '',
+        barangay: '',
+        city: '',
+        region: '',
+        province: '',
+        zipCode: '',
     });
+      
     const [activeDropdown, setActiveDropdown] = useState(null); // Single state to manage dropdowns
     const fileInputRef = useRef(null);
 
@@ -25,35 +31,34 @@ const ManageAcc = () => {
     // Fetch user data when the component loads
     useEffect(() => {
         const fetchUserData = async () => {
-            try {
-                // Get the email from localStorage
-                const email = localStorage.getItem('email');
-                if (email) {
-                    // Fetch user details from the backend
+            const email = localStorage.getItem('email');  // Assuming email is stored in localStorage after login
+            
+            if (email) {
+                try {
                     const response = await axios.get(`http://localhost:5000/user-details?email=${email}`);
-                    const { firstName, lastName, email: userEmail } = response.data;
+                    if (response.status === 200) {
+                        const userData = response.data;
 
-                    // Update the formData state with fetched data
-                    setFormData((prevData) => ({
-                        ...prevData,
-                        firstName,
-                        lastName,
-                        email: userEmail,
-                    }));
-
-                    // Set initialFormData
-                    setInitialFormData({
-                        firstName,
-                        lastName,
-                        email: userEmail,
-                    });
+                        setFormData({
+                            firstName: userData.firstName,
+                            lastName: userData.lastName,
+                            email: userData.email,
+                            contactNumber: userData.contactNumber || '',
+                            street: userData.street || '',
+                            barangay: userData.barangay || '',
+                            city: userData.city || '',
+                            region: userData.region || '',
+                            province: userData.province || '',
+                            zipCode: userData.zipCode || '',
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
                 }
-            } catch (error) {
-                console.error('Error fetching user data:', error);
             }
         };
 
-        fetchUserData();
+        fetchUserData();  // Ensure the data is fetched every time the page reloads
     }, []);
 
 
@@ -84,11 +89,29 @@ const ManageAcc = () => {
         }));
     };
 
-    const handleSaveChanges = () => {
-        console.log('Form data saved:', formData);
-        // Optional: You can add logic here to send updated data to the backend
+    const handleSaveChanges = async () => {
+        try {
+            const response = await axios.put('http://localhost:5000/update-user-details', {
+                email: formData.email,
+                contactNumber: formData.contactNumber,
+                street: formData.street,
+                barangay: formData.barangay,
+                city: formData.city,
+                region: formData.region,
+                province: formData.province,
+                zipCode: formData.zipCode,
+            });
+            
+            if (response.status === 200) {
+                console.log('User details updated successfully');
+            }
+        } catch (error) {
+            console.error('Error updating user details:', error);
+        }
     };
-
+    
+      
+      
     const toggleDropdown = (dropdown) => {
         if (activeDropdown === dropdown) {
             setActiveDropdown(null); // Close dropdown if it's already open
@@ -232,18 +255,88 @@ const ManageAcc = () => {
                                         />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Address</label>
-                                    <input
-                                        type="text"
-                                        name="address"
-                                        value={formData.address}
-                                        onChange={handleInputChange}
-                                        placeholder="House/Unit no., Street, Barangay, City, Region, Zip code"
-                                        className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                        disabled={!isEditing}
-                                    />
+                                <div className="flex space-x-4">
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium mb-1">Street</label>
+                                        <input
+                                            type="text"
+                                            name="street"
+                                            value={formData.street}
+                                            onChange={handleInputChange}
+                                            placeholder="Street"
+                                            className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium mb-1">Barangay</label>
+                                        <input
+                                            type="text"
+                                            name="barangay"
+                                            value={formData.barangay}
+                                            onChange={handleInputChange}
+                                            placeholder="Barangay"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
                                 </div>
+
+                                <div className="flex space-x-4">
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium mb-1">City</label>
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleInputChange}
+                                            placeholder="City"
+                                            className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium mb-1">Region</label>
+                                        <input
+                                            type="text"
+                                            name="region"
+                                            value={formData.region}
+                                            onChange={handleInputChange}
+                                            placeholder="Region"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex space-x-4">
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium mb-1">Province</label>
+                                        <input
+                                            type="text"
+                                            name="province"
+                                            value={formData.province}
+                                            onChange={handleInputChange}
+                                            placeholder="Province"
+                                            className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                    <div className="w-1/2">
+                                        <label className="block text-sm font-medium mb-1">Zip Code</label>
+                                        <input
+                                            type="text"
+                                            name="zipCode"
+                                            value={formData.zipCode}
+                                            onChange={handleInputChange}
+                                            placeholder="Zip Code"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
+                                        />
+                                    </div>
+                                </div>
+
+                                
                                 {/* Buttons */}
                                 <div className="flex justify-between mt-6">
                                     <button
