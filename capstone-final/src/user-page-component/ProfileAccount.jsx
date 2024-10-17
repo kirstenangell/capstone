@@ -17,6 +17,10 @@ const ProfileAccount = () => {
     const fileInputRef = useRef(null);
     const navigate = useNavigate(); // useNavigate hook for redirection
 
+    // New state variables
+    const [isEditing, setIsEditing] = useState(false);
+    const [initialFormData, setInitialFormData] = useState({});
+
     // Fetch user data when the component loads
     useEffect(() => {
         const fetchUserData = async () => {
@@ -34,6 +38,13 @@ const ProfileAccount = () => {
                         lastName,
                         email: userEmail,
                     }));
+
+                    // Set initialFormData
+                    setInitialFormData({
+                        firstName,
+                        lastName,
+                        email: userEmail,
+                    });
                 } else {
                     alert('Access restricted');
                     navigate('/'); // Redirect to homepage if unauthorized
@@ -76,6 +87,7 @@ const ProfileAccount = () => {
     const handleSaveChanges = () => {
         // Perform save operation here
         console.log('Form data saved:', formData);
+        // You can add logic to save the data to the backend
     };
 
     const handleLogout = () => {
@@ -137,7 +149,10 @@ const ProfileAccount = () => {
                         >
                             Upload Picture
                         </button>
-                        <button className="block px-4 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-sm rounded-md">
+                        <button
+                            className="block px-4 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-sm rounded-md"
+                            onClick={() => setIsEditing(true)}
+                        >
                             Edit Profile
                         </button>
                     </div>
@@ -159,6 +174,7 @@ const ProfileAccount = () => {
                                                 onChange={handleInputChange}
                                                 placeholder="First Name"
                                                 className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                                disabled={!isEditing}
                                             />
                                         </div>
                                         <div className="w-1/2">
@@ -170,6 +186,7 @@ const ProfileAccount = () => {
                                                 onChange={handleInputChange}
                                                 placeholder="Last Name"
                                                 className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                                disabled={!isEditing}
                                             />
                                         </div>
                                     </div>
@@ -184,6 +201,7 @@ const ProfileAccount = () => {
                                             onChange={handleInputChange}
                                             placeholder="Email Address"
                                             className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
                                         />
                                     </div>
                                     <div className="w-1/2">
@@ -195,6 +213,7 @@ const ProfileAccount = () => {
                                             onChange={handleInputChange}
                                             placeholder="+63 912 345 6789"
                                             className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
                                         />
                                     </div>
                                 </div>
@@ -207,6 +226,7 @@ const ProfileAccount = () => {
                                         onChange={handleInputChange}
                                         placeholder="House/Unit no., Street, Barangay, City, Region, Zip code"
                                         className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                        disabled={!isEditing}
                                     />
                                 </div>
                                 {/* Buttons */}
@@ -214,20 +234,23 @@ const ProfileAccount = () => {
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gray-600 rounded-md text-xs"
-                                        onClick={() => setFormData({
-                                            firstName: '',
-                                            lastName: '',
-                                            email: '',
-                                            contactNumber: '',
-                                            address: '',
-                                        })}
+                                        onClick={() => {
+                                            setFormData(initialFormData);
+                                            setIsEditing(false);
+                                        }}
+                                        disabled={!isEditing}
                                     >
                                         CANCEL
                                     </button>
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md"
-                                        onClick={handleSaveChanges}
+                                        onClick={() => {
+                                            handleSaveChanges();
+                                            setInitialFormData(formData);
+                                            setIsEditing(false);
+                                        }}
+                                        disabled={!isEditing}
                                     >
                                         SAVE CHANGES
                                     </button>

@@ -18,6 +18,10 @@ const ManageAcc = () => {
     const [activeDropdown, setActiveDropdown] = useState(null); // Single state to manage dropdowns
     const fileInputRef = useRef(null);
 
+    // New state variables
+    const [isEditing, setIsEditing] = useState(false);
+    const [initialFormData, setInitialFormData] = useState({});
+
     // Fetch user data when the component loads
     useEffect(() => {
         const fetchUserData = async () => {
@@ -28,7 +32,7 @@ const ManageAcc = () => {
                     // Fetch user details from the backend
                     const response = await axios.get(`http://localhost:5000/user-details?email=${email}`);
                     const { firstName, lastName, email: userEmail } = response.data;
-    
+
                     // Update the formData state with fetched data
                     setFormData((prevData) => ({
                         ...prevData,
@@ -36,15 +40,22 @@ const ManageAcc = () => {
                         lastName,
                         email: userEmail,
                     }));
+
+                    // Set initialFormData
+                    setInitialFormData({
+                        firstName,
+                        lastName,
+                        email: userEmail,
+                    });
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
         };
-    
+
         fetchUserData();
     }, []);
-    
+
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
@@ -153,6 +164,12 @@ const ManageAcc = () => {
                             >
                                 Upload Picture
                             </button>
+                            <button
+                                className="block px-4 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-sm rounded-md"
+                                onClick={() => setIsEditing(true)}
+                            >
+                                Edit Profile
+                            </button>
                         </div>
                     </div>
                 )}
@@ -172,6 +189,7 @@ const ManageAcc = () => {
                                                 onChange={handleInputChange}
                                                 placeholder="First Name"
                                                 className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                                disabled={!isEditing}
                                             />
                                         </div>
                                         <div className="w-1/2">
@@ -183,6 +201,7 @@ const ManageAcc = () => {
                                                 onChange={handleInputChange}
                                                 placeholder="Last Name"
                                                 className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                                disabled={!isEditing}
                                             />
                                         </div>
                                     </div>
@@ -197,6 +216,7 @@ const ManageAcc = () => {
                                             onChange={handleInputChange}
                                             placeholder="Email Address"
                                             className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
                                         />
                                     </div>
                                     <div className="w-1/2">
@@ -208,6 +228,7 @@ const ManageAcc = () => {
                                             onChange={handleInputChange}
                                             placeholder="+63 912 345 6789"
                                             className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                            disabled={!isEditing}
                                         />
                                     </div>
                                 </div>
@@ -220,6 +241,7 @@ const ManageAcc = () => {
                                         onChange={handleInputChange}
                                         placeholder="House/Unit no., Street, Barangay, City, Region, Zip code"
                                         className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                        disabled={!isEditing}
                                     />
                                 </div>
                                 {/* Buttons */}
@@ -227,22 +249,23 @@ const ManageAcc = () => {
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gray-600 rounded-md text-xs"
-                                        onClick={() =>
-                                            setFormData({
-                                                firstName: '',
-                                                lastName: '',
-                                                email: '',
-                                                contactNumber: '',
-                                                address: '',
-                                            })
-                                        }
+                                        onClick={() => {
+                                            setFormData(initialFormData);
+                                            setIsEditing(false);
+                                        }}
+                                        disabled={!isEditing}
                                     >
                                         CANCEL
                                     </button>
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md"
-                                        onClick={handleSaveChanges}
+                                        onClick={() => {
+                                            handleSaveChanges();
+                                            setInitialFormData(formData);
+                                            setIsEditing(false);
+                                        }}
+                                        disabled={!isEditing}
                                     >
                                         SAVE CHANGES
                                     </button>
