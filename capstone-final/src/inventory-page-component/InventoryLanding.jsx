@@ -25,6 +25,26 @@ const InventoryLanding = () => {
     setUploadedImages(product.images || []); // Ensure images is an array
   };
 
+  const handlePublish = () => {
+      if (selectedProduct) {
+        const newProduct = {
+          id: Math.random().toString(36).substr(2, 9),
+          name: selectedProduct.name || "Untitled Product",
+          image: selectedProduct.image || defaultImage, // Use a default image if not provided
+          price: selectedProduct.price || 0,
+          reviews: selectedProduct.reviews || 0,
+          rating: selectedProduct.rating || 0,
+          category: selectedProduct.category || "Uncategorized",
+        };
+  
+        // Add the new product to the global product list
+        addProduct(newProduct);
+  
+        // Navigate to the ProductSection after publishing
+        navigate('/products'); // Navigate to the product section
+      }
+  };
+
   const handleExit = () => {
     setSelectedProduct(null); // Close product summary
   };
@@ -69,12 +89,7 @@ const InventoryLanding = () => {
     setShowPasswordModal(false);
     setPassword(''); // Clear the password field after submission
   };
-
-  const handlePublish = () => {
-    // Implement the publish functionality here
-    console.log('Publish button clicked');
-  };
-
+  
   return (
     <div className="min-h-screen bg-black text-white py-10">
       <div className="max-w-7xl mx-auto px-6">

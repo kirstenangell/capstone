@@ -78,86 +78,96 @@ function App() {
     });
   };
 
+  const [products, setProducts] = useState([
+    { id: 1, name: 'Wheel A', price: 30000, image: 'path_to_image', description: 'Some description' },
+    { id: 2, name: 'Wheel B', price: 32000, image: 'path_to_image', description: 'Some description' }
+  ]);
+
+  const addNewProduct = (newProduct) => {
+    setProducts([...products, newProduct]); // Add new product to the state
+  };
+
   const cartItemCount = cartItems.reduce((count, item) => count + (item.quantity || 1), 0);
 
-  return (
-    <Router>
-      <div style={{ background: 'black' }}>
-        <Header />
-        <Routes>
-          {/* Dashboard Route */}
-          <Route
-            path="/dashboard"
-            element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <Dashboard />
-              </>
-            }
-          />
-          
-          {/* Customer Routes Wrapped with CustomerProvider */}
-          <Route
-            path="/customer/*"
-            element={
-              <CustomerProvider>
+  return ( 
+    <ProductProvider>
+      <Router>
+        <div style={{ background: 'black' }}>
+          <Header />
+          <Routes>
+            {/* Dashboard Route */}
+            <Route
+              path="/dashboard"
+              element={
                 <>
                   <InventoryNavbar cartItemCount={cartItemCount} />
-                  <CustomerPage />
+                  <Dashboard />
                 </>
-              </CustomerProvider>
-            }
-          />
-          
-          {/* Inventory Routes Wrapped with ProductProvider */}
-          <Route
-            path="/inventory/*"
-            element={
-              <ProductProvider>
+              }
+            />
+            
+            {/* Customer Routes Wrapped with CustomerProvider */}
+            <Route
+              path="/customer/*"
+              element={
+                <CustomerProvider>
+                  <>
+                    <InventoryNavbar cartItemCount={cartItemCount} />
+                    <CustomerPage />
+                  </>
+                </CustomerProvider>
+              }
+            />
+            
+            {/* Inventory Routes Wrapped with ProductProvider */}
+            <Route
+              path="/inventory/*"
+              element={
+                <ProductProvider>
+                  <>
+                    <InventoryNavbar cartItemCount={cartItemCount} />
+                    <InventoryPage onPublish={addNewProduct} />
+                  </>
+                </ProductProvider>
+              }
+            />
+            
+            {/* Order Routes Wrapped with OrderProvider */}
+            <Route
+              path="/order/*"
+              element={
+                <OrderProvider>
+                  <>
+                    <InventoryNavbar cartItemCount={cartItemCount} />
+                    <OrderPage />
+                  </>
+                </OrderProvider>
+              }
+            />
+            
+            {/* User Routes */}
+            <Route
+              path="/user"
+              element={
                 <>
                   <InventoryNavbar cartItemCount={cartItemCount} />
-                  <InventoryPage />
+                  <UserPage />
                 </>
-              </ProductProvider>
-            }
-          />
-          
-          {/* Order Routes Wrapped with OrderProvider */}
-          <Route
-            path="/order/*"
-            element={
-              <OrderProvider>
-                <>
-                  <InventoryNavbar cartItemCount={cartItemCount} />
-                  <OrderPage />
-                </>
-              </OrderProvider>
-            }
-          />
-          
-          {/* User Routes */}
-          <Route
-            path="/user"
-            element={
-              <>
-                <InventoryNavbar cartItemCount={cartItemCount} />
-                <UserPage />
-              </>
-            }
-          />
-          
-          {/* Supplier Routes Wrapped with SupplierProvider */}
-          <Route
-            path="/supplier/*"
-            element={
-              <SupplierProvider>
-                <>
-                  <InventoryNavbar cartItemCount={cartItemCount} />
-                  <SupplierPage />
-                </>
-              </SupplierProvider>
-            }
-          />
+              }
+            />
+            
+            {/* Supplier Routes Wrapped with SupplierProvider */}
+            <Route
+              path="/supplier/*"
+              element={
+                <SupplierProvider>
+                  <>
+                    <InventoryNavbar cartItemCount={cartItemCount} />
+                    <SupplierPage />
+                  </>
+                </SupplierProvider>
+              }
+            />
 
           {/* OrderDetails Route Wrapped with CustomerProvider and OrderProvider */}
           <Route
@@ -224,43 +234,72 @@ function App() {
               </SupplierProvider>
             }
           />
-          {/* Public Routes */}
-          <Route
-            path="*"
-            element={
-              <>
-                <Navbar cartItemCount={cartItemCount} />
-                <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/about" element={<AboutUsPage />} />
-                  <Route path="/services" element={<ServicePage />} />
-                  <Route
-                    path="/products"
-                    element={
-                      <ProductProvider>
-                        <>
-                          <ProductPage onAddToCart={handleAddToCart} />
-                        </>
-                      </ProductProvider>
-                    }
-                  />
-                  <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
-                  <Route path="/signup" element={<SignUpPage />} />
-                  <Route path="/login/*" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
-                  <Route path="/manage-account" element={<ManageAcc />} />
-                  <Route path="/contact" element={<ContactUs />} />
-                  <Route path="/faqs" element={<Faqs />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/shipping" element={<Shipping />} />
-                  <Route path="/returns" element={<Returns />} />
-                </Routes>
-              </>
-            }
-          />
-        </Routes>
-        <Footer />
-      </div>
-    </Router>
+
+            {/* Supplier Information Routes Wrapped with SupplierProvider */}
+            <Route
+              path="/supplier/supplier-information"
+              element={
+                <SupplierProvider>
+                  <>
+                    <InventoryNavbar cartItemCount={cartItemCount} />
+                    <SupplierInformation />
+                  </>
+                </SupplierProvider>
+              }
+            />
+            
+            <Route
+              path="/supplier/supplier-address"
+              element={
+                <SupplierProvider>
+                  <>
+                    <InventoryNavbar cartItemCount={cartItemCount} />
+                    <SupplierAddress />
+                  </>
+                </SupplierProvider>
+              }
+            />
+
+            {/* Public Routes */}
+            <Route
+              path="*"
+              element={
+                <>
+                  <Navbar cartItemCount={cartItemCount} />
+                  <Routes>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/about" element={<AboutUsPage />} />
+                    <Route path="/services" element={<ServicePage />} />
+                    <Route
+                      path="/products"
+                      element={
+                        <ProductProvider>
+                          <>
+                            <ProductPage onAddToCart={handleAddToCart} />
+                            <ProductPage products={products} />
+                          </>
+                        </ProductProvider>
+                      }
+                    />
+                    <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
+                    <Route path="/signup" element={<SignUpPage />} />
+                    <Route path="/login/*" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+                    <Route path="/manage-account" element={<ManageAcc />} />
+                    <Route path="/contact" element={<ContactUs />} />
+                    <Route path="/faqs" element={<Faqs />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/shipping" element={<Shipping />} />
+                    <Route path="/returns" element={<Returns />} />
+                    <Route path="/product-detail" element={<ProductDetail />} />
+                  </Routes>
+                </>
+              }
+            />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
+    </ProductProvider>
   );
 }
 
