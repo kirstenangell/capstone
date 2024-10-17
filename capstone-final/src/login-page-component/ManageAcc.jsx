@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { FaUser, FaLock, FaClipboardList } from 'react-icons/fa';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const ManageAcc = () => {
     const [activeTab, setActiveTab] = useState('profile');
+    const navigate = useNavigate(); // useNavigate hook for redirection
     const [profilePic, setProfilePic] = useState(null);
     const [formData, setFormData] = useState({
         firstName: '',
@@ -14,7 +16,6 @@ const ManageAcc = () => {
     });
 
     const [activeDropdown, setActiveDropdown] = useState(null); // Single state to manage dropdowns
-
     const fileInputRef = useRef(null);
 
     const handleTabClick = (tab) => {
@@ -54,6 +55,12 @@ const ManageAcc = () => {
         } else {
             setActiveDropdown(dropdown); // Open the clicked dropdown and close others
         }
+    };
+
+    const handleLogout = () => {
+        // Perform any logout logic here (e.g., clearing tokens)
+        console.log('User logged out');
+        navigate('/'); // Redirect to the landing page
     };
     
 
@@ -403,6 +410,14 @@ const ManageAcc = () => {
                         </div>
                     </div>
                 )}
+                 <div className="mt-10">
+                    <button
+                        onClick={handleLogout}
+                        className="px-6 py-2 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-all"
+                    >
+                        LOGOUT
+                    </button>
+                </div>
             </div>
         </div>
     );
