@@ -42,21 +42,18 @@ const SignUp = () => {
         password: password       // Password being sent
       });
   
-      if (response.data.message === 'User registered successfully') {
-        setSuccessMessage('Sign up successful! You can now log in.');
+      if (response.status === 200) {
+        setSuccessMessage('Sign up successful! Please verify your email.');
         setErrorMessage('');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
       } else {
         setErrorMessage(response.data.message);
-        setSuccessMessage('');
       }
     } catch (error) {
-      setErrorMessage('An error occurred during sign up.');
-      setSuccessMessage('');
+      setErrorMessage('An error occurred during sign up.');  // Modify this for better clarity
+      console.error('Signup error:', error);  // Log the error for debugging
     }
   };
+  
   
 
   return (

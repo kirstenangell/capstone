@@ -26,18 +26,17 @@ import InventoryPage from "./inventory/InventoryPage";
 import OrderPage from "./inventory/OrderPage";
 import CustomerPage from "./inventory/CustomerPage";
 import UserPage from "./inventory/UserPage";
-import SupplierPage from './inventory/SupplierPage';
+import SupplierPage from './inventory/SupplierPage'; 
 import InventoryLanding from './inventory-page-component/InventoryLanding';
 import OrderDetails from './order-page-component/OrderDetails';
 import ProductInformation from './inventory-page-component/ProductInformation'; 
 import SupplierInformation from './supplier-page-component/SupplierInformation'; 
-import SupplierAddress from './supplier-page-component/SupplierAddress';
-import ProductDetail from './product-page-component/ProductDetail';
+import SupplierAddress from './supplier-page-component/SupplierAddress'; 
 
 // Context Providers
 import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
-import { OrderProvider } from './context/OrderContext';
+import { OrderProvider } from './context/OrderContext'; 
 import { SupplierProvider } from './context/SupplierContext'; 
 
 function App() {
@@ -51,7 +50,6 @@ function App() {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Authentication State (if needed)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Cart Functions
@@ -171,44 +169,71 @@ function App() {
               }
             />
 
-            {/* OrderDetails Route Wrapped with OrderProvider */}
-            <Route
-              path="/order-details"
-              element={
+          {/* OrderDetails Route Wrapped with CustomerProvider and OrderProvider */}
+          <Route
+            path="/order-details"
+            element={
+              <CustomerProvider>
                 <OrderProvider>
                   <>
                     <InventoryNavbar cartItemCount={cartItemCount} />
                     <OrderDetails />
                   </>
                 </OrderProvider>
-              }
-            />
-            
-            {/* InventoryLanding Route Wrapped with ProductProvider */}
-            <Route
-              path="/inventory"
-              element={
-                <ProductProvider>
-                  <>
-                    <InventoryNavbar cartItemCount={cartItemCount} />
-                    <InventoryLanding />
-                  </>
-                </ProductProvider>
-              }
-            />
-    
-            {/* ProductInformation Route Wrapped with ProductProvider */}
-            <Route
-              path="/inventory/product-information"
-              element={
-                <ProductProvider>
-                  <>
-                    <InventoryNavbar cartItemCount={cartItemCount} />
-                    <ProductInformation />
-                  </>
-                </ProductProvider>
-              }
-            />
+              </CustomerProvider>
+            }
+          />
+          
+          {/* InventoryLanding Route Wrapped with ProductProvider */}
+          <Route
+            path="/inventory"
+            element={
+              <ProductProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <InventoryLanding />
+                </>
+              </ProductProvider>
+            }
+          />
+  
+          {/* ProductInformation Route Wrapped with ProductProvider */}
+          <Route
+            path="/inventory/product-information"
+            element={
+              <ProductProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <ProductInformation />
+                </>
+              </ProductProvider>
+            }
+          />
+          
+          {/* Supplier Information Routes Wrapped with SupplierProvider */}
+          <Route
+            path="/supplier/supplier-information"
+            element={
+              <SupplierProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <SupplierInformation />
+                </>
+              </SupplierProvider>
+            }
+          />
+          
+          <Route
+            path="/supplier/supplier-address"
+            element={
+              <SupplierProvider>
+                <>
+                  <InventoryNavbar cartItemCount={cartItemCount} />
+                  <SupplierAddress />
+                </>
+              </SupplierProvider>
+            }
+          />
 
             {/* Supplier Information Routes Wrapped with SupplierProvider */}
             <Route

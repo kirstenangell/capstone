@@ -1,25 +1,25 @@
-// src/order-page-component/OrderDetails.jsx
 import React, { useState, useContext, useEffect } from 'react';
 import { IoIosInformationCircle, IoMdMail } from 'react-icons/io';
 import { GiStorkDelivery, GiCardboardBoxClosed } from 'react-icons/gi';
 import { FaProductHunt } from 'react-icons/fa';
 import { IoMdClose } from "react-icons/io";
 import { useNavigate, useLocation } from 'react-router-dom';
+import { CustomerContext } from '../context/CustomerContext'; // Import CustomerContext
 import { OrderContext } from '../context/OrderContext'; // Import OrderContext
 
 const OrderDetails = () => {
+  const { customers } = useContext(CustomerContext); // Access customer data from context
+  const { addOrder, updateOrder } = useContext(OrderContext); // Access order functions from context
   const navigate = useNavigate();
   const location = useLocation();
 
   // Retrieve order data and edit flag from navigation state
   const { order: existingOrder, isEdit } = location.state || {};
 
-  const { addOrder, updateOrder } = useContext(OrderContext);
-
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     id: existingOrder?.id || null,
-    // Remove OID from formData as it will be assigned in OrderContext
+    cid: '', // Add CID field
     firstName: existingOrder?.firstName || '',
     lastName: existingOrder?.lastName || '',
     email: existingOrder?.email || '',
@@ -38,9 +38,43 @@ const OrderDetails = () => {
     products: existingOrder?.products ? [...existingOrder.products] : [''],
   });
 
+  // Auto-populate fields when CID is entered
   useEffect(() => {
-    // If editing, you can set additional states or perform other side effects here
-  }, [isEdit, existingOrder]);
+    if (formData.cid) {
+      const matchingCustomer = customers.find((customer) => `CID-${customer.id}` === formData.cid);
+      
+      if (matchingCustomer) {
+        setFormData((prevData) => ({
+          ...prevData,
+          firstName: matchingCustomer.name.split(' ')[0] || '',
+          lastName: matchingCustomer.name.split(' ')[1] || '',
+          email: matchingCustomer.email || '',
+          contactNumber: matchingCustomer.phone || '',
+          houseNumber: matchingCustomer.currentAddress?.houseNumber || '',
+          streetName: matchingCustomer.currentAddress?.street || '',
+          barangay: matchingCustomer.currentAddress?.barangay || '',
+          city: matchingCustomer.currentAddress?.city || '',
+          region: matchingCustomer.currentAddress?.province || '',
+          zipCode: matchingCustomer.currentAddress?.zipCode || '',
+        }));
+      } else {
+        // Clear the fields if no match is found
+        setFormData({
+          ...formData,
+          firstName: '',
+          lastName: '',
+          email: '',
+          contactNumber: '',
+          houseNumber: '',
+          streetName: '',
+          barangay: '',
+          city: '',
+          region: '',
+          zipCode: '',
+        });
+      }
+    }
+  }, [formData.cid, customers]); // Watch for changes in the CID or customers list
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,21 +82,6 @@ const OrderDetails = () => {
       ...prevData,
       [name]: value,
     }));
-  };
-
-  const handleProductChange = (index, value) => {
-    const updatedProducts = [...formData.products];
-    updatedProducts[index] = value;
-    setFormData({ ...formData, products: updatedProducts });
-  };
-
-  const handleAddProduct = () => {
-    setFormData({ ...formData, products: [...formData.products, ''] });
-  };
-
-  const handleRemoveProduct = (index) => {
-    const updatedProducts = formData.products.filter((_, i) => i !== index);
-    setFormData({ ...formData, products: updatedProducts });
   };
 
   const handleNextClick = (e) => {
@@ -99,7 +118,7 @@ const OrderDetails = () => {
     // Prepare the order data without OID, let OrderContext handle it
     const orderData = {
       id: formData.id || Date.now(), // Use existing ID or generate a new one
-      // oid: will be assigned by OrderContext
+      cid: formData.cid || 'N/A', // Include CID
       firstName: formData.firstName || 'N/A',
       lastName: formData.lastName || 'N/A',
       email: formData.email || 'N/A',
@@ -154,9 +173,7 @@ const OrderDetails = () => {
         ].map(({ step, label, icon: Icon }) => (
           <div
             key={step}
-            className={`mb-4 flex items-center space-x-2 p-4 rounded-lg ${
-              currentStep === step ? 'bg-gray-800' : ''
-            }`}
+            className={`mb-4 flex items-center space-x-2 p-4 rounded-lg ${currentStep === step ? 'bg-gray-800' : ''}`}
           >
             <Icon className={`text-2xl ${currentStep === step ? 'text-white' : 'text-gray-400'}`} />
             <div>
@@ -173,7 +190,20 @@ const OrderDetails = () => {
           <form onSubmit={handleSaveClick}>
             {currentStep === 1 && (
               <div>
-                {/* General Information Form */}
+                {/* CID Field */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-1">CID</label>
+                  <input
+                    type="text"
+                    name="cid"
+                    placeholder="Customer ID"
+                    value={formData.cid}
+                    onChange={handleChange}
+                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                {/* First Name Field */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">First Name</label>
                   <input
@@ -185,6 +215,8 @@ const OrderDetails = () => {
                     className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   />
                 </div>
+
+                {/* Last Name Field */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">Last Name</label>
                   <input
@@ -196,6 +228,8 @@ const OrderDetails = () => {
                     className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   />
                 </div>
+
+                {/* Email Address Field */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">Email Address</label>
                   <input
@@ -207,6 +241,8 @@ const OrderDetails = () => {
                     className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   />
                 </div>
+
+                {/* Contact Number Field */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">Contact Number</label>
                   <input
@@ -221,9 +257,9 @@ const OrderDetails = () => {
               </div>
             )}
 
+            {/* Step 2: Address Details */}
             {currentStep === 2 && (
               <div>
-                {/* Address Details Form */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">House Number</label>
                   <input
@@ -293,9 +329,9 @@ const OrderDetails = () => {
               </div>
             )}
 
+            {/* Step 3: Delivery Details */}
             {currentStep === 3 && (
               <div>
-                {/* Delivery Details Form */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">Delivery Option</label>
                   <select
@@ -348,9 +384,7 @@ const OrderDetails = () => {
                           <button
                             key={time}
                             type="button"
-                            className={`p-3 rounded-lg text-white bg-black border border-gray-600 ${
-                              formData.pickUpTime === time ? 'bg-gray-700' : ''
-                            }`}
+                            className={`p-3 rounded-lg text-white bg-black border border-gray-600 ${formData.pickUpTime === time ? 'bg-gray-700' : ''}`}
                             onClick={() => setFormData({ ...formData, pickUpTime: time })}
                           >
                             {time}
@@ -379,9 +413,9 @@ const OrderDetails = () => {
               </div>
             )}
 
+            {/* Step 4: Products */}
             {currentStep === 4 && (
               <div>
-                {/* Product Form */}
                 {formData.products.map((product, index) => (
                   <div key={index} className="mb-6">
                     <div className="flex justify-between items-center mb-2">
@@ -428,9 +462,9 @@ const OrderDetails = () => {
               </div>
             )}
 
+            {/* Step 5: Order Summary */}
             {currentStep === 5 && (
               <div>
-                {/* Order Summary */}
                 <div className="text-center mb-8">
                   <h2 className="text-lg font-bold text-white">ORDER SUMMARY</h2>
                 </div>
