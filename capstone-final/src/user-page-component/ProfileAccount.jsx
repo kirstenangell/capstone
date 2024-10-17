@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaUser, FaLock } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
+import axios from 'axios'; // Import Axios for API calls
 
 const ProfileAccount = () => {
     const [activeTab, setActiveTab] = useState('profile');
@@ -15,6 +16,35 @@ const ProfileAccount = () => {
 
     const fileInputRef = useRef(null);
     const navigate = useNavigate(); // useNavigate hook for redirection
+
+    // Fetch user data when the component loads
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                // Assuming the user's email is stored in localStorage after login
+                const email = localStorage.getItem('email');
+                if (email && email.includes('flacko1990')) {
+                    const response = await axios.get(`http://localhost:5000/user-details?email=${email}`);
+                    const { firstName, lastName, email: userEmail } = response.data;
+
+                    // Set the fetched data to formData
+                    setFormData((prevData) => ({
+                        ...prevData,
+                        firstName,
+                        lastName,
+                        email: userEmail,
+                    }));
+                } else {
+                    alert('Access restricted');
+                    navigate('/'); // Redirect to homepage if unauthorized
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
+        fetchUserData(); // Call the function to fetch data when the component mounts
+    }, [navigate]);
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
@@ -51,6 +81,7 @@ const ProfileAccount = () => {
     const handleLogout = () => {
         // Perform any logout logic here (e.g., clearing tokens)
         console.log('User logged out');
+        localStorage.clear(); // Clear localStorage on logout
         navigate('/'); // Redirect to the landing page
     };
 
