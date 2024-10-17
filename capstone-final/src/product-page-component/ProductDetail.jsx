@@ -1,31 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ProductContext } from '../context/ProductContext'; 
 import Wheel1 from "../assets/wheel1.png";
 import Wheel2 from "../assets/wheel2.png";
 import Wheel3 from "../assets/wheel3.png";
-import Wheel4 from "../assets/wheel4.png";
 import Wheel5 from "../assets/wheel5.png";
-import Wheel6 from "../assets/wheel6.png";
-import Wheel7 from "../assets/wheel7.png";
-import Wheel8 from "../assets/wheel8.png";
 
-const products = [
-  { 
-    id: 1, 
-    image: Wheel5, 
-    name: "PRODUCT NAME", 
-    price: "PHP30,000.00", 
-    reviews: 11, 
-    rating: 4,
-    relatedImages: [Wheel1, Wheel2, Wheel3] // Add related images here
-  },
-
-];
-
-const ProductDetail = () => {
-  const [selectedProduct, setSelectedProduct] = useState(products[0]);
+const ProductDetail = ({ onAddToCart }) => {
+  const { products } = useContext(ProductContext); 
+  const location = useLocation(); 
+  const navigate = useNavigate();
+  const [selectedProduct, setSelectedProduct] = useState(location.state?.product || products[0]);
+  
+  useEffect(() => {
+    if (location.state?.product) {
+      setSelectedProduct(location.state.product);
+    }
+  }, [location.state]);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
+  };
+
+  const handleAddToCart = () => {
+    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 0 });
+  };
+
+  const handleBuyNow = () => {
+    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 0 });
+    navigate('/cart'); 
   };
 
   return (
@@ -35,7 +38,7 @@ const ProductDetail = () => {
         <div className="flex">
           {/* Thumbnails */}
           <div className="flex flex-col justify-center space-y-4">
-            {selectedProduct.relatedImages.map((image, index) => (
+            {selectedProduct.relatedImages?.map((image, index) => (
               <img 
                 key={index}
                 src={image} 
@@ -60,8 +63,7 @@ const ProductDetail = () => {
         <div className="ml-12 flex-1">
           <h1 className="text-3xl font-medium">{selectedProduct.name}</h1>
           <p className="mt-4 text-gray-400">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim 
-            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex eado consequat.
+            {selectedProduct.description || 'No description provided.'}
           </p>
           <div className="flex items-center mt-4">
             <span className="text-[#335C6E]">
@@ -81,32 +83,37 @@ const ProductDetail = () => {
           {/* Quantity Selector */}
           <div className="flex items-center mt-4">
             <button 
-              onClick={() => setSelectedProduct({ ...selectedProduct, quantity: selectedProduct.quantity > 1 ? selectedProduct.quantity - 1 : 1 })}
-             className="px-4 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none hover:bg-gray-700"
+              onClick={() => setSelectedProduct({ ...selectedProduct, quantity: selectedProduct.quantity > 0 ? selectedProduct.quantity - 1 : 0 })}
+              className="px-4 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none hover:bg-gray-700"
             >-</button>
             <div className="px-4 py-2 bg-gray-900 text-white">
-              {selectedProduct.quantity || 1}
+              {selectedProduct.quantity || 0}
             </div>
             <button 
-              onClick={() => setSelectedProduct({ ...selectedProduct, quantity: (selectedProduct.quantity || 1) + 1 })}
+              onClick={() => setSelectedProduct({ ...selectedProduct, quantity: (selectedProduct.quantity || 0) + 1 })}
               className="px-4 py-2 bg-gray-800 text-white rounded-r-md focus:outline-none hover:bg-gray-700"
             >+</button>
           </div>
 
-          {/* Product Description */}
+          {/* Product Additional Details */}
           <div className="mt-6 space-y-2 text-gray-400 font-thin">
-            <p>Loren Ipsum: Sed do eiusmod tempor incididunt ut labore et</p>
-            <p>Loren Ipsum: Sed do eiusmod tempor incididunt ut labore et</p>
-            <p>Loren Ipsum: Sed do eiusmod tempor incididunt ut labore et</p>
-            <p>Loren Ipsum: Sed do eiusmod tempor incididunt ut labore et</p>
+            <p>Product Type: {selectedProduct.type || 'N/A'}</p>
+            <p>Category: {selectedProduct.category || 'N/A'}</p>
+            <p>Dimensions: {selectedProduct.dimensions || 'N/A'}</p>
+            <p>Color: {selectedProduct.color || 'N/A'}</p>
+            <p>Finish: {selectedProduct.finish || 'N/A'}</p>
+            <p>Material: {selectedProduct.material || 'N/A'}</p>
+            <p>Model: {selectedProduct.model || 'N/A'}</p>
           </div>
 
           {/* Action Buttons */}
           <div className="flex mt-6 space-x-4">
             <button 
+              onClick={handleAddToCart}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
             >ADD TO CART</button>
             <button 
+              onClick={handleBuyNow}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
             >BUY NOW</button>
           </div>
@@ -119,11 +126,11 @@ const ProductDetail = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
             <div
-            key={product.id}
-            className="text-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer"
-            style={{ backgroundColor: 'rgba(217, 217, 217, 0.04)' }} // Updated background color
-            onClick={() => handleProductClick(product)}
-          >
+              key={product.id}
+              className="text-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer"
+              style={{ backgroundColor: 'rgba(217, 217, 217, 0.04)' }}
+              onClick={() => handleProductClick(product)}
+            >
               <img src={product.image} alt={product.name} className="w-full h-64 object-contain rounded-md" />
               <div className="mt-4">
                 <p className="text-sm text-gray-400">LOREM IPSUM</p>

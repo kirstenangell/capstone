@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
 import Wheel1 from "../assets/wheel1.png";
@@ -6,6 +6,7 @@ import Wheel2 from "../assets/wheel2.png";
 import Wheel3 from "../assets/wheel3.png";
 import Wheel5 from "../assets/wheel5.png";
 import dashboardImage from '../assets/dashboard.png';
+import { ProductContext } from '../context/ProductContext'; 
 
 const products = [
   { 
@@ -41,6 +42,7 @@ const products = [
 ];
 
 const ProductSection = ({ onAddToCart }) => {
+  const { products } = useContext(ProductContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const navigate = useNavigate(); 
@@ -50,7 +52,8 @@ const ProductSection = ({ onAddToCart }) => {
   };
 
   const handleProductClick = (product) => {
-    setSelectedProduct({ ...product, quantity: 0 });
+    navigate('/product-detail', { state: { product } }); // Pass the selected product to the route
+    //setSelectedProduct({ ...product, quantity: 0 });
     window.scrollTo(0, 0); // Scroll to the top when a product is clicked
   };
 
@@ -256,7 +259,7 @@ const ProductSection = ({ onAddToCart }) => {
                 onClick={() => handleProductClick(product)}
               >
                 <div className="w-full h-80 rounded-t-lg flex items-center justify-center">
-                  <img src={product.image} alt="Wheel" className="object-contain h-full rounded-md" />
+                  <img src={product.image} alt={product.name} className="object-contain h-full rounded-md" />
                 </div>
                 <div className="mt-4">
                   <h2 className="text-sm font-light italic text-gray-400">LOREM IPSUM</h2>
