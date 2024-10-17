@@ -49,12 +49,10 @@ app.post('/register', (req, res) => {
   // Input validation
   if (!first_name || !last_name || !email || !password) {
     console.error('Validation error: Missing fields');
-    return res.status(400).json({ message: 'All fields are required' });
+    return res.status(400).json({ message: 'All fields are required' });``  
   }
-
   // Generate a verification token
   const verificationToken = crypto.randomBytes(32).toString('hex');
-
   // Hash the password
   const hashedPassword = bcrypt.hashSync(password, 10);
 
