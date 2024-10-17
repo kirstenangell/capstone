@@ -224,7 +224,6 @@ function App() {
               </SupplierProvider>
             }
           />
-
           {/* Public Routes */}
           <Route
             path="*"
