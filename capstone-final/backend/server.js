@@ -12,7 +12,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:5173', // Adjust this to match your frontend URL
+  origin: '*', // This will allow all origins temporarily, but be cautious with it in production.
 }));
 
 
@@ -140,6 +140,7 @@ app.post('/login', (req, res) => {
     if (!user.verified) {
       return res.status(401).json({ message: 'Please verify your email before logging in.' });
     }
+    
 
     // Compare entered password with stored hash
     bcrypt.compare(password, user.password, (err, isMatch) => {

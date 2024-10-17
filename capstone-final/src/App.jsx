@@ -32,12 +32,14 @@ import OrderDetails from './order-page-component/OrderDetails';
 import ProductInformation from './inventory-page-component/ProductInformation'; 
 import SupplierInformation from './supplier-page-component/SupplierInformation'; 
 import SupplierAddress from './supplier-page-component/SupplierAddress'; 
+import ProductDetail from './product-page-component/ProductDetail';
 
 // Context Providers
 import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
 import { OrderProvider } from './context/OrderContext'; 
 import { SupplierProvider } from './context/SupplierContext'; 
+
 
 function App() {
   // Cart State Management
