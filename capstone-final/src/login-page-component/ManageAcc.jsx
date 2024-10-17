@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaUser, FaLock, FaClipboardList } from 'react-icons/fa';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';  // Import Axios for making API requests
 
 const ManageAcc = () => {
     const [activeTab, setActiveTab] = useState('profile');
@@ -14,9 +15,36 @@ const ManageAcc = () => {
         contactNumber: '',
         address: '',
     });
-
     const [activeDropdown, setActiveDropdown] = useState(null); // Single state to manage dropdowns
     const fileInputRef = useRef(null);
+
+    // Fetch user data when the component loads
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                // Get the email from localStorage
+                const email = localStorage.getItem('email');
+                if (email) {
+                    // Fetch user details from the backend
+                    const response = await axios.get(`http://localhost:5000/user-details?email=${email}`);
+                    const { firstName, lastName, email: userEmail } = response.data;
+    
+                    // Update the formData state with fetched data
+                    setFormData((prevData) => ({
+                        ...prevData,
+                        firstName,
+                        lastName,
+                        email: userEmail,
+                    }));
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+    
+        fetchUserData();
+    }, []);
+    
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
@@ -47,6 +75,7 @@ const ManageAcc = () => {
 
     const handleSaveChanges = () => {
         console.log('Form data saved:', formData);
+        // Optional: You can add logic here to send updated data to the backend
     };
 
     const toggleDropdown = (dropdown) => {
@@ -62,8 +91,6 @@ const ManageAcc = () => {
         console.log('User logged out');
         navigate('/'); // Redirect to the landing page
     };
-    
-
     return (
         <div className="min-h-screen flex bg-black text-white px-8">
             <div className="w-1/4 p-6 bg-black">
@@ -104,38 +131,31 @@ const ManageAcc = () => {
                 {/* Profile Picture Section (visible only in Profile and Password tabs) */}
                 {(activeTab === 'profile' || activeTab === 'password') && (
                     <div className="flex items-center space-x-6 mb-8">
-                    <div className="w-24 h-24 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden">
-                        {profilePic ? (
-                            <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
-                        ) : (
-                            <FaUser className="text-4xl text-gray-300" />
-                        )}
-                    </div>
-                    <div>
-                        {/* Hidden file input */}
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                        />
-                        <button
-                            className="block px-4 py-2 bg-black border border-gray-600 text-xs rounded-md mb-2"
-                            onClick={handleUploadClick}
-                        >
-                            Upload Picture
-                        </button>
-                        {(activeTab === 'profile' || activeTab === 'password') && (
-                            <button className="block px-4 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-sm rounded-md">
-                                Edit Profile
+                        <div className="w-24 h-24 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden">
+                            {profilePic ? (
+                                <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <FaUser className="text-4xl text-gray-300" />
+                            )}
+                        </div>
+                        <div>
+                            {/* Hidden file input */}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                            />
+                            <button
+                                className="block px-4 py-2 bg-black border border-gray-600 text-xs rounded-md mb-2"
+                                onClick={handleUploadClick}
+                            >
+                                Upload Picture
                             </button>
-                        )}
+                        </div>
                     </div>
-                </div>
-                
                 )}
-
                 {/* Conditional Tab Content */}
                 {activeTab === 'profile' && (
                     <div className="space-y-6">
@@ -207,13 +227,15 @@ const ManageAcc = () => {
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gray-600 rounded-md text-xs"
-                                        onClick={() => setFormData({
-                                            firstName: '',
-                                            lastName: '',
-                                            email: '',
-                                            contactNumber: '',
-                                            address: '',
-                                        })}
+                                        onClick={() =>
+                                            setFormData({
+                                                firstName: '',
+                                                lastName: '',
+                                                email: '',
+                                                contactNumber: '',
+                                                address: '',
+                                            })
+                                        }
                                     >
                                         CANCEL
                                     </button>
@@ -229,7 +251,6 @@ const ManageAcc = () => {
                         </div>
                     </div>
                 )}
-
                 {activeTab === 'password' && (
                     <div className="space-y-6">
                         <div className="w-full max-w-2xl text-white rounded-lg shadow-lg">
@@ -410,7 +431,7 @@ const ManageAcc = () => {
                         </div>
                     </div>
                 )}
-                 <div className="mt-10">
+                  <div className="mt-10">
                     <button
                         onClick={handleLogout}
                         className="px-6 py-2 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-all"

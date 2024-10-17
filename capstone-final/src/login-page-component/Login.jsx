@@ -20,6 +20,9 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
             const response = await axios.post('http://localhost:5000/login', { email, password });
             
             if (response.data.message === 'Login successful') {
+                // Store user email in localStorage for fetching later
+                localStorage.setItem('email', email); 
+    
                 if (response.data.role === 'admin') {
                     navigate('/dashboard');  // Redirect to inventory for admin
                 } else if (response.data.role === 'customer') {
@@ -29,10 +32,10 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
                 setErrorMessage(response.data.message);  // Show error message from backend
             }
         } catch (error) {
-            console.error('Login Error:', error.response);  // Log the error for deeper insights
             setErrorMessage('An error occurred during login.');
         }
     };
+    
 
     return (
         <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]"> 

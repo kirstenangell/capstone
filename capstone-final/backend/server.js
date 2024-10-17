@@ -161,6 +161,30 @@ app.post('/login', (req, res) => {
   });
 });
 
+app.get('/user-details', (req, res) => {
+  const email = req.query.email;  // Fetch user data by email passed as a query parameter
+
+  const query = 'SELECT first_name, last_name, email FROM users WHERE email = ?';
+  db.query(query, [email], (err, result) => {
+      if (err) {
+          console.error('Error fetching user details:', err);
+          return res.status(500).json({ message: 'Server error' });
+      }
+
+      if (result.length === 0) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      const user = result[0];
+      res.status(200).json({
+          firstName: user.first_name,
+          lastName: user.last_name,
+          email: user.email,
+      });
+  });
+});
+
+
 
 
 // Start the server
