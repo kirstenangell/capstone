@@ -12,7 +12,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: '*', // This will allow all origins temporarily, but be cautious with it in production.
+  origin: '*',  // Allow all origins (this is not recommended in production)
 }));
 
 
@@ -140,7 +140,6 @@ app.post('/login', (req, res) => {
     if (!user.verified) {
       return res.status(401).json({ message: 'Please verify your email before logging in.' });
     }
-    
 
     // Compare entered password with stored hash
     bcrypt.compare(password, user.password, (err, isMatch) => {

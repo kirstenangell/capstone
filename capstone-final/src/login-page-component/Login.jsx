@@ -29,6 +29,7 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
                 setErrorMessage(response.data.message);  // Show error message from backend
             }
         } catch (error) {
+            console.error('Login Error:', error.response);  // Log the error for deeper insights
             setErrorMessage('An error occurred during login.');
         }
     };
