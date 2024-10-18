@@ -189,7 +189,7 @@ app.get('/user-details', (req, res) => {
   const email = req.query.email;
 
   const query = `
-    SELECT first_name, last_name, email, contact_number, street, barangay, city, region, province, zip_code 
+    SELECT first_name AS firstName, last_name AS lastName, email, contact_number AS contactNumber, street, barangay, city, region, province, zip_code AS zipCode 
     FROM users 
     WHERE email = ?
   `;
@@ -203,21 +203,10 @@ app.get('/user-details', (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const user = result[0];
-    res.status(200).json({
-      firstName: user.first_name,
-      lastName: user.last_name,
-      email: user.email,
-      contactNumber: user.contact_number,
-      street: user.street,
-      barangay: user.barangay,
-      city: user.city,
-      region: user.region,
-      province: user.province,
-      zipCode: user.zip_code,
-    });
+    res.status(200).json(result[0]);
   });
 });
+
 
 
 

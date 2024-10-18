@@ -27,21 +27,18 @@ const ManageAcc = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    // New state variables
     const [isEditing, setIsEditing] = useState(false);
     const [initialFormData, setInitialFormData] = useState({});
 
     // Fetch user data when the component loads
     useEffect(() => {
         const fetchUserData = async () => {
-            const email = localStorage.getItem('email');  // Assuming email is stored in localStorage after login
-            
+            const email = localStorage.getItem('email');
             if (email) {
                 try {
                     const response = await axios.get(`http://localhost:5000/user-details?email=${email}`);
                     if (response.status === 200) {
                         const userData = response.data;
-
                         setFormData({
                             firstName: userData.firstName,
                             lastName: userData.lastName,
@@ -54,6 +51,7 @@ const ManageAcc = () => {
                             province: userData.province || '',
                             zipCode: userData.zipCode || '',
                         });
+                        setInitialFormData(userData);
                     }
                 } catch (error) {
                     console.error('Error fetching user data:', error);
@@ -61,8 +59,9 @@ const ManageAcc = () => {
             }
         };
 
-        fetchUserData();  // Ensure the data is fetched every time the page reloads
+        fetchUserData();
     }, []);
+    
 
 
     const handleTabClick = (tab) => {
@@ -104,9 +103,20 @@ const ManageAcc = () => {
                 province: formData.province,
                 zipCode: formData.zipCode,
             });
-            
+
             if (response.status === 200) {
                 console.log('User details updated successfully');
+                setInitialFormData(formData);
+                setIsEditing(false);
+
+                // Update localStorage with new data
+                localStorage.setItem('contactNumber', formData.contactNumber);
+                localStorage.setItem('street', formData.street);
+                localStorage.setItem('barangay', formData.barangay);
+                localStorage.setItem('city', formData.city);
+                localStorage.setItem('region', formData.region);
+                localStorage.setItem('province', formData.province);
+                localStorage.setItem('zipCode', formData.zipCode);
             }
         } catch (error) {
             console.error('Error updating user details:', error);
@@ -128,33 +138,28 @@ const ManageAcc = () => {
         console.log('User logged out');
         navigate('/'); // Redirect to the landing page
     };
+    
     return (
         <div className="min-h-screen flex bg-black text-white px-8">
             <div className="w-1/4 p-6 bg-black">
                 <h2 className="text-xl font-semibold mb-10">Manage Account</h2>
                 <ul className="space-y-4">
                     <li
-                        className={`flex items-center p-2 cursor-pointer ${
-                            activeTab === 'profile' ? 'bg-gray-800 rounded-md' : ''
-                        }`}
+                        className={`flex items-center p-2 cursor-pointer ${activeTab === 'profile' ? 'bg-gray-800 rounded-md' : ''}`}
                         onClick={() => handleTabClick('profile')}
                     >
                         <FaUser className="mr-2" />
                         Profile
                     </li>
                     <li
-                        className={`flex items-center p-2 cursor-pointer ${
-                            activeTab === 'password' ? 'bg-gray-800 rounded-md' : ''
-                        }`}
+                        className={`flex items-center p-2 cursor-pointer ${activeTab === 'password' ? 'bg-gray-800 rounded-md' : ''}`}
                         onClick={() => handleTabClick('password')}
                     >
                         <FaLock className="mr-2" />
                         Password
                     </li>
                     <li
-                        className={`flex items-center p-2 cursor-pointer ${
-                            activeTab === 'orderHistory' ? 'bg-gray-800 rounded-md' : ''
-                        }`}
+                        className={`flex items-center p-2 cursor-pointer ${activeTab === 'orderHistory' ? 'bg-gray-800 rounded-md' : ''}`}
                         onClick={() => handleTabClick('orderHistory')}
                     >
                         <FaClipboardList className="mr-2" />
@@ -354,11 +359,7 @@ const ManageAcc = () => {
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md"
-                                        onClick={() => {
-                                            handleSaveChanges();
-                                            setInitialFormData(formData);
-                                            setIsEditing(false);
-                                        }}
+                                        onClick={handleSaveChanges}
                                         disabled={!isEditing}
                                     >
                                         SAVE CHANGES
