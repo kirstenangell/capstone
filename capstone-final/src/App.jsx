@@ -276,13 +276,11 @@ function App() {
                       path="/products"
                       element={
                         <ProductProvider>
-                          <>
-                            <ProductPage onAddToCart={handleAddToCart} />
-                            <ProductPage products={products} />
-                          </>
+                          <ProductPage onAddToCart={handleAddToCart} />
                         </ProductProvider>
                       }
                     />
+
                     <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
                     <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/login/*" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
@@ -292,7 +290,9 @@ function App() {
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/shipping" element={<Shipping />} />
                     <Route path="/returns" element={<Returns />} />
-                    <Route path="/product-detail" element={<ProductDetail />} />
+                    <Route path="/product-detail" element={<ProductDetail onAddToCart={handleAddToCart} />} />
+
+
                   </Routes>
                 </>
               }

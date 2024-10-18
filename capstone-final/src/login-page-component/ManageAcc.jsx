@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaUser, FaLock, FaClipboardList } from 'react-icons/fa';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';  // Import Axios for making API requests
 
@@ -23,7 +24,9 @@ const ManageAcc = () => {
       
     const [activeDropdown, setActiveDropdown] = useState(null); // Single state to manage dropdowns
     const fileInputRef = useRef(null);
-
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     // New state variables
     const [isEditing, setIsEditing] = useState(false);
     const [initialFormData, setInitialFormData] = useState({});
@@ -162,7 +165,6 @@ const ManageAcc = () => {
 
             {/* Main Content */}
             <div className="w-3/4 p-8">
-                {/* Profile Picture Section (visible only in Profile and Password tabs) */}
                 {(activeTab === 'profile' || activeTab === 'password') && (
                     <div className="flex items-center space-x-6 mb-8">
                         <div className="w-24 h-24 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden">
@@ -173,7 +175,6 @@ const ManageAcc = () => {
                             )}
                         </div>
                         <div>
-                            {/* Hidden file input */}
                             <input
                                 type="file"
                                 accept="image/*"
@@ -367,46 +368,69 @@ const ManageAcc = () => {
                         </div>
                     </div>
                 )}
-                {activeTab === 'password' && (
+                 {activeTab === 'password' && (
                     <div className="space-y-6">
                         <div className="w-full max-w-2xl text-white rounded-lg shadow-lg">
                             <form className="space-y-6">
+                                {/* Current Password */}
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Current Password</label>
-                                    <input
-                                        type="password"
-                                        placeholder="Current Password"
-                                        className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showCurrentPassword ? 'text' : 'password'}
+                                            placeholder="Current Password"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
+                                        />
+                                        <div
+                                            className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        >
+                                            {showCurrentPassword ? <IoIosEyeOff /> : <IoIosEye />}
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* New Password */}
                                 <div>
                                     <label className="block text-sm font-medium mb-1">New Password</label>
-                                    <input
-                                        type="password"
-                                        placeholder="New Password"
-                                        className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            placeholder="New Password"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
+                                        />
+                                        <div
+                                            className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                        >
+                                            {showNewPassword ? <IoIosEyeOff /> : <IoIosEye />}
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Confirm Password */}
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Confirm Password</label>
-                                    <input
-                                        type="password"
-                                        placeholder="Confirm Password"
-                                        className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            placeholder="Confirm Password"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
+                                        />
+                                        <div
+                                            className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        >
+                                            {showConfirmPassword ? <IoIosEyeOff /> : <IoIosEye />}
+                                        </div>
+                                    </div>
                                 </div>
-                                {/* Buttons */}
+
                                 <div className="flex justify-between mt-6">
-                                    <button
-                                        type="button"
-                                        className="px-6 py-2 bg-gray-600 rounded-md text-xs"
-                                    >
+                                    <button type="button" className="px-6 py-2 bg-gray-600 rounded-md text-xs">
                                         CANCEL
                                     </button>
-                                    <button
-                                        type="button"
-                                        className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md"
-                                    >
+                                    <button type="button" className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md">
                                         SAVE CHANGES
                                     </button>
                                 </div>

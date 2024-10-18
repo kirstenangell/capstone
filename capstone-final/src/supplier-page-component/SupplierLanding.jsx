@@ -266,7 +266,7 @@ const SupplierLanding = () => {
                 onClick={() => setActiveTab('supply')}
               >
                 <GiStorkDelivery className="mr-2 text-xl" />
-                Supply Details
+                Supplier Address
               </button>
  
               {/* Supply Lists Button */}
@@ -279,7 +279,7 @@ const SupplierLanding = () => {
                 onClick={() => setActiveTab('supplies')}
               >
                 <FaOpencart className="mr-2 text-xl" />
-                Supply Lists
+                Product Lists
               </button>
             </div>
  

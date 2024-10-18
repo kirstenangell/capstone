@@ -23,16 +23,19 @@ const ProductDetail = ({ onAddToCart }) => {
   };
 
   const handleAddToCart = () => {
-    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 0 });
+    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
   };
+  
 
   const handleBuyNow = () => {
     onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 0 });
     navigate('/cart'); 
   };
 
+  
+
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen bg-black text-white p-6 mt-12">
       <div className="max-w-7xl mx-auto flex">
         {/* Left Side - Thumbnails and Main Image */}
         <div className="flex">
