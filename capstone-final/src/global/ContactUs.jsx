@@ -1,8 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MdLocationPin, MdEmail } from "react-icons/md"; // Import the MdEmail icon
 import { BsFillTelephoneFill } from "react-icons/bs";
 
 const ContactUs = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('http://localhost:5000/submit-contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        setError(result.message || 'An error occurred. Please try again.');
+      }
+    } catch (error) {
+      setError('Failed to submit the form. Please try again.');
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-black text-white flex justify-center items-center px-4">
       <div className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-start md:space-x-20 space-y-12 md:space-y-0">
@@ -12,28 +50,49 @@ const ContactUs = () => {
             <h2 className="text-4xl font-bold mb-2">CONTACT US</h2>
             <p className="text-base">Have a question or want to work together? Fill out the form and we'll get back to you as soon as possible.</p>
           </div>
-          <form className="space-y-6">
-            <div className="flex flex-col md:flex-row md:space-x-6">
-              <div className="w-full md:w-1/2">
-                <label className="block text-sm mb-2" htmlFor="name">Name</label>
-                <input className="w-full p-3 bg-[#111] border border-gray-700 rounded" type="text" id="name" placeholder="Enter your name" />
+          {submitted ? (
+            <div className="text-center text-green-500">Thank you for your message! We will get back to you soon.</div>
+          ) : (
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {error && <p className="text-red-500">{error}</p>}
+              <div className="flex flex-col md:flex-row md:space-x-6">
+                <div className="w-full md:w-1/2">
+                  <label className="block text-sm mb-2" htmlFor="name">Name</label>
+                  <input
+                    className="w-full p-3 bg-[#111] border border-gray-700 rounded"
+                    type="text"
+                    id="name"
+                    placeholder="Enter your name"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="w-full md:w-1/2 mt-4 md:mt-0">
+                  <label className="block text-sm mb-2" htmlFor="email">Email</label>
+                  <input
+                    className="w-full p-3 bg-[#111] border border-gray-700 rounded"
+                    type="email"
+                    id="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-              <div className="w-full md:w-1/2 mt-4 md:mt-0">
-                <label className="block text-sm mb-2" htmlFor="email">Email</label>
-                <input className="w-full p-3 bg-[#111] border border-gray-700 rounded" type="email" id="email" placeholder="Enter your email" />
+              <div className="w-full">
+                <label className="block text-sm mb-2" htmlFor="message">Message</label>
+                <textarea
+                  className="w-full p-3 bg-[#111] border border-gray-700 rounded"
+                  id="message"
+                  placeholder="Enter your message"
+                  style={{ height: '394px' }}
+                  value={formData.message}
+                  onChange={handleChange}
+                ></textarea>
               </div>
-            </div>
-            <div className="w-full">
-              <label className="block text-sm mb-2" htmlFor="message">Message</label>
-              <textarea
-                className="w-full p-3 bg-[#111] border border-gray-700 rounded"
-                id="message"
-                placeholder="Enter your message"
-                style={{ height: '394px' }}
-              ></textarea>
-            </div>
-            <button className="w-full p-3 bg-gradient-to-br from-[#4B88A3] to-[#000000] text-white rounded hover:opacity-90 transition-opacity duration-300" type="submit">Submit</button>
-          </form>
+              <button className="w-full p-3 bg-gradient-to-br from-[#4B88A3] to-[#000000] text-white rounded hover:opacity-90 transition-opacity duration-300" type="submit">Submit</button>
+            </form>
+          )}
         </div>
         {/* Map and Contact Information */}
         <div className="w-full md:w-1/2 flex flex-col space-y-8">

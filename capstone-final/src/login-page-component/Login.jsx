@@ -1,57 +1,56 @@
 import React, { useState } from 'react';
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
-import axios from 'axios';  // Import Axios for making API requests
-import { useNavigate } from 'react-router-dom';  // Import useNavigate for routing
+import axios from 'axios'; // Import Axios for making API requests
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
 
 const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
     const [showPassword, setShowPassword] = useState(false);
-    const [email, setEmail] = useState('');        // Add state for email
-    const [password, setPassword] = useState('');  // Add state for password
-    const [errorMessage, setErrorMessage] = useState(''); // Add state for error messages
-    const navigate = useNavigate(); // Use navigate for redirection
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const navigate = useNavigate();
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
-    const handleLoginSubmit = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         try {
             const response = await axios.post('http://localhost:5000/login', { email, password });
-            
-            if (response.data.message === 'Login successful') {
-                // Store user data in localStorage for fetching later
+            if (response.status === 200) {
                 const { userData, role } = response.data;
-                localStorage.setItem('userData', JSON.stringify(userData));  // Store the full userData
-    
+                localStorage.setItem('email', userData.email);
+                localStorage.setItem('firstName', userData.firstName);
+                localStorage.setItem('lastName', userData.lastName);
+
                 if (role === 'admin') {
-                    navigate('/dashboard');  // Redirect to inventory for admin
+                    navigate('/dashboard'); // Redirect to dashboard for admin
                 } else if (role === 'customer') {
-                    navigate('/manage-account');  // Redirect to manage account for customers
+                    navigate('/manage-account'); // Redirect to manage account for customers
                 }
             } else {
-                setErrorMessage(response.data.message);  // Show error message from backend
+                setErrorMessage(response.data.message);
             }
         } catch (error) {
             setErrorMessage('An error occurred during login.');
+            console.error('Login error:', error);
         }
     };
-    
-    
 
     return (
-        <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]"> 
+        <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]">
             <div className="w-full max-w-sm space-y-6 p-8 rounded-lg">
                 <h1 className="text-2xl font-medium text-center mb-4">WELCOME BACK!</h1>
 
-                <form className="space-y-4" onSubmit={handleLoginSubmit}>
+                <form className="space-y-4" onSubmit={handleLogin}>
                     <div className="relative">
                         <label className="text-xs mb-1 block">EMAIL ADDRESS</label>
                         <input
                             type="email"
                             placeholder="Enter email"
-                            value={email} // Set value to state
-                            onChange={(e) => setEmail(e.target.value)} // Update state on input change
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
                             style={{
                                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -64,8 +63,8 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
                         <input
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Enter password"
-                            value={password} // Set value to state
-                            onChange={(e) => setPassword(e.target.value)} // Update state on input change
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
                             style={{
                                 background: 'linear-gradient(90deg, #040405, #335C6E)',

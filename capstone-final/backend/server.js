@@ -33,11 +33,35 @@ db.connect((err) => {
 });
 
 
+// Contact form submission API
+app.post('/submit-contact', (req, res) => {
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  const query = 'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)';
+  db.query(query, [name, email, message], (err, result) => {
+    if (err) {
+      console.error('Error inserting contact submission:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    res.status(200).json({ message: 'Contact form submitted successfully' });
+  });
+});
+
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,  // Your Gmail address
     pass: process.env.EMAIL_PASS   // Your App Password from Google
+  },
+  secure: false,
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
@@ -49,12 +73,10 @@ app.post('/register', (req, res) => {
   // Input validation
   if (!first_name || !last_name || !email || !password) {
     console.error('Validation error: Missing fields');
-    return res.status(400).json({ message: 'All fields are required' });
+    return res.status(400).json({ message: 'All fields are required' });``  
   }
-
   // Generate a verification token
   const verificationToken = crypto.randomBytes(32).toString('hex');
-
   // Hash the password
   const hashedPassword = bcrypt.hashSync(password, 10);
 
@@ -167,7 +189,7 @@ app.get('/user-details', (req, res) => {
   const email = req.query.email;
 
   const query = `
-    SELECT first_name, last_name, email, contact_number, street, barangay, city, region, province, zip_code 
+    SELECT first_name AS firstName, last_name AS lastName, email, contact_number AS contactNumber, street, barangay, city, region, province, zip_code AS zipCode 
     FROM users 
     WHERE email = ?
   `;
@@ -181,21 +203,10 @@ app.get('/user-details', (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const user = result[0];
-    res.status(200).json({
-      firstName: user.first_name,
-      lastName: user.last_name,
-      email: user.email,
-      contactNumber: user.contact_number,
-      street: user.street,
-      barangay: user.barangay,
-      city: user.city,
-      region: user.region,
-      province: user.province,
-      zipCode: user.zip_code,
-    });
+    res.status(200).json(result[0]);
   });
 });
+
 
 
 

@@ -23,37 +23,42 @@ const ProductDetail = ({ onAddToCart }) => {
   };
 
   const handleAddToCart = () => {
-    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 0 });
+    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
   };
+  
 
   const handleBuyNow = () => {
     onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 0 });
     navigate('/cart'); 
   };
 
+  
+
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen bg-black text-white p-6 mt-12">
       <div className="max-w-7xl mx-auto flex">
         {/* Left Side - Thumbnails and Main Image */}
-        <div className="flex">
+        <div className="flex flex-col justify-center space-y-4 mr-8">
           {/* Thumbnails */}
-          <div className="flex flex-col justify-center space-y-4">
+          <div className="flex flex-col items-center space-y-4">
             {selectedProduct.relatedImages?.map((image, index) => (
-              <img 
+              <img
                 key={index}
-                src={image} 
-                alt={`Related image ${index + 1}`} 
-                className={`w-16 h-16 object-contain cursor-pointer ${selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
+                src={image}
+                alt={`Related image ${index + 1}`}
+                className={`w-16 h-16 object-contain cursor-pointer ${
+                  selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'
+                }`}
                 onClick={() => setSelectedProduct({ ...selectedProduct, image })}
               />
             ))}
           </div>
           
           {/* Main Image */}
-          <div className="ml-4">
-            <img 
-              src={selectedProduct.image} 
-              alt={selectedProduct.name} 
+          <div className="w-full bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-8 shadow-lg flex items-center justify-center">
+            <img
+              src={selectedProduct.image}
+              alt={selectedProduct.name}
               className="w-96 h-96 object-contain"
             />
           </div>
@@ -65,38 +70,43 @@ const ProductDetail = ({ onAddToCart }) => {
           <p className="mt-4 text-gray-400">
             {selectedProduct.description || 'No description provided.'}
           </p>
+
+          {/* Static Star Rating */}
           <div className="flex items-center mt-4">
-            <span className="text-[#335C6E]">
-              {Array.from({ length: selectedProduct.rating }, (_, index) => (
-                <>&#9733; </>
-              ))}
-              {Array.from({ length: 5 - selectedProduct.rating }, (_, index) => (
-                <>&#9734; </>
-              ))}
+            <span className="text-[#335C6E] text-2xl">
+              &#9733; &#9733; &#9733; &#9733; &#9734; {/* Static 4 stars filled and 1 star empty */}
             </span>
-            <span className="ml-2 text-sm text-gray-400">({selectedProduct.reviews} Reviews)</span>
-          </div>
-          <div className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
-            {selectedProduct.price}
+            <span className="ml-2 text-sm text-gray-400">(11 Reviews)</span> {/* Adjust review count */}
           </div>
 
-          {/* Quantity Selector */}
-          <div className="flex items-center mt-4">
-            <button 
+
+            {/* Price */}
+            <div className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
+            PHP {selectedProduct.price.toLocaleString()}
+          </div>
+
+
+            {/* Quantity Selector */}
+            <div className="flex items-center mt-4">
+            <button
               onClick={() => setSelectedProduct({ ...selectedProduct, quantity: selectedProduct.quantity > 0 ? selectedProduct.quantity - 1 : 0 })}
               className="px-4 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none hover:bg-gray-700"
-            >-</button>
+            >
+              -
+            </button>
             <div className="px-4 py-2 bg-gray-900 text-white">
               {selectedProduct.quantity || 0}
             </div>
-            <button 
+            <button
               onClick={() => setSelectedProduct({ ...selectedProduct, quantity: (selectedProduct.quantity || 0) + 1 })}
               className="px-4 py-2 bg-gray-800 text-white rounded-r-md focus:outline-none hover:bg-gray-700"
-            >+</button>
+            >
+              +
+            </button>
           </div>
 
-          {/* Product Additional Details */}
-          <div className="mt-6 space-y-2 text-gray-400 font-thin">
+            {/* Product Additional Details */}
+            <div className="mt-6 space-y-2 text-gray-400 font-thin">
             <p>Product Type: {selectedProduct.type || 'N/A'}</p>
             <p>Category: {selectedProduct.category || 'N/A'}</p>
             <p>Dimensions: {selectedProduct.dimensions || 'N/A'}</p>
@@ -104,22 +114,25 @@ const ProductDetail = ({ onAddToCart }) => {
             <p>Finish: {selectedProduct.finish || 'N/A'}</p>
             <p>Material: {selectedProduct.material || 'N/A'}</p>
             <p>Model: {selectedProduct.model || 'N/A'}</p>
-          </div>
+            </div>
 
-          {/* Action Buttons */}
-          <div className="flex mt-6 space-x-4">
-            <button 
+            {/* Action Buttons */}
+            <div className="flex mt-6 space-x-4">
+            <button
               onClick={handleAddToCart}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
-            >ADD TO CART</button>
-            <button 
+            >
+              ADD TO CART
+            </button>
+            <button
               onClick={handleBuyNow}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
-            >BUY NOW</button>
+            >
+              BUY NOW
+            </button>
           </div>
         </div>
       </div>
-      
       {/* "You may also like" Section */}
       <div className="mt-16">
         <h2 className="text-xl font-semibold mb-4">You may also like</h2>
@@ -136,7 +149,7 @@ const ProductDetail = ({ onAddToCart }) => {
                 <p className="text-sm text-gray-400">LOREM IPSUM</p>
                 <h3 className="text-lg font-semibold mt-2">{product.name}</h3>
                 <p className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
-                  {product.price}
+                  PHP {product.price.toLocaleString()}
                 </p>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaUser, FaLock, FaClipboardList } from 'react-icons/fa';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';  // Import Axios for making API requests
 
@@ -23,22 +24,21 @@ const ManageAcc = () => {
       
     const [activeDropdown, setActiveDropdown] = useState(null); // Single state to manage dropdowns
     const fileInputRef = useRef(null);
-
-    // New state variables
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [initialFormData, setInitialFormData] = useState({});
 
     // Fetch user data when the component loads
     useEffect(() => {
         const fetchUserData = async () => {
-            const email = localStorage.getItem('email');  // Assuming email is stored in localStorage after login
-            
+            const email = localStorage.getItem('email');
             if (email) {
                 try {
                     const response = await axios.get(`http://localhost:5000/user-details?email=${email}`);
                     if (response.status === 200) {
                         const userData = response.data;
-
                         setFormData({
                             firstName: userData.firstName,
                             lastName: userData.lastName,
@@ -51,6 +51,7 @@ const ManageAcc = () => {
                             province: userData.province || '',
                             zipCode: userData.zipCode || '',
                         });
+                        setInitialFormData(userData);
                     }
                 } catch (error) {
                     console.error('Error fetching user data:', error);
@@ -58,8 +59,9 @@ const ManageAcc = () => {
             }
         };
 
-        fetchUserData();  // Ensure the data is fetched every time the page reloads
+        fetchUserData();
     }, []);
+    
 
 
     const handleTabClick = (tab) => {
@@ -101,9 +103,20 @@ const ManageAcc = () => {
                 province: formData.province,
                 zipCode: formData.zipCode,
             });
-            
+
             if (response.status === 200) {
                 console.log('User details updated successfully');
+                setInitialFormData(formData);
+                setIsEditing(false);
+
+                // Update localStorage with new data
+                localStorage.setItem('contactNumber', formData.contactNumber);
+                localStorage.setItem('street', formData.street);
+                localStorage.setItem('barangay', formData.barangay);
+                localStorage.setItem('city', formData.city);
+                localStorage.setItem('region', formData.region);
+                localStorage.setItem('province', formData.province);
+                localStorage.setItem('zipCode', formData.zipCode);
             }
         } catch (error) {
             console.error('Error updating user details:', error);
@@ -125,33 +138,28 @@ const ManageAcc = () => {
         console.log('User logged out');
         navigate('/'); // Redirect to the landing page
     };
+    
     return (
         <div className="min-h-screen flex bg-black text-white px-8">
             <div className="w-1/4 p-6 bg-black">
                 <h2 className="text-xl font-semibold mb-10">Manage Account</h2>
                 <ul className="space-y-4">
                     <li
-                        className={`flex items-center p-2 cursor-pointer ${
-                            activeTab === 'profile' ? 'bg-gray-800 rounded-md' : ''
-                        }`}
+                        className={`flex items-center p-2 cursor-pointer ${activeTab === 'profile' ? 'bg-gray-800 rounded-md' : ''}`}
                         onClick={() => handleTabClick('profile')}
                     >
                         <FaUser className="mr-2" />
                         Profile
                     </li>
                     <li
-                        className={`flex items-center p-2 cursor-pointer ${
-                            activeTab === 'password' ? 'bg-gray-800 rounded-md' : ''
-                        }`}
+                        className={`flex items-center p-2 cursor-pointer ${activeTab === 'password' ? 'bg-gray-800 rounded-md' : ''}`}
                         onClick={() => handleTabClick('password')}
                     >
                         <FaLock className="mr-2" />
                         Password
                     </li>
                     <li
-                        className={`flex items-center p-2 cursor-pointer ${
-                            activeTab === 'orderHistory' ? 'bg-gray-800 rounded-md' : ''
-                        }`}
+                        className={`flex items-center p-2 cursor-pointer ${activeTab === 'orderHistory' ? 'bg-gray-800 rounded-md' : ''}`}
                         onClick={() => handleTabClick('orderHistory')}
                     >
                         <FaClipboardList className="mr-2" />
@@ -162,7 +170,6 @@ const ManageAcc = () => {
 
             {/* Main Content */}
             <div className="w-3/4 p-8">
-                {/* Profile Picture Section (visible only in Profile and Password tabs) */}
                 {(activeTab === 'profile' || activeTab === 'password') && (
                     <div className="flex items-center space-x-6 mb-8">
                         <div className="w-24 h-24 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden">
@@ -173,7 +180,6 @@ const ManageAcc = () => {
                             )}
                         </div>
                         <div>
-                            {/* Hidden file input */}
                             <input
                                 type="file"
                                 accept="image/*"
@@ -353,11 +359,7 @@ const ManageAcc = () => {
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md"
-                                        onClick={() => {
-                                            handleSaveChanges();
-                                            setInitialFormData(formData);
-                                            setIsEditing(false);
-                                        }}
+                                        onClick={handleSaveChanges}
                                         disabled={!isEditing}
                                     >
                                         SAVE CHANGES
@@ -367,46 +369,69 @@ const ManageAcc = () => {
                         </div>
                     </div>
                 )}
-                {activeTab === 'password' && (
+                 {activeTab === 'password' && (
                     <div className="space-y-6">
                         <div className="w-full max-w-2xl text-white rounded-lg shadow-lg">
                             <form className="space-y-6">
+                                {/* Current Password */}
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Current Password</label>
-                                    <input
-                                        type="password"
-                                        placeholder="Current Password"
-                                        className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showCurrentPassword ? 'text' : 'password'}
+                                            placeholder="Current Password"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
+                                        />
+                                        <div
+                                            className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        >
+                                            {showCurrentPassword ? <IoIosEyeOff /> : <IoIosEye />}
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* New Password */}
                                 <div>
                                     <label className="block text-sm font-medium mb-1">New Password</label>
-                                    <input
-                                        type="password"
-                                        placeholder="New Password"
-                                        className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            placeholder="New Password"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
+                                        />
+                                        <div
+                                            className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                        >
+                                            {showNewPassword ? <IoIosEyeOff /> : <IoIosEye />}
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Confirm Password */}
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Confirm Password</label>
-                                    <input
-                                        type="password"
-                                        placeholder="Confirm Password"
-                                        className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            placeholder="Confirm Password"
+                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
+                                        />
+                                        <div
+                                            className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        >
+                                            {showConfirmPassword ? <IoIosEyeOff /> : <IoIosEye />}
+                                        </div>
+                                    </div>
                                 </div>
-                                {/* Buttons */}
+
                                 <div className="flex justify-between mt-6">
-                                    <button
-                                        type="button"
-                                        className="px-6 py-2 bg-gray-600 rounded-md text-xs"
-                                    >
+                                    <button type="button" className="px-6 py-2 bg-gray-600 rounded-md text-xs">
                                         CANCEL
                                     </button>
-                                    <button
-                                        type="button"
-                                        className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md"
-                                    >
+                                    <button type="button" className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md">
                                         SAVE CHANGES
                                     </button>
                                 </div>
