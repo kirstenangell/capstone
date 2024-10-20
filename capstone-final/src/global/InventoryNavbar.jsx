@@ -17,7 +17,8 @@ const InventoryNavbar = ({ cartItemCount }) => {
       <div
         className="flex items-center py-2 px-4 rounded-full text-xs drop-shadow-2xl"
         style={{
-          background: 'linear-gradient(90deg, #4B88A3 0%, #040405 100%, #4B88A3 82%)',
+          background: 'linear-gradient(0deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)', // Apply background gradient only here
+          boxShadow: '0px 10px 20px rgba(10, 10, 10, 0.7)', // Custom shadow 
           fontFamily: 'Poppins, sans-serif',
         }}
       >
@@ -26,14 +27,17 @@ const InventoryNavbar = ({ cartItemCount }) => {
           <NavLink
             to="/dashboard"
             className={({ isActive }) =>
-              `text-white mr-16 relative group transition-all duration-300 transform ${
-                isActive ? 'rounded-full py-2 px-4' : ''
+              `text-white relative py-2 px-6 rounded-full mx-4 transition-all duration-300 transform ${
+                isActive
+                  ? 'active-gradient'
+                  : 'bg-transparent border border-gray-800 hover:glowing-border'
               }`
             }
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Active button shadow
                   }
                 : {}
             }
@@ -43,14 +47,17 @@ const InventoryNavbar = ({ cartItemCount }) => {
           <NavLink
             to="/inventory"
             className={({ isActive }) =>
-              `text-white mr-20 relative group transition-all duration-300 transform ${
-                isActive ? 'rounded-full py-2 px-4' : ''
+              `text-white relative py-2 px-6 rounded-full mx-4 transition-all duration-300 transform ${
+                isActive
+                  ? 'active-gradient'
+                  : 'bg-transparent border border-gray-800 hover:glowing-border'
               }`
             }
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Active button shadow
                   }
                 : {}
             }
@@ -60,16 +67,19 @@ const InventoryNavbar = ({ cartItemCount }) => {
           <NavLink
             to="/order"
             className={({ isActive }) =>
-              `text-white mr-20 relative group transition-all duration-300 transform ${
-                isActive ? 'rounded-full py-2 px-4' : ''
+              `text-white relative py-2 px-6 rounded-full mx-4 transition-all duration-300 transform ${
+                isActive
+                  ? 'active-gradient'
+                  : 'bg-transparent border border-gray-800 hover:glowing-border'
               }`
             }
             style={({ isActive }) =>
               isActive
-                ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
-                  }
-                : {}
+            ? {
+                background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Active button shadow
+              }
+            : {}
             }
           >
             <span className="relative">ORDER</span>
@@ -77,14 +87,17 @@ const InventoryNavbar = ({ cartItemCount }) => {
           <NavLink
             to="/customer"
             className={({ isActive }) =>
-              `text-white mr-20 relative group transition-all duration-300 transform ${
-                isActive ? 'rounded-full py-2 px-4' : ''
+              `text-white relative py-2 px-6 rounded-full mx-4 transition-all duration-300 transform ${
+                isActive
+                  ? 'active-gradient'
+                  : 'bg-transparent border border-gray-800 hover:glowing-border'
               }`
             }
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Active button shadow
                   }
                 : {}
             }
@@ -94,14 +107,17 @@ const InventoryNavbar = ({ cartItemCount }) => {
           <NavLink
             to="/supplier"
             className={({ isActive }) =>
-              `text-white mr-20 relative group transition-all duration-300 transform ${
-                isActive ? 'rounded-full py-2 px-4' : ''
+              `text-white relative py-2 px-6 rounded-full mx-4 transition-all duration-300 transform ${
+                isActive
+                  ? 'active-gradient'
+                  : 'bg-transparent border border-gray-800 hover:glowing-border'
               }`
             }
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Active button shadow
                   }
                 : {}
             }
