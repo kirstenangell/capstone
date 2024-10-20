@@ -1,4 +1,3 @@
-// src/context/OrderContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 
 // Create the OrderContext
@@ -40,13 +39,13 @@ export const OrderProvider = ({ children }) => {
         pickUpTime: '2:00 PM',
         paymentOption: 'GCASH',
         products: ['Sample Product 1', 'Sample Product 2'],
-      },
-      // Add more initial orders as needed
+      }
     ];
   });
 
   // Persist orders to localStorage whenever they change
   useEffect(() => {
+    console.log('Persisting orders to localStorage:', orders);
     localStorage.setItem('orders', JSON.stringify(orders));
   }, [orders]);
 
@@ -55,6 +54,7 @@ export const OrderProvider = ({ children }) => {
     const newOID = generateNextOID(orders);
     const newId = Date.now(); // Simple unique identifier; consider using UUID for more robustness
     const newOrder = { ...order, oid: newOID, id: newId };
+    console.log('New order being added:', newOrder);
     setOrders([...orders, newOrder]);
   };
 
@@ -76,3 +76,4 @@ export const OrderProvider = ({ children }) => {
     </OrderContext.Provider>
   );
 };
+

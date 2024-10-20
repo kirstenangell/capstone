@@ -38,6 +38,25 @@ const OrderDetails = () => {
     products: existingOrder?.products ? [...existingOrder.products] : [''],
   });
 
+  // Define the missing handleAddProduct function
+  const handleAddProduct = () => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      products: [...prevFormData.products, ''], // Add an empty string for the new product
+    }));
+  };
+
+  const handleProductChange = (index, value) => {
+    const updatedProducts = [...formData.products];
+    updatedProducts[index] = value;
+    setFormData({ ...formData, products: updatedProducts });
+  };
+
+  const handleRemoveProduct = (index) => {
+    const updatedProducts = formData.products.filter((_, i) => i !== index);
+    setFormData({ ...formData, products: updatedProducts });
+  };
+
   // Auto-populate fields when CID is entered
   useEffect(() => {
     if (formData.cid) {
@@ -159,7 +178,7 @@ const OrderDetails = () => {
       {/* Header */}
       <div className="text-white text-center mb-10 mt-16">
         <h1 className="text-xl font-bold">{isEdit ? 'EDIT ORDER' : 'ADD NEW ORDER'}</h1>
-        <h2 className="text-sm font-bold mt-2">{isEdit ? `Edit Order #${existingOrder.id}` : 'Create a New Order'}</h2>
+        <h2 className="text-sm font-bold mt-2">{isEdit ? `Edit Order #${existingOrder?.id}` : 'Create a New Order'}</h2>
       </div>
 
       {/* Steps Sidebar */}

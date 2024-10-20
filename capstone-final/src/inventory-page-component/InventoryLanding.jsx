@@ -1,4 +1,3 @@
-// src/inventory-page-component/InventoryLanding.jsx
 import React, { useState, useContext } from 'react';
 import { IoMdClose } from 'react-icons/io'; // Close Icon
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Password Visibility Icons
@@ -17,32 +16,32 @@ const InventoryLanding = () => {
 
   const navigate = useNavigate();
 
-  // Use ProductContext
-  const { products, archiveProduct } = useContext(ProductContext);
-  
+  // Use ProductContext to get products and product manipulation functions
+  const { products, addProduct, archiveProduct } = useContext(ProductContext);
+
   const handleProductClick = (product) => {
     setSelectedProduct(product);
     setUploadedImages(product.images || []); // Ensure images is an array
   };
 
   const handlePublish = () => {
-      if (selectedProduct) {
-        const newProduct = {
-          id: Math.random().toString(36).substr(2, 9),
-          name: selectedProduct.name || "Untitled Product",
-          image: selectedProduct.image || defaultImage, // Use a default image if not provided
-          price: selectedProduct.price || 0,
-          reviews: selectedProduct.reviews || 0,
-          rating: selectedProduct.rating || 0,
-          category: selectedProduct.category || "Uncategorized",
-        };
+    if (selectedProduct) {
+      const newProduct = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: selectedProduct.name || "Untitled Product",
+        image: selectedProduct.image || Wheel1, // Use a default image if not provided
+        price: selectedProduct.price || 0,
+        reviews: selectedProduct.reviews || 0,
+        rating: selectedProduct.rating || 0,
+        category: selectedProduct.category || "Uncategorized",
+      };
   
-        // Add the new product to the global product list
-        addProduct(newProduct);
+      // Add the new product to the global product list using addProduct from ProductContext
+      addProduct(newProduct);
   
-        // Navigate to the ProductSection after publishing
-        navigate('/products'); // Navigate to the product section
-      }
+      // Navigate to the ProductSection after publishing
+      navigate('/products'); // Navigate to the product section
+    }
   };
 
   const handleExit = () => {
@@ -50,7 +49,7 @@ const InventoryLanding = () => {
   };
 
   const handleAddProductClick = () => {
-    navigate('/inventory/product-information');
+    navigate('/inventory/product-information'); // Navigate to add product page
   };
 
   const handleEditClick = () => {
@@ -79,7 +78,7 @@ const InventoryLanding = () => {
         // Navigate to ProductInformation.jsx with the selectedProduct data for editing
         navigate('/inventory/product-information', { state: { product: selectedProduct, isEdit: true } });
       } else if (actionType === 'archive') {
-        // Archive the product
+        // Archive the product using archiveProduct from ProductContext
         archiveProduct(selectedProduct.id);
         setSelectedProduct(null);
       }
@@ -89,7 +88,7 @@ const InventoryLanding = () => {
     setShowPasswordModal(false);
     setPassword(''); // Clear the password field after submission
   };
-  
+
   return (
     <div className="min-h-screen bg-black text-white py-10">
       <div className="max-w-7xl mx-auto px-6">
@@ -110,7 +109,7 @@ const InventoryLanding = () => {
 
             {/* Add Product Button */}
             <button
-              onClick={handleAddProductClick}
+              onClick={handleAddProductClick} // Navigate to the ProductInformation page
               className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
             >
               Add Product
@@ -121,14 +120,7 @@ const InventoryLanding = () => {
         {/* Sidebar Filters */}
         <div className="grid grid-cols-4 gap-10">
           <div className="space-y-6 col-span-1">
-            {[
-              'Product Status',
-              'Product Type',
-              'Stock Alert',
-              'Category',
-              'Product Price',
-              'Product Brand',
-            ].map((label, idx) => (
+            {[ 'Product Status', 'Product Type', 'Stock Alert', 'Category', 'Product Price', 'Product Brand' ].map((label, idx) => (
               <div key={idx}>
                 <label className="block text-sm font-medium mb-2">{label}</label>
                 <input
@@ -142,7 +134,6 @@ const InventoryLanding = () => {
 
           {/* Product List */}
           <div className="col-span-3">
-            {/* Product Cards */}
             <div className="space-y-4">
               {products.length === 0 ? (
                 <div className="text-center text-gray-400">
@@ -300,7 +291,7 @@ const InventoryLanding = () => {
               {/* Publish Button */}
               <div className="mt-6 flex justify-center">
                 <button
-                  onClick={handlePublish}
+                  onClick={handlePublish} // Uses addProduct from ProductContext
                   className="px-6 py-2 bg-gradient-to-r from-[#040405] to-[#2c505f] text-white rounded-md text-sm"
                 >
                   Publish

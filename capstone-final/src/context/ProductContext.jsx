@@ -1,4 +1,3 @@
-// src/context/ProductContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 
 // Create the context
@@ -6,39 +5,87 @@ export const ProductContext = createContext();
 
 // Create the provider component
 export const ProductProvider = ({ children }) => {
-  // Initialize products from localStorage or start with an empty array
-  const [products, setProducts] = useState(() => {
-    const savedProducts = localStorage.getItem('products');
-    return savedProducts ? JSON.parse(savedProducts) : [];
-  });
+  const [products, setProducts] = useState([]);  // Initialize products as an empty array
 
-  // Persist products to localStorage whenever they change
+  // Fetch products from backend on initial render
   useEffect(() => {
-    localStorage.setItem('products', JSON.stringify(products));
-  }, [products]);
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/products');  // Replace with your backend API endpoint
+        const data = await response.json();
+        setProducts(data);  // Update state with fetched products
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
 
-  // Function to generate a unique Product ID (similar to OID logic)
-  const generateProductID = () => {
-    const nextId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-    return nextId;
-  };
+    fetchProducts();  // Fetch products when the component mounts
+  }, []);  // Empty dependency array ensures it only runs on mount
 
   // Function to add a new product
-  const addProduct = (product) => {
-    const newProduct = { ...product, id: generateProductID() };
-    setProducts([...products, newProduct]);
+  const addProduct = async (product) => {
+    try {
+      const response = await fetch('http://localhost:5000/add-product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (response.ok) {
+        const savedProduct = await response.json();
+        setProducts((prevProducts) => [...prevProducts, savedProduct]);  // Add the newly saved product to the state
+      } else {
+        console.error('Failed to add product:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
   };
 
   // Function to update an existing product
-  const updateProduct = (updatedProduct) => {
-    setProducts(
-      products.map((product) => (product.id === updatedProduct.id ? updatedProduct : product))
-    );
+  const updateProduct = async (updatedProduct) => {
+    try {
+      const response = await fetch(`http://localhost:5000/update-product/${updatedProduct.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProduct),
+      });
+
+      if (response.ok) {
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === updatedProduct.id ? updatedProduct : product
+          )
+        );
+      } else {
+        console.error('Failed to update product:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+    }
   };
 
   // Function to archive (remove) a product
-  const archiveProduct = (productId) => {
-    setProducts(products.filter((product) => product.id !== productId));
+  const archiveProduct = async (productId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/delete-product/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product.id !== productId)
+        );
+      } else {
+        console.error('Failed to archive product:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error archiving product:', error);
+    }
   };
 
   return (
