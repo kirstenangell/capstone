@@ -1,4 +1,3 @@
-// src/inventory-page-component/ProductInformation.jsx
 import React, { useState, useContext, useEffect } from 'react';
 import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
@@ -10,16 +9,16 @@ import { ProductContext } from '../context/ProductContext'; // Import ProductCon
 
 const ProductInformation = () => {
   const [step, setStep] = useState(1);
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadedImages, setUploadedImages] = useState([]); // For uploaded images
   const navigate = useNavigate();
   const location = useLocation();
   const { addProduct, updateProduct } = useContext(ProductContext);
 
-  // Check if we're editing an existing product
+  // Pre-fill the form with existing product data if editing
   const isEdit = location.state?.isEdit || false;
   const existingProduct = location.state?.product || {};
 
-  // State to store form data
+  // Initialize the form data state with the selected product
   const [formData, setFormData] = useState({
     id: existingProduct.id || null,
     productName: existingProduct.name || '',
@@ -27,15 +26,12 @@ const ProductInformation = () => {
     productBrand: existingProduct.brand || '',
     productCategory: existingProduct.category || '',
     productDescription: existingProduct.description || '',
-    // Sales Information
     retailSalePrice: existingProduct.price || '',
     discount: existingProduct.discount || '',
     totalPrice: existingProduct.totalPrice || '',
-    // Quantity
     totalQuantity: existingProduct.totalQuantity || '',
     quantity: existingProduct.quantity || '',
     status: existingProduct.status || '',
-    // Measurement
     dimensions: {
       length: existingProduct.dimensions?.split(' x ')[0] || '',
       width: existingProduct.dimensions?.split(' x ')[1] || '',
@@ -43,15 +39,14 @@ const ProductInformation = () => {
       weight: existingProduct.dimensions?.split(' x ')[3] || '',
     },
     color: existingProduct.color || '',
-    finish: existingProduct.finish ? existingProduct.finish.split(', ') : [], // array of selected finishes
+    finish: existingProduct.finish ? existingProduct.finish.split(', ') : [],
     material: existingProduct.material || '',
     model: existingProduct.model || '',
   });
 
+  // Ensure uploaded images are set if editing
   useEffect(() => {
-    // If editing, set the uploadedImages to include the existing image
     if (isEdit && existingProduct.image) {
-      // Assuming existingProduct.image is a URL
       setUploadedImages([existingProduct.image]);
     }
   }, [isEdit, existingProduct]);
@@ -83,41 +78,65 @@ const ProductInformation = () => {
     setUploadedImages(updatedImages);
   };
 
-  // Handle Save button click
-  const handleSave = () => {
-    // Collect all form data
+  // *** NEW FUNCTION ***
+  // Handle Save button click (Sending data to the backend)
+  
+  const handleSave = async () => {
     const productData = {
-      ...existingProduct,
-      id: existingProduct.id || Date.now(),
-      name: formData.productName || 'Untitled Product',
-      image: uploadedImages[0] ? (typeof uploadedImages[0] === 'string' ? uploadedImages[0] : URL.createObjectURL(uploadedImages[0])) : Wheel1,
-      price: formData.retailSalePrice || 'PHP 0.00',
-      type: formData.productType || 'N/A',
-      brand: formData.productBrand || 'N/A',
-      category: formData.productCategory || 'N/A',
-      description: formData.productDescription || 'No description provided.',
-      dimensions: `${formData.dimensions.length || '0'} x ${formData.dimensions.width || '0'} x ${formData.dimensions.height || '0'} x ${formData.dimensions.weight || '0'}`,
-      color: formData.color || 'N/A',
-      finish: formData.finish.length > 0 ? formData.finish.join(', ') : 'N/A',
-      material: formData.material || 'N/A',
-      model: formData.model || 'N/A',
-      tax: formData.tax || 'N/A', // Placeholder
-      discount: formData.discount || 'PHP 0.00',
-      totalPrice: formData.totalPrice || 'PHP 0.00',
-      // Add more fields as necessary
+      name: formData.productName,
+      type: formData.productType,
+      brand: formData.productBrand,
+      category: formData.productCategory,
+      description: formData.productDescription,
+      image: uploadedImages[0],  // You might need to handle image differently
+      price: formData.retailSalePrice,
+      discount: formData.discount,
+      totalPrice: formData.totalPrice,
+      dimensions: `${formData.dimensions.length} x ${formData.dimensions.width} x ${formData.dimensions.height} x ${formData.dimensions.weight}`,
+      color: formData.color,
+      finish: formData.finish.join(', '),
+      material: formData.material,
+      model: formData.model,
+      quantity: formData.quantity,
+      totalQuantity: formData.totalQuantity,
+      status: formData.status,
     };
-
-    if (isEdit) {
-      updateProduct(productData);
-    } else {
-      addProduct(productData);
+  
+    try {
+      let response;
+      if (isEdit) {
+        // Edit existing product (PUT request)
+        response = await fetch(`http://localhost:5000/update-product/${formData.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData),
+        });
+      } else {
+        // Add new product (POST request)
+        response = await fetch('http://localhost:5000/add-product', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData),
+        });
+      }
+  
+      if (response.ok) {
+        alert(isEdit ? 'Product updated successfully!' : 'Product added successfully!');
+        navigate('/inventory');  // Navigate back to the inventory page
+      } else {
+        alert('Failed to save product. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving product:', error);
+      alert('An error occurred while saving the product.');
     }
-
-    // Navigate back to InventoryLanding
-    navigate('/inventory');
-    window.scrollTo(0, 0);
   };
-
+  
+  
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       {/* Header */}
@@ -353,7 +372,7 @@ const ProductInformation = () => {
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Quantity"
                   value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })} 
                 />
               </div>
 
@@ -384,7 +403,7 @@ const ProductInformation = () => {
             </div>
           )}
 
-          {step === 4 && (
+{step === 4 && (
             <div>
               {/* Measurement Form */}
               <div className="mb-6">
@@ -504,6 +523,7 @@ const ProductInformation = () => {
                 />
               </div>
 
+              {/* Save Button */}
               <div className="flex justify-between mt-6">
                 <button
                   onClick={prevStep}
@@ -513,7 +533,7 @@ const ProductInformation = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={handleSave}
+                  onClick={handleSave} // <--- Link to the new save function here
                   className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
                 >
                   {isEdit ? 'UPDATE' : 'SAVE'}
