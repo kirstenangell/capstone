@@ -87,7 +87,7 @@ const ProductInformation = () => {
       brand: formData.productBrand,
       category: formData.productCategory,
       description: formData.productDescription,
-      image: uploadedImages[0] ? (typeof uploadedImages[0] === 'string' ? uploadedImages[0] : URL.createObjectURL(uploadedImages[0])) : Wheel1, // Image handling here
+      image: uploadedImages[0] ? (typeof uploadedImages[0] === 'string' ? uploadedImages[0] : URL.createObjectURL(uploadedImages[0])) : Wheel1,
       price: formData.retailSalePrice,
       discount: formData.discount,
       totalPrice: formData.totalPrice,
@@ -102,29 +102,49 @@ const ProductInformation = () => {
     };
   
     try {
-      const response = await fetch('http://localhost:5000/add-product', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData),
-      });
+      if (isEdit) {
+        // Update existing product
+        const response = await fetch(`http://localhost:5000/update-product/${formData.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData), // No id is included in the productData
+        });
   
-      if (response.ok) {
-        // Add the newly added product to the context directly
-        const newProduct = await response.json();
-        addProduct(newProduct); // addProduct comes from ProductContext
-  
-        alert('Product added successfully!');
-        navigate('/inventory'); // Navigate back to the inventory page
+        if (response.ok) {
+          const updatedProduct = await response.json();
+          updateProduct(updatedProduct);  // Update product in context
+          alert('Product updated successfully!');
+        } else {
+          alert('Failed to update product. Please try again.');
+        }
       } else {
-        alert('Failed to add product. Please try again.');
+        // Add new product
+        const response = await fetch('http://localhost:5000/add-product', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData),
+        });
+  
+        if (response.ok) {
+          const newProduct = await response.json();
+          addProduct(newProduct);  // Add new product to context
+          alert('Product added successfully!');
+        } else {
+          alert('Failed to add product. Please try again.');
+        }
       }
+  
+      navigate('/inventory');  // Navigate back to the inventory page
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('An error occurred while adding the product.');
+      alert('An error occurred while saving the product.');
     }
   };
+  
   
   
 

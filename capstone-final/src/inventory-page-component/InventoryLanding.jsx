@@ -17,7 +17,7 @@ const InventoryLanding = () => {
   const navigate = useNavigate();
 
   // Use ProductContext to get products and product manipulation functions
-  const { products, addProduct, archiveProduct } = useContext(ProductContext);
+  const { products, addProduct, updateProduct, archiveProduct } = useContext(ProductContext);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -72,21 +72,27 @@ const InventoryLanding = () => {
   };
 
   // Handle submit logic for the password modal
-  const handlePasswordSubmit = () => {
+  const handlePasswordSubmit = async () => {
     if (password === '12345') { // Replace '12345' with the actual password logic
       if (actionType === 'edit') {
         // Navigate to ProductInformation.jsx with the selectedProduct data for editing
         navigate('/inventory/product-information', { state: { product: selectedProduct, isEdit: true } });
       } else if (actionType === 'archive') {
         // Archive the product using archiveProduct from ProductContext
-        archiveProduct(selectedProduct.id);
-        setSelectedProduct(null);
+        await archiveProduct(selectedProduct.id);
+        setSelectedProduct(null); // Close modal after archiving
       }
     } else {
       alert('Incorrect Password'); // Add any error handling logic if needed
     }
     setShowPasswordModal(false);
     setPassword(''); // Clear the password field after submission
+  };
+
+  // Check if product list has updated after edit
+  const handleUpdate = (updatedProduct) => {
+    updateProduct(updatedProduct); // Trigger product update using the context function
+    setSelectedProduct(null); // Deselect the product after update
   };
 
   return (

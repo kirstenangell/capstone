@@ -7,7 +7,7 @@ export const ProductContext = createContext();
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);  // Initialize products as an empty array
 
-  // Fetch products from backend on initial render
+  // Fetch products from the backend on initial render
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -54,20 +54,23 @@ export const ProductProvider = ({ children }) => {
         },
         body: JSON.stringify(updatedProduct),
       });
-
+  
       if (response.ok) {
+        const updatedProductFromDB = await response.json(); // This ensures you have the latest version
+  
         setProducts((prevProducts) =>
           prevProducts.map((product) =>
-            product.id === updatedProduct.id ? updatedProduct : product
+            product.id === updatedProduct.id ? updatedProductFromDB : product // Update the specific product in the array
           )
         );
+        console.log('Product updated successfully');
       } else {
         console.error('Failed to update product:', response.statusText);
       }
     } catch (error) {
       console.error('Error updating product:', error);
     }
-  };
+  };  
 
   // Function to archive (remove) a product
   const archiveProduct = async (productId) => {
@@ -77,6 +80,7 @@ export const ProductProvider = ({ children }) => {
       });
 
       if (response.ok) {
+        // Remove the product from the state
         setProducts((prevProducts) =>
           prevProducts.filter((product) => product.id !== productId)
         );

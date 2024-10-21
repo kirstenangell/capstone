@@ -6,7 +6,6 @@ const crypto = require('crypto'); // For generating verification token
 const nodemailer = require('nodemailer'); // For sending emails
 require('dotenv').config();
 
-
 const app = express();
 
 // Middleware
@@ -15,13 +14,12 @@ app.use(cors({
   origin: '*',  // Allow all origins (this is not recommended in production)
 }));
 
-
 // MySQL Database Connection
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '', // Your MySQL root password
-  database: 'FlackoDB'          // Your database name
+  database: 'FlackoDB' // Your database name
 });
 
 db.connect((err) => {
@@ -31,7 +29,6 @@ db.connect((err) => {
     console.log('Connected to MySQL database');
   }
 });
-
 
 // Contact form submission API
 app.post('/submit-contact', (req, res) => {
@@ -52,7 +49,7 @@ app.post('/submit-contact', (req, res) => {
   });
 });
 
-
+// Nodemailer Setup for Sending Emails
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -65,33 +62,28 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-
 // Register API with Email Verification
 app.post('/register', (req, res) => {
   const { first_name, last_name, email, password } = req.body;
 
-  // Input validation
   if (!first_name || !last_name || !email || !password) {
     console.error('Validation error: Missing fields');
-    return res.status(400).json({ message: 'All fields are required' });``  
+    return res.status(400).json({ message: 'All fields are required' });
   }
-  // Generate a verification token
+
   const verificationToken = crypto.randomBytes(32).toString('hex');
-  // Hash the password
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   const query = 'INSERT INTO users (first_name, last_name, email, password, verification_token) VALUES (?, ?, ?, ?, ?)';
   db.query(query, [first_name, last_name, email, hashedPassword, verificationToken], (err, result) => {
     if (err) {
       console.error('Error registering user:', err);
-      // Check if email is already registered
       if (err.code === 'ER_DUP_ENTRY') {
         return res.status(400).json({ message: 'Email already registered' });
       }
       return res.status(500).json({ message: 'Error registering user' });
     }
 
-    // Send verification email
     const verificationLink = `http://localhost:5000/verify-email?token=${verificationToken}`;
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -125,7 +117,6 @@ app.get('/verify-email', (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired verification token' });
     }
 
-    // Update verification status and remove token
     const updateQuery = 'UPDATE users SET verified = true, verification_token = NULL WHERE verification_token = ?';
     db.query(updateQuery, [token], (updateErr) => {
       if (updateErr) {
@@ -138,13 +129,11 @@ app.get('/verify-email', (req, res) => {
   });
 });
 
-
 // Login API
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
   const query = 'SELECT * FROM users WHERE email = ?';
-
   db.query(query, [email], (err, result) => {
     if (err) {
       console.error('Error querying database during login:', err);
@@ -156,12 +145,10 @@ app.post('/login', (req, res) => {
 
     const user = result[0];
 
-    // Check if the user is verified
     if (!user.verified) {
       return res.status(401).json({ message: 'Please verify your email before logging in.' });
     }
 
-    // Compare entered password with stored hash
     bcrypt.compare(password, user.password, (err, isMatch) => {
       if (err) {
         console.error('Error comparing passwords:', err);
@@ -174,7 +161,6 @@ app.post('/login', (req, res) => {
           email: user.email,
         };
 
-        // Save the user data to localStorage
         res.status(200).json({ message: 'Login successful', userData, role: user.email.includes('flacko1990') ? 'admin' : 'customer' });
       } else {
         return res.status(400).json({ message: 'Invalid credentials' });
@@ -183,7 +169,7 @@ app.post('/login', (req, res) => {
   });
 });
 
-
+// Fetch User Details API
 app.get('/user-details', (req, res) => {
   const email = req.query.email;
 
@@ -205,7 +191,6 @@ app.get('/user-details', (req, res) => {
     res.status(200).json(result[0]);
   });
 });
-
 
 // Update User Details API
 app.put('/update-user-details', (req, res) => {
@@ -239,51 +224,26 @@ app.put('/update-user-details', (req, res) => {
   });
 });
 
-
-// *** NEW CODE: Add Product API ***
+// Add Product API
 app.post('/add-product', (req, res) => {
   const {
-    name,
-    type,
-    brand,
-    category,
-    description,
-    image,
-    price,
-    discount,
-    totalPrice,
-    dimensions,
-    color,
-    finish,
-    material,
-    model,
-    quantity,
-    totalQuantity,
-    status
+    name, type, brand, category, description, image, price,
+    discount, totalPrice, dimensions, color, finish, material,
+    model, quantity, totalQuantity, status
   } = req.body;
+
+  if (!name || !price || !category) {
+    console.error('Validation error: Missing required fields');
+    return res.status(400).json({ message: 'Product name, price, and category are required' });
+  }
 
   const query = `INSERT INTO products 
     (name, type, brand, category, description, image, price, discount, totalPrice, dimensions, color, finish, material, model, quantity, totalQuantity, status) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   db.query(query, [
-    name,
-    type,
-    brand,
-    category,
-    description,
-    image,
-    price,
-    discount,
-    totalPrice,
-    dimensions,
-    color,
-    finish,
-    material,
-    model,
-    quantity,
-    totalQuantity,
-    status
+    name, type, brand, category, description, image, price, discount, totalPrice, dimensions,
+    color, finish, material, model, quantity, totalQuantity, status
   ], (err, result) => {
     if (err) {
       console.error('Error adding product:', err);
@@ -293,9 +253,63 @@ app.post('/add-product', (req, res) => {
   });
 });
 
-// *** NEW CODE: Get Products API ***
+// Update Product API
+app.put('/update-product/:id', (req, res) => {
+  const productId = req.params.id;
+  const updatedProduct = req.body;
+
+  if (!updatedProduct.name || !updatedProduct.price || !updatedProduct.category) {
+    console.error('Validation error: Missing required fields for update');
+    return res.status(400).json({ message: 'Product name, price, and category are required' });
+  }
+
+  const query = `
+    UPDATE products 
+    SET name = ?, type = ?, brand = ?, category = ?, description = ?, 
+        image = ?, price = ?, discount = ?, totalPrice = ?, 
+        dimensions = ?, color = ?, finish = ?, material = ?, 
+        model = ?, quantity = ?, totalQuantity = ?, status = ? 
+    WHERE id = ?
+  `;
+
+  db.query(query, [
+    updatedProduct.name, updatedProduct.type, updatedProduct.brand, updatedProduct.category,
+    updatedProduct.description, updatedProduct.image, updatedProduct.price, updatedProduct.discount,
+    updatedProduct.totalPrice, updatedProduct.dimensions, updatedProduct.color, updatedProduct.finish,
+    updatedProduct.material, updatedProduct.model, updatedProduct.quantity, updatedProduct.totalQuantity,
+    updatedProduct.status, productId
+  ], (err, result) => {
+    if (err) {
+      console.error('Error updating product:', err);
+      return res.status(500).json({ message: 'Error updating product' });
+    }
+    res.status(200).json({ message: 'Product updated successfully' });
+  });
+});
+
+// Archive (soft delete) Product API
+app.put('/archive-product/:id', (req, res) => {
+  const productId = req.params.id;
+
+  const query = `UPDATE products SET archived = true WHERE id = ?`;
+
+  db.query(query, [productId], (err, result) => {
+    if (err) {
+      console.error('Error archiving product:', err);
+      return res.status(500).json({ message: 'Error archiving product' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.status(200).json({ message: 'Product archived successfully' });
+  });
+});
+
+// Get Products API
 app.get('/products', (req, res) => {
-  const query = 'SELECT * FROM products';
+  const query = 'SELECT * FROM products WHERE archived IS NULL OR archived = false';
   db.query(query, (err, results) => {
     if (err) {
       console.error('Error fetching products:', err);
@@ -304,7 +318,6 @@ app.get('/products', (req, res) => {
     res.status(200).json(results);
   });
 });
-
 
 // Start the server
 const port = 5000;
