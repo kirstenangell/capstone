@@ -1,21 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { IoIosCart } from 'react-icons/io';
 import { NavLink } from 'react-router-dom';
+import Category from '../product-page-component/Category'; // Corrected import
 
 const Navbar = ({ cartItemCount }) => {
+  const [showCategories, setShowCategories] = useState(false);
+
+  const toggleCategories = (e) => {
+    e.preventDefault(); // Prevent navigation when the arrow is clicked
+    setShowCategories(!showCategories);
+  };
+
   return (
     <nav
       className="p-4 flex justify-between items-center sticky top-[52px] z-40"
-      style={{ backgroundColor: 'black' }} 
+      style={{ backgroundColor: 'black' }}
     >
       <NavLink to="/" className="text-white text-2xl font-bold">
         LOGO
       </NavLink>
       <div
-        className="flex items-center py-2 px-4 rounded-full text-xs drop-shadow-2xl"
+        className="flex items-center py-2 px-4 rounded-full text-xs drop-shadow-3xl"
         style={{
-          background: 'linear-gradient(90deg, #4B88A3 0%, #040405 100%, #4B88A3 82%)',
+          background: 'linear-gradient(0deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
           fontFamily: 'Poppins, sans-serif',
+          boxShadow: '0px 10px 20px rgba(10, 10, 10, 0.7)' // Custom shadow to make it pop
         }}
       >
         <div className="flex items-center ml-8">
@@ -29,7 +38,8 @@ const Navbar = ({ cartItemCount }) => {
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Custom shadow to make it pop
                   }
                 : {}
             }
@@ -46,32 +56,45 @@ const Navbar = ({ cartItemCount }) => {
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Custom shadow to make it pop
                   }
                 : {}
             }
           >
             <span className="relative">SERVICES</span>
           </NavLink>
-          <NavLink
-            to="/products"
-            className={({ isActive }) =>
-              `relative group mr-24 transition-all duration-300 transform ${
-                isActive ? 'rounded-full py-2 px-4' : ''
-              }`
-            }
-            style={({ isActive }) =>
-              isActive
-                ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
-                  }
-                : {}
-            }
-          >
-            <span className="text-white flex items-center relative group-hover:text-gray-400">
-              PRODUCTS
+
+          {/* Products Tab */}
+          <div className="relative flex items-center">
+            <NavLink
+              to="/products"
+              className={({ isActive }) =>
+                `text-white relative group transition-all duration-300 transform ${
+                  isActive ? 'rounded-full py-2 px-4' : ''
+                }`
+              }
+              style={({ isActive }) =>
+                isActive
+                  ? {
+                      background:'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                      boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Custom shadow to make it pop
+                    }
+                  : {}
+              }
+            >
+              <span className="text-white flex items-center">PRODUCTS</span>
+            </NavLink>
+
+            {/* Arrow for category drop-down */}
+            <span
+              onClick={toggleCategories}
+              className="cursor-pointer ml-1 text-white"
+            >
               <svg
-                className="ml-1 w-4 h-4 text-white transition-colors duration-300 group-hover:translate-x-1"
+                className={`w-4 h-4 transition-transform duration-300 transform ${
+                  showCategories ? 'rotate-180' : ''
+                }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -80,8 +103,19 @@ const Navbar = ({ cartItemCount }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </span>
-          </NavLink>
+
+            {/* Category Box */}
+            {showCategories && (
+              <div
+                className="absolute right-0 top-full w-[90vw] bg-gradient-to-r from-[#040405] to-[#4B88A3] shadow-lg z-50 mt-4 py-8 transition-all duration-500 ease-in-out"
+                style={{ maxWidth: '1200px', color: '#fff' }}
+              >
+                <Category />
+              </div>
+            )}
+          </div>
         </div>
+
         <div className="flex items-center space-x-2 ml-10">
           <NavLink
             to="/cart"
@@ -93,7 +127,8 @@ const Navbar = ({ cartItemCount }) => {
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                  background:'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                  boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Custom shadow to make it pop
                   }
                 : {}
             }
@@ -115,7 +150,8 @@ const Navbar = ({ cartItemCount }) => {
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                  background:'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                  boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Custom shadow to make it pop
                   }
                 : {}
             }
@@ -132,7 +168,8 @@ const Navbar = ({ cartItemCount }) => {
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(95deg, #4B88A3 0%, #040405 51%, #4B88A3 100%)',
+                  background:'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                  boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Custom shadow to make it pop
                   }
                 : {}
             }
