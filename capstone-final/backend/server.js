@@ -6,40 +6,41 @@ const crypto = require('crypto'); // For generating verification token
 const nodemailer = require('nodemailer'); // For sending emails
 require('dotenv').config();
 
+
 const app = express();
 
 // Middleware
-app.use(express.json());  // For parsing JSON in requests
+app.use(express.json());
 app.use(cors({
-  origin: '*',  // Allow all origins (in production, restrict to specific domains)
+  origin: '*',  // Allow all origins (this is not recommended in production)
 }));
+
 
 // MySQL Database Connection
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '', // Your MySQL root password
-  database: 'FlackoDB' // Your database name
+  database: 'FlackoDB'          // Your database name
 });
 
 db.connect((err) => {
   if (err) {
-    console.error('Error connecting to the database:', err);
+    console.error('Error connecting to database:', err);
   } else {
     console.log('Connected to MySQL database');
   }
 });
 
-// Contact Form Submission API
+
+// Contact form submission API
 app.post('/submit-contact', (req, res) => {
   const { name, email, message } = req.body;
 
-  // Validate input
   if (!name || !email || !message) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  // Insert contact submission into the database
   const query = 'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)';
   db.query(query, [name, email, message], (err, result) => {
     if (err) {
@@ -51,7 +52,7 @@ app.post('/submit-contact', (req, res) => {
   });
 });
 
-// Nodemailer Setup for Sending Emails
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -64,6 +65,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+
 // Register API with Email Verification
 app.post('/register', (req, res) => {
   const { first_name, last_name, email, password } = req.body;
@@ -71,20 +73,18 @@ app.post('/register', (req, res) => {
   // Input validation
   if (!first_name || !last_name || !email || !password) {
     console.error('Validation error: Missing fields');
-    return res.status(400).json({ message: 'All fields are required' });
+    return res.status(400).json({ message: 'All fields are required' });``  
   }
-
   // Generate a verification token
   const verificationToken = crypto.randomBytes(32).toString('hex');
-
-  // Hash the password using bcrypt
+  // Hash the password
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-  // Insert user into database
   const query = 'INSERT INTO users (first_name, last_name, email, password, verification_token) VALUES (?, ?, ?, ?, ?)';
   db.query(query, [first_name, last_name, email, hashedPassword, verificationToken], (err, result) => {
     if (err) {
       console.error('Error registering user:', err);
+      // Check if email is already registered
       if (err.code === 'ER_DUP_ENTRY') {
         return res.status(400).json({ message: 'Email already registered' });
       }
@@ -125,7 +125,7 @@ app.get('/verify-email', (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired verification token' });
     }
 
-    // Update verification status
+    // Update verification status and remove token
     const updateQuery = 'UPDATE users SET verified = true, verification_token = NULL WHERE verification_token = ?';
     db.query(updateQuery, [token], (updateErr) => {
       if (updateErr) {
@@ -137,6 +137,7 @@ app.get('/verify-email', (req, res) => {
     });
   });
 });
+
 
 // Login API
 app.post('/login', (req, res) => {
@@ -173,7 +174,7 @@ app.post('/login', (req, res) => {
           email: user.email,
         };
 
-        // Send response back with user data
+        // Save the user data to localStorage
         res.status(200).json({ message: 'Login successful', userData, role: user.email.includes('flacko1990') ? 'admin' : 'customer' });
       } else {
         return res.status(400).json({ message: 'Invalid credentials' });
@@ -182,7 +183,7 @@ app.post('/login', (req, res) => {
   });
 });
 
-// Fetch User Details API
+
 app.get('/user-details', (req, res) => {
   const email = req.query.email;
 
@@ -204,6 +205,7 @@ app.get('/user-details', (req, res) => {
     res.status(200).json(result[0]);
   });
 });
+
 
 // Update User Details API
 app.put('/update-user-details', (req, res) => {
@@ -236,6 +238,7 @@ app.put('/update-user-details', (req, res) => {
     res.status(200).json({ message: 'User details updated successfully' });
   });
 });
+
 
 // *** NEW CODE: Add Product API ***
 app.post('/add-product', (req, res) => {
@@ -290,36 +293,6 @@ app.post('/add-product', (req, res) => {
   });
 });
 
-// *** NEW CODE: Update Product API ***
-app.put('/update-product/:id', (req, res) => {
-  const productId = req.params.id;
-  const updatedProduct = req.body;
-
-  const query = `
-    UPDATE products 
-    SET name = ?, type = ?, brand = ?, category = ?, description = ?, 
-        image = ?, price = ?, discount = ?, totalPrice = ?, 
-        dimensions = ?, color = ?, finish = ?, material = ?, 
-        model = ?, quantity = ?, totalQuantity = ?, status = ? 
-    WHERE id = ?
-  `;
-
-  db.query(query, [
-    updatedProduct.name, updatedProduct.type, updatedProduct.brand, updatedProduct.category, 
-    updatedProduct.description, updatedProduct.image, updatedProduct.price, 
-    updatedProduct.discount, updatedProduct.totalPrice, updatedProduct.dimensions, 
-    updatedProduct.color, updatedProduct.finish, updatedProduct.material, 
-    updatedProduct.model, updatedProduct.quantity, updatedProduct.totalQuantity, 
-    updatedProduct.status, productId
-  ], (err, result) => {
-    if (err) {
-      console.error('Error updating product:', err);
-      return res.status(500).json({ message: 'Error updating product' });
-    }
-    res.status(200).json({ message: 'Product updated successfully' });
-  });
-});
-
 // *** NEW CODE: Get Products API ***
 app.get('/products', (req, res) => {
   const query = 'SELECT * FROM products';
@@ -332,17 +305,6 @@ app.get('/products', (req, res) => {
   });
 });
 
-// *** NEW CODE: Delete Product API ***
-app.delete('/delete-product/:id', (req, res) => {
-  const query = 'DELETE FROM products WHERE id = ?';
-  db.query(query, [req.params.id], (err, result) => {
-    if (err) {
-      console.error('Error deleting product:', err);
-      return res.status(500).json({ message: 'Error deleting product' });
-    }
-    res.status(200).json({ message: 'Product deleted successfully' });
-  });
-});
 
 // Start the server
 const port = 5000;

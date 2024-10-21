@@ -40,8 +40,8 @@ const ProductInformation = () => {
     },
     color: existingProduct.color || '',
     finish: existingProduct.finish ? existingProduct.finish.split(', ') : [],
-    material: existingProduct.material || '',
-    model: existingProduct.model || '',
+    material: existingProduct.material || '', // Make sure material is correctly set
+    model: existingProduct.model || '', // Make sure model is correctly set
   });
 
   // Ensure uploaded images are set if editing
@@ -80,7 +80,6 @@ const ProductInformation = () => {
 
   // *** NEW FUNCTION ***
   // Handle Save button click (Sending data to the backend)
-  
   const handleSave = async () => {
     const productData = {
       name: formData.productName,
@@ -88,7 +87,7 @@ const ProductInformation = () => {
       brand: formData.productBrand,
       category: formData.productCategory,
       description: formData.productDescription,
-      image: uploadedImages[0],  // You might need to handle image differently
+      image: uploadedImages[0] ? (typeof uploadedImages[0] === 'string' ? uploadedImages[0] : URL.createObjectURL(uploadedImages[0])) : Wheel1, // Image handling here
       price: formData.retailSalePrice,
       discount: formData.discount,
       totalPrice: formData.totalPrice,
@@ -103,40 +102,32 @@ const ProductInformation = () => {
     };
   
     try {
-      let response;
-      if (isEdit) {
-        // Edit existing product (PUT request)
-        response = await fetch(`http://localhost:5000/update-product/${formData.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(productData),
-        });
-      } else {
-        // Add new product (POST request)
-        response = await fetch('http://localhost:5000/add-product', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(productData),
-        });
-      }
+      const response = await fetch('http://localhost:5000/add-product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
+      });
   
       if (response.ok) {
-        alert(isEdit ? 'Product updated successfully!' : 'Product added successfully!');
-        navigate('/inventory');  // Navigate back to the inventory page
+        // Add the newly added product to the context directly
+        const newProduct = await response.json();
+        addProduct(newProduct); // addProduct comes from ProductContext
+  
+        alert('Product added successfully!');
+        navigate('/inventory'); // Navigate back to the inventory page
       } else {
-        alert('Failed to save product. Please try again.');
+        alert('Failed to add product. Please try again.');
       }
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('An error occurred while saving the product.');
+      alert('An error occurred while adding the product.');
     }
   };
   
   
+
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       {/* Header */}
@@ -403,7 +394,7 @@ const ProductInformation = () => {
             </div>
           )}
 
-{step === 4 && (
+          {step === 4 && (
             <div>
               {/* Measurement Form */}
               <div className="mb-6">
@@ -508,7 +499,7 @@ const ProductInformation = () => {
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Material (optional)"
                   value={formData.material}
-                  onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, material: e.target.value })} // Ensure material is updated
                 />
               </div>
 
@@ -519,7 +510,7 @@ const ProductInformation = () => {
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Make / Model / Year Compatibility"
                   value={formData.model}
-                  onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, model: e.target.value })} // Ensure model is updated
                 />
               </div>
 
