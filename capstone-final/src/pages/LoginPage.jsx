@@ -22,13 +22,8 @@ export default function LoginPage({ setIsLoggedIn }) {
     };
 
     const handleForgotPasswordSubmit = () => {
-        navigate('/login/confirmation');
-    };
-
-    const handleSetPasswordSubmit = () => {
         navigate('/login/set-password');
     };
-
     const handlePasswordSaved = () => {
         navigate('/login/password-confirmation');
     };
@@ -51,10 +46,6 @@ export default function LoginPage({ setIsLoggedIn }) {
             <Route 
                 path="/signup" 
                 element={<SignUp />} 
-            />
-            <Route 
-                path="/confirmation" 
-                element={<Confirmation onSetPasswordClick={handleSetPasswordSubmit} />} 
             />
             <Route 
                 path="/set-password" 
