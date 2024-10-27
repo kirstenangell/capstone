@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { IoIosCart } from 'react-icons/io';
-import { NavLink } from 'react-router-dom';
+import { FaUser } from 'react-icons/fa'; // Import User icon from react-icons/fa
+import { NavLink, useNavigate } from 'react-router-dom';
 import Category from '../product-page-component/Category'; // Corrected import
 
 const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
   const [showCategories, setShowCategories] = useState(false);
+  const navigate = useNavigate();
 
   const toggleCategories = (e) => {
     e.preventDefault();
     setShowCategories(!showCategories);
+  };
+
+  const handleLogoutAndRedirect = () => {
+    handleLogout();
+    navigate('/'); // Redirect to landing page
   };
 
   return (
@@ -89,7 +96,6 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
               </svg>
             </span>
           </NavLink>
-
         </div>
 
         <div className="flex items-center space-x-2 ml-10">
@@ -116,24 +122,47 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
               </span>
             )}
           </NavLink>
-          <NavLink
-            to="/signup"
-            className={({ isActive }) =>
-              `text-white relative group transition-all duration-300 transform ${
-                isActive ? 'rounded-full py-2 px-4' : ''
-              }`
-            }
-            style={({ isActive }) =>
-              isActive
-                ? {
-                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
-                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)', // Custom shadow to make it pop
-                  }
-                : {}
-            }
-          >
-            SIGN UP
-          </NavLink>
+
+          {!isLoggedIn ? (
+            <NavLink
+              to="/signup"
+              className={({ isActive }) =>
+                `text-white relative group transition-all duration-300 transform ${
+                  isActive ? 'rounded-full py-2 px-4' : ''
+                }`
+              }
+              style={({ isActive }) =>
+                isActive
+                  ? {
+                      background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                      boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)', // Custom shadow to make it pop
+                    }
+                  : {}
+              }
+            >
+              SIGN UP
+            </NavLink>
+          ) : (
+            <NavLink
+              to="/manage-account"
+              className={({ isActive }) =>
+                `flex items-center justify-center text-white px-4 py-2 relative group transition-all duration-300 transform ${
+                  isActive ? 'rounded-full' : ''
+                }`
+              }
+              style={({ isActive }) =>
+                isActive
+                  ? {
+                      background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                      boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
+                    }
+                  : {}
+              }
+            >
+              <FaUser className="w-5 h-5 text-white" />
+            </NavLink>
+          )}
+
           {!isLoggedIn ? (
             <NavLink
               to="/login"
@@ -155,8 +184,8 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
             </NavLink>
           ) : (
             <button
-              onClick={handleLogout}
-              className="text-white py-2 px-4 rounded-full relative group overflow-hidden transition-all duration-300 transform"
+              onClick={handleLogoutAndRedirect}
+              className="flex items-center justify-center text-white px-4 py-2 rounded-full relative group overflow-hidden transition-all duration-300 transform"
               style={{
                 background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
                 boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
