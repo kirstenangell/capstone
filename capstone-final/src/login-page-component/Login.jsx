@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
-import axios from 'axios'; // Import Axios for making API requests
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
+const Login = ({ setIsLoggedIn }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -16,6 +16,8 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        console.log('setIsLoggedIn:', setIsLoggedIn); // Debugging line
+
         try {
             const response = await axios.post('http://localhost:5000/login', { email, password });
             if (response.status === 200) {
@@ -24,10 +26,17 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
                 localStorage.setItem('firstName', userData.firstName);
                 localStorage.setItem('lastName', userData.lastName);
 
+                if (typeof setIsLoggedIn === 'function') {
+                    setIsLoggedIn(true);
+                    localStorage.setItem('isLoggedIn', 'true');
+                } else {
+                    console.error('setIsLoggedIn is not a function');
+                }
+
                 if (role === 'admin') {
-                    navigate('/dashboard'); // Redirect to dashboard for admin
+                    navigate('/dashboard');
                 } else if (role === 'customer') {
-                    navigate('/manage-account'); // Redirect to manage account for customers
+                    navigate('/manage-account');
                 }
             } else {
                 setErrorMessage(response.data.message);
@@ -86,7 +95,6 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
                         <a
                             href="#"
                             className="hover:underline bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
-                            onClick={onForgotPasswordClick}
                         >
                             Forgot Password?
                         </a>
@@ -114,7 +122,6 @@ const Login = ({ onForgotPasswordClick, onSignUpClick }) => {
                     <a
                         href="#"
                         className="hover:underline bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
-                        onClick={onSignUpClick}
                     >
                         Sign Up
                     </a>

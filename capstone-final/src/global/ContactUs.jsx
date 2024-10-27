@@ -47,8 +47,8 @@ const ContactUs = () => {
         {/* Contact Form */}
         <div className="w-full md:w-1/2">
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-2">CONTACT US</h2>
-            <p className="text-base">Have a question or want to work together? Fill out the form and we'll get back to you as soon as possible.</p>
+            <h2 className="text-4xl mb-8 font-bold mb-2 bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent">CONTACT US</h2>
+            <p className="text-sm">Have a question or want to work together? Fill out the form and we'll get back to you as soon as possible.</p>
           </div>
           {submitted ? (
             <div className="text-center text-green-500">Thank you for your message! We will get back to you soon.</div>
@@ -59,23 +59,31 @@ const ContactUs = () => {
                 <div className="w-full md:w-1/2">
                   <label className="block text-sm mb-2" htmlFor="name">Name</label>
                   <input
-                    className="w-full p-3 bg-[#111] border border-gray-700 rounded"
+                    className="w-full p-3 text-sm bg-[#111] border border-gray-700 rounded"
                     type="text"
                     id="name"
                     placeholder="Enter your name"
                     value={formData.name}
                     onChange={handleChange}
+                    style={{
+                      background: 'linear-gradient(90deg, #040405, #335C6E)',
+                      color: 'white', // Optional: sets text color for better visibility on gradient
+                    }}
                   />
                 </div>
                 <div className="w-full md:w-1/2 mt-4 md:mt-0">
                   <label className="block text-sm mb-2" htmlFor="email">Email</label>
                   <input
-                    className="w-full p-3 bg-[#111] border border-gray-700 rounded"
+                    className="w-full text-sm p-3 bg-[#111] border border-gray-700 rounded"
                     type="email"
                     id="email"
                     placeholder="Enter your email"
                     value={formData.email}
                     onChange={handleChange}
+                    style={{
+                      background: 'linear-gradient(90deg, #040405, #335C6E)',
+                      color: 'white', // Optional: sets text color for better visibility on gradient
+                    }}
                   />
                 </div>
               </div>
@@ -85,12 +93,22 @@ const ContactUs = () => {
                   className="w-full p-3 bg-[#111] border border-gray-700 rounded"
                   id="message"
                   placeholder="Enter your message"
-                  style={{ height: '394px' }}
+                  style={{ height: '394px', background: 'linear-gradient(90deg, #040405, #335C6E)',
+                    color: 'white', }}
                   value={formData.message}
                   onChange={handleChange}
                 ></textarea>
               </div>
-              <button className="w-full p-3 bg-gradient-to-br from-[#4B88A3] to-[#000000] text-white rounded hover:opacity-90 transition-opacity duration-300" type="submit">Submit</button>
+              <button
+              className="w-full p-3 text-white rounded hover:opacity-90 transition-opacity duration-300"
+              type="submit"
+              style={{
+                background: 'linear-gradient(90deg, #040405, #335C6E)',
+              }}
+            >
+              SUBMIT
+            </button>
+
             </form>
           )}
         </div>
@@ -107,27 +125,27 @@ const ContactUs = () => {
             ></iframe>
           </div>
           <div className="text-sm space-y-6">
-            <div className="flex items-center space-x-2">
-              <MdLocationPin className="text-lg" />
-              <div>
-                <p className="text-lg font-semibold">Flacko Auto Parts and Accessories</p>
-                <p>Lorem ipsum Adit Dolores</p>
-              </div>
+          <div className="flex items-center space-x-2">
+            <MdLocationPin className="text-lg text-white" style={{ fontSize: '24px' }} />
+            <div>
+              <p className="text-lg font-semibold bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent">Flacko Auto Parts and Accessories</p>
+              <p className="text-xs">Flacko Auto Parts & Accessories Trading 273 P. Tuazon Blvd, Cubao, Quezon City, 1109 Metro Manila</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <BsFillTelephoneFill className="text-lg" />
-              <div>
-                <p>+1 (555) 555-5555</p>
-                <p>Monday - Friday, 9am - 5pm</p>
-              </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <BsFillTelephoneFill className="text-lg text-white" style={{ fontSize: '24px' }} />
+            <div>
+              <p className="bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent">+1 (555) 555-5555</p>
+              <p className="text-xs">Monday - Friday, 9am - 5pm</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <MdEmail className="text-lg" />
-              <div>
-                <p>flackoautoparts@gmail.com</p>
-                <p>Get in touch with us anytime!</p>
-              </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <MdEmail className="text-lg text-white" style={{ fontSize: '24px' }} />
+            <div>
+              <p className="bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent">flackoautoparts@gmail.com</p>
+              <p className="text-xs">Get in touch with us anytime!</p>
             </div>
+          </div>
           </div>
         </div>
       </div>

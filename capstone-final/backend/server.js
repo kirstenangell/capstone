@@ -19,7 +19,7 @@ app.use(cors({
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'Flackoautoinc1990', // Your MySQL root password
+  password: '', // Your MySQL root password
   database: 'FlackoDB' // Your database name
 });
 
