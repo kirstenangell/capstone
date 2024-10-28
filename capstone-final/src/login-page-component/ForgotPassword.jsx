@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IoArrowBackCircle, IoIosEye, IoIosEyeOff } from 'react-icons/io5';
-import { RiErrorWarningLine } from 'react-icons/ri';
+import { IoArrowBackCircle } from 'react-icons/io5'; // Correct
+import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Correct
+import { RiErrorWarningLine } from 'react-icons/ri'; // Correct
+
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
