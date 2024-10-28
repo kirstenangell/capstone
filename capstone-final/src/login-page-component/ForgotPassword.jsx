@@ -2,14 +2,18 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBackCircle } from 'react-icons/io5';
 
-const ForgotPassword = ({ onSubmit }) => {
+const ForgotPassword = () => {
   const navigate = useNavigate();
 
   const handleBackToLoginClick = () => {
     navigate('/login');
   };
 
-  console.log("ForgotPassword component is rendered");
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    // Add logic here if you want to validate the email or send an API request
+    navigate('/login/set-password'); // Redirect to set password page
+  };
 
   return (
     <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]"> 
@@ -19,7 +23,7 @@ const ForgotPassword = ({ onSubmit }) => {
           Enter your email address below to receive a password reset link
         </p>
 
-        <form className="space-y-4" onSubmit={onSubmit}>
+        <form className="space-y-4" onSubmit={handleFormSubmit}>
           <div className="relative">
             <label className="text-xs mb-1 block">EMAIL ADDRESS</label>
             <input
