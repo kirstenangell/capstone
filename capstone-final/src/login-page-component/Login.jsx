@@ -92,12 +92,14 @@ const Login = ({ setIsLoggedIn }) => {
                             <input type="checkbox" className="form-checkbox text-blue-500" />
                             <span>Remember Me</span>
                         </label>
-                        <a
-                            href="#"
+                        <button
+                            type="button"
+                            onClick={() => navigate('/login/forgot-password')}
                             className="hover:underline bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
                         >
                             Forgot Password?
-                        </a>
+                        </button>
+
                     </div>
 
                     <button

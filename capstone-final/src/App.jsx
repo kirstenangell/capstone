@@ -34,6 +34,10 @@ import SupplierInformation from './supplier-page-component/SupplierInformation';
 import SupplierAddress from './supplier-page-component/SupplierAddress'; 
 import ProductDetail from './product-page-component/ProductDetail';
 import Login from './login-page-component/Login';
+import ForgotPassword from './login-page-component/ForgotPassword';
+import SetPassword from './login-page-component/SetPassword';
+
+
 // Context Providers
 import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
@@ -299,6 +303,8 @@ function App() {
                     <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
                     <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/login/*" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+                    <Route path="/login/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/login/set-password" element={<SetPassword />} />
 
                     <Route path="/contact" element={<ContactUs />} />
                     <Route path="/faqs" element={<Faqs />} />
