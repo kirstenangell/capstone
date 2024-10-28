@@ -43,8 +43,8 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
-                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
+                  background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                  boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
                   }
                 : {}
             }
@@ -61,7 +61,8 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                  background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                  boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
                   }
                 : {}
             }
@@ -78,7 +79,8 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
             style={({ isActive }) =>
               isActive
                 ? {
-                    background: 'linear-gradient(90deg, #4B88A3 0%, #040405 51%, #4B88A3 82%)',
+                  background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                  boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
                   }
                 : {}
             }
