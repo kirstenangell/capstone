@@ -28,11 +28,12 @@ const ForgotPassword = () => {
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
-
+  
   const handleSavePassword = (event) => {
     event.preventDefault();
-    navigate('/login/password-confirmation');
+    navigate('/login');
   };
+
 
   return (
     <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]"> 
