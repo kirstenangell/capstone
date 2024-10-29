@@ -14,6 +14,7 @@ app.use(cors({
   origin: '*',  // Allow all origins (this is not recommended in production)
 }));
 
+
 // MySQL Database Connection
 const db = mysql.createConnection({
   host: 'localhost',
@@ -63,44 +64,83 @@ const transporter = nodemailer.createTransport({
 });
 
 // Register API with Email Verification
-app.post('/register', (req, res) => {
-  const { first_name, last_name, email, password } = req.body;
+const { body, validationResult } = require('express-validator');
 
-  if (!first_name || !last_name || !email || !password) {
-    console.error('Validation error: Missing fields');
-    return res.status(400).json({ message: 'All fields are required' });
+const sendVerificationEmail = (email, token) => {
+  const verificationUrl = `http://localhost:5000/verify-email?token=${token}`;
+  const mailOptions = {
+    from: process.env.EMAIL_USER,  // Sender's email address
+    to: email,                     // Recipient's email address
+    subject: 'Verify your email address',
+    html: `<p>Please click on the following link to verify your email address:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
+  };
+
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error('Error sending verification email:', err);
+    } else {
+      console.log('Verification email sent:', info.response);
+    }
+  });
+};
+
+app.post('/register', [
+  // Validation rules
+  body('first_name').notEmpty().withMessage('First name is required'),
+  body('last_name').notEmpty().withMessage('Last name is required'),
+  body('email').isEmail().withMessage('Email is invalid'),
+  body('password')
+    .isLength({ min: 10, max: 12 }).withMessage('Password must be between 10 and 12 characters long')
+    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
+    .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
+    .matches(/\d/).withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character')
+    .not().matches(/(\d)\1{2,}|([a-zA-Z])\2{2,}/).withMessage('Password should not have repeated or sequential characters')
+    .custom((value, { req }) => {
+      if (value.includes(req.body.first_name) || value.includes(req.body.last_name) || value.includes(req.body.email.split('@')[0])) {
+        throw new Error('Password should not contain personal information like your name or email.');
+      }
+      return true;
+    }),
+], async (req, res) => {
+  // Validation result check
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
 
-  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const { first_name, last_name, email, password } = req.body;
+  
+  // Hash the password and generate a verification token
   const hashedPassword = bcrypt.hashSync(password, 10);
+  const verificationToken = crypto.randomBytes(32).toString('hex');
 
-  const query = 'INSERT INTO users (first_name, last_name, email, password, verification_token) VALUES (?, ?, ?, ?, ?)';
-  db.query(query, [first_name, last_name, email, hashedPassword, verificationToken], (err, result) => {
-    if (err) {
-      console.error('Error registering user:', err);
-      if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(400).json({ message: 'Email already registered' });
+  try {
+    // Database query wrapped in try-catch
+    const query = 'INSERT INTO users (first_name, last_name, email, password, verification_token) VALUES (?, ?, ?, ?, ?)';
+    
+    // Execute the query
+    db.query(query, [first_name, last_name, email, hashedPassword, verificationToken], (err, result) => {
+      if (err) {
+        console.error("Database Error:", err); // Log the actual error
+        return res.status(500).json({ message: 'Server error. Please try again later.' });
       }
-      return res.status(500).json({ message: 'Error registering user' });
-    }
 
-    const verificationLink = `http://localhost:5000/verify-email?token=${verificationToken}`;
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Verify your email address',
-      html: `<p>Please verify your email by clicking on the following link:</p><a href="${verificationLink}">Verify Email</a>`
-    };
+      // Send verification email after successful registration
+      sendVerificationEmail(email, verificationToken);
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Error sending verification email:', error);
-        return res.status(500).json({ message: 'Error sending verification email' });
-      }
+      // Send success response if the registration was successful
       res.status(200).json({ message: 'User registered successfully. Please verify your email.' });
     });
-  });
+  } catch (err) {
+    // Catch any unexpected errors
+    console.error("Error during registration:", err);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 });
+
+
+
 
 // Email Verification API
 app.get('/verify-email', (req, res) => {
@@ -128,6 +168,7 @@ app.get('/verify-email', (req, res) => {
     });
   });
 });
+
 
 // Login API
 app.post('/login', (req, res) => {
@@ -319,8 +360,123 @@ app.get('/products', (req, res) => {
   });
 });
 
+app.post('/forgot-password', (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const query = 'UPDATE users SET reset_token = ? WHERE email = ?';
+
+  db.query(query, [token, email], (err, result) => {
+    if (err) {
+      console.error('Error updating reset token:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Email not found' });
+    }
+
+    const resetUrl = `http://localhost:5173/set-password?token=${token}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `<p>Please click the following link to set your new password:</p><a href="${resetUrl}">${resetUrl}</a>`
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error('Error sending email:', err);
+        return res.status(500).json({ message: 'Error sending email' });
+      }
+      res.status(200).json({ message: 'Password reset link sent' });
+    });
+  });
+});
+
+// Password Set API
+app.post('/set-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  // Validate input
+  if (!token || !newPassword) {
+    return res.status(400).json({ message: 'Token and new password are required' });
+  }
+
+  // Find the user with the provided reset token
+  const query = 'SELECT * FROM users WHERE reset_token = ?';
+  db.query(query, [token], async (err, result) => {
+    if (err) {
+      console.error('Error querying database for reset token:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password and clear reset token
+    const updateQuery = 'UPDATE users SET password = ?, reset_token = NULL WHERE reset_token = ?';
+    db.query(updateQuery, [hashedPassword, token], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating password:', updateErr);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
+    });
+  });
+});
+
+// Update Password API after reset
+// Backend - Update Password API after reset
+app.post('/update-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  // Validate input
+  if (!token || !newPassword) {
+    return res.status(400).json({ message: 'Token and new password are required' });
+  }
+
+  // Find the user with the provided reset token
+  const query = 'SELECT * FROM users WHERE reset_token = ?';
+  db.query(query, [token], async (err, result) => {
+    if (err) {
+      console.error('Error querying database for reset token:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password and clear reset token
+    const updateQuery = 'UPDATE users SET password = ?, reset_token = NULL WHERE reset_token = ?';
+    db.query(updateQuery, [hashedPassword, token], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating password:', updateErr);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
+    });
+  });
+});
+
+
 // Start the server
 const port = 5000;
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
+

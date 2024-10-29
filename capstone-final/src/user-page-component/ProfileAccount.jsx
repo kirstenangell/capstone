@@ -34,7 +34,7 @@ const ProfileAccount = () => {
                 if (email) {
                     const response = await axios.get(`http://localhost:5000/user-details?email=${email}`);
                     const { firstName, lastName, email: userEmail, contactNumber, street, barangay, city, region, province, zipCode } = response.data;
-
+    
                     // Set the fetched data to formData
                     setFormData({
                         firstName,
@@ -48,8 +48,8 @@ const ProfileAccount = () => {
                         province: province || '',
                         zipCode: zipCode || '',
                     });
-
-                    // Set initialFormData
+    
+                    // Store initial data for cancellation
                     setInitialFormData({
                         firstName,
                         lastName,
@@ -64,15 +64,16 @@ const ProfileAccount = () => {
                     });
                 } else {
                     alert('Access restricted');
-                    navigate('/'); // Redirect to homepage if unauthorized
+                    navigate('/'); // Redirect if unauthorized
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
         };
-
-        fetchUserData(); // Call the function to fetch data when the component mounts
+    
+        fetchUserData();
     }, [navigate]);
+    
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
@@ -103,7 +104,6 @@ const ProfileAccount = () => {
 
     const handleSaveChanges = async () => {
         try {
-            const email = localStorage.getItem('email'); // Assuming email is saved in localStorage
             const response = await axios.put('http://localhost:5000/update-user-details', {
                 email: formData.email,
                 contactNumber: formData.contactNumber,
@@ -114,18 +114,23 @@ const ProfileAccount = () => {
                 province: formData.province,
                 zipCode: formData.zipCode,
             });
+    
             if (response.status === 200) {
                 console.log('User details updated successfully');
+                setInitialFormData(formData); // Update initial formData with saved data
+                setIsEditing(false);
             }
         } catch (error) {
             console.error('Error updating user details:', error);
         }
     };
+    
 
     const handleLogout = () => {
         localStorage.clear(); // Clear localStorage on logout
-        navigate('/'); // Redirect to the landing page
+        navigate('/'); // Redirect to the homepage
     };
+    
 
     return (
         <div className="min-h-screen flex bg-black text-white px-8">
@@ -266,31 +271,132 @@ const ProfileAccount = () => {
                                         />
                                     </div>
                                     <div className="w-1/2">
-                                        <label className="block text-sm font-medium mb-1">Region</label>
-                                        <input
-                                            type="text"
-                                            name="region"
-                                            value={formData.region}
-                                            onChange={handleInputChange}
-                                            placeholder="Region"
-                                            className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
+                                            <label className="block text-sm font-medium mb-1">Region</label>
+                                            <select
+                                                name="region"
+                                                value={formData.region}
+                                                onChange={handleInputChange}
+                                                className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                                disabled={!isEditing}
+                                            >
+                                                <option value="">Select a region</option>
+                                                <option value="Region I - Ilocos Region">Region I - Ilocos Region</option>
+                                                <option value="Region II - Cagayan Valley">Region II - Cagayan Valley</option>
+                                                <option value="Region III - Central Luzon">Region III - Central Luzon</option>
+                                                <option value="Region IV-A - CALABARZON">Region IV-A - CALABARZON</option>
+                                                <option value="Region IV-B - MIMAROPA">Region IV-B - MIMAROPA</option>
+                                                <option value="Region V - Bicol Region">Region V - Bicol Region</option>
+                                                <option value="Region VI - Western Visayas">Region VI - Western Visayas</option>
+                                                <option value="Region VII - Central Visayas">Region VII - Central Visayas</option>
+                                                <option value="Region VIII - Eastern Visayas">Region VIII - Eastern Visayas</option>
+                                                <option value="Region IX - Zamboanga Peninsula">Region IX - Zamboanga Peninsula</option>
+                                                <option value="Region X - Northern Mindanao">Region X - Northern Mindanao</option>
+                                                <option value="Region XI - Davao Region">Region XI - Davao Region</option>
+                                                <option value="Region XII - SOCCSKSARGEN">Region XII - SOCCSKSARGEN</option>
+                                                <option value="Region XIII - Caraga">Region XIII - Caraga</option>
+                                                <option value="NCR - National Capital Region">NCR - National Capital Region</option>
+                                                <option value="CAR - Cordillera Administrative Region">CAR - Cordillera Administrative Region</option>
+                                                <option value="BARMM - Bangsamoro Autonomous Region in Muslim Mindanao">BARMM - Bangsamoro Autonomous Region in Muslim Mindanao</option>
+                                            </select>
+                                        </div>
                                 </div>
                                 <div className="flex space-x-4">
                                     <div className="w-1/2">
-                                        <label className="block text-sm font-medium mb-1">Province</label>
-                                        <input
-                                            type="text"
-                                            name="province"
-                                            value={formData.province}
-                                            onChange={handleInputChange}
-                                            placeholder="Province"
-                                            className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
+                                            <label className="block text-sm font-medium mb-1">Province</label>
+                                            <select
+                                                name="province"
+                                                value={formData.province}
+                                                onChange={handleInputChange}
+                                                className="w-full text-xs p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                                                disabled={!isEditing}
+                                            >
+                                                <option value="">Select a province</option>
+                                                <option value="Abra">Abra</option>
+                                                <option value="Agusan del Norte">Agusan del Norte</option>
+                                                <option value="Agusan del Sur">Agusan del Sur</option>
+                                                <option value="Aklan">Aklan</option>
+                                                <option value="Albay">Albay</option>
+                                                <option value="Antique">Antique</option>
+                                                <option value="Apayao">Apayao</option>
+                                                <option value="Aurora">Aurora</option>
+                                                <option value="Basilan">Basilan</option>
+                                                <option value="Bataan">Bataan</option>
+                                                <option value="Batanes">Batanes</option>
+                                                <option value="Batangas">Batangas</option>
+                                                <option value="Benguet">Benguet</option>
+                                                <option value="Biliran">Biliran</option>
+                                                <option value="Bohol">Bohol</option>
+                                                <option value="Bukidnon">Bukidnon</option>
+                                                <option value="Bulacan">Bulacan</option>
+                                                <option value="Cagayan">Cagayan</option>
+                                                <option value="Camarines Norte">Camarines Norte</option>
+                                                <option value="Camarines Sur">Camarines Sur</option>
+                                                <option value="Camiguin">Camiguin</option>
+                                                <option value="Capiz">Capiz</option>
+                                                <option value="Catanduanes">Catanduanes</option>
+                                                <option value="Cavite">Cavite</option>
+                                                <option value="Cebu">Cebu</option>
+                                                <option value="Cotabato">Cotabato</option>
+                                                <option value="Davao de Oro">Davao de Oro</option>
+                                                <option value="Davao del Norte">Davao del Norte</option>
+                                                <option value="Davao del Sur">Davao del Sur</option>
+                                                <option value="Davao Occidental">Davao Occidental</option>
+                                                <option value="Davao Oriental">Davao Oriental</option>
+                                                <option value="Dinagat Islands">Dinagat Islands</option>
+                                                <option value="Eastern Samar">Eastern Samar</option>
+                                                <option value="Guimaras">Guimaras</option>
+                                                <option value="Ifugao">Ifugao</option>
+                                                <option value="Ilocos Norte">Ilocos Norte</option>
+                                                <option value="Ilocos Sur">Ilocos Sur</option>
+                                                <option value="Iloilo">Iloilo</option>
+                                                <option value="Isabela">Isabela</option>
+                                                <option value="Kalinga">Kalinga</option>
+                                                <option value="La Union">La Union</option>
+                                                <option value="Laguna">Laguna</option>
+                                                <option value="Lanao del Norte">Lanao del Norte</option>
+                                                <option value="Lanao del Sur">Lanao del Sur</option>
+                                                <option value="Leyte">Leyte</option>
+                                                <option value="Maguindanao del Norte">Maguindanao del Norte</option>
+                                                <option value="Maguindanao del Sur">Maguindanao del Sur</option>
+                                                <option value="Marinduque">Marinduque</option>
+                                                <option value="Masbate">Masbate</option>
+                                                <option value="Metro Manila">Metro Manila</option>
+                                                <option value="Misamis Occidental">Misamis Occidental</option>
+                                                <option value="Misamis Oriental">Misamis Oriental</option>
+                                                <option value="Mountain Province">Mountain Province</option>
+                                                <option value="Negros Occidental">Negros Occidental</option>
+                                                <option value="Negros Oriental">Negros Oriental</option>
+                                                <option value="Northern Samar">Northern Samar</option>
+                                                <option value="Nueva Ecija">Nueva Ecija</option>
+                                                <option value="Nueva Vizcaya">Nueva Vizcaya</option>
+                                                <option value="Occidental Mindoro">Occidental Mindoro</option>
+                                                <option value="Oriental Mindoro">Oriental Mindoro</option>
+                                                <option value="Palawan">Palawan</option>
+                                                <option value="Pampanga">Pampanga</option>
+                                                <option value="Pangasinan">Pangasinan</option>
+                                                <option value="Quezon">Quezon</option>
+                                                <option value="Quirino">Quirino</option>
+                                                <option value="Rizal">Rizal</option>
+                                                <option value="Romblon">Romblon</option>
+                                                <option value="Samar">Samar</option>
+                                                <option value="Sarangani">Sarangani</option>
+                                                <option value="Siquijor">Siquijor</option>
+                                                <option value="Sorsogon">Sorsogon</option>
+                                                <option value="South Cotabato">South Cotabato</option>
+                                                <option value="Southern Leyte">Southern Leyte</option>
+                                                <option value="Sultan Kudarat">Sultan Kudarat</option>
+                                                <option value="Sulu">Sulu</option>
+                                                <option value="Surigao del Norte">Surigao del Norte</option>
+                                                <option value="Surigao del Sur">Surigao del Sur</option>
+                                                <option value="Tarlac">Tarlac</option>
+                                                <option value="Tawi-Tawi">Tawi-Tawi</option>
+                                                <option value="Zambales">Zambales</option>
+                                                <option value="Zamboanga del Norte">Zamboanga del Norte</option>
+                                                <option value="Zamboanga del Sur">Zamboanga del Sur</option>
+                                                <option value="Zamboanga Sibugay">Zamboanga Sibugay</option>
+                                            </select>
+                                        </div>
+
                                     <div className="w-1/2">
                                         <label className="block text-sm font-medium mb-1">Zip Code</label>
                                         <input
