@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { IoIosCart } from 'react-icons/io';
 import { NavLink } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import Category from '../product-page-component/Category'; // Corrected import
 
 const Navbar = ({ cartItemCount }) => {
   const [showCategories, setShowCategories] = useState(false);
 
-  const toggleCategories = (e) => {
-    e.preventDefault(); // Prevent navigation when the arrow is clicked
-    setShowCategories(!showCategories);
-  };
+  const toggleCategories = () => setShowCategories(!showCategories);
 
   return (
     <nav
@@ -66,55 +64,60 @@ const Navbar = ({ cartItemCount }) => {
           </NavLink>
 
           {/* Products Tab */}
-          <div className="relative flex items-center">
-            <NavLink
-              to="/products"
-              className={({ isActive }) =>
-                `text-white relative group transition-all duration-300 transform ${
-                  isActive ? 'rounded-full py-2 px-4' : ''
-                }`
+    <div className="relative flex items-center">
+      <NavLink
+        to="/products"
+        className={({ isActive }) =>
+          `text-white relative group transition-all duration-300 transform ${
+            isActive ? 'rounded-full py-2 px-4' : ''
+          }`
+        }
+        style={({ isActive }) =>
+          isActive
+            ? {
+                background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Custom shadow to make it pop
               }
-              style={({ isActive }) =>
-                isActive
-                  ? {
-                      background:'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
-                      boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Custom shadow to make it pop
-                    }
-                  : {}
-              }
-            >
-              <span className="text-white flex items-center">PRODUCTS</span>
-            </NavLink>
+            : {}
+        }
+      >
+        <span className="text-white flex items-center">PRODUCTS</span>
+      </NavLink>
 
-            {/* Arrow for category drop-down */}
-            <span
-              onClick={toggleCategories}
-              className="cursor-pointer ml-1 text-white"
-            >
-              <svg
-                className={`w-4 h-4 transition-transform duration-300 transform ${
-                  showCategories ? 'rotate-180' : ''
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </span>
+      {/* Arrow for category drop-down */}
+      <span
+        onClick={toggleCategories}
+        className="cursor-pointer ml-1 text-white"
+      >
+        <svg
+          className={`w-4 h-4 transition-transform duration-300 transform ${
+            showCategories ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </span>
 
-            {/* Category Box */}
-            {showCategories && (
-              <div
-                className="absolute right-0 top-full w-[90vw] bg-gradient-to-r from-[#040405] to-[#4B88A3] shadow-lg z-50 mt-4 py-8 transition-all duration-500 ease-in-out"
-                style={{ maxWidth: '1200px', color: '#fff' }}
-              >
-                <Category />
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Category Box */}
+      <AnimatePresence>
+        {showCategories && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute right-0 top-full w-[90vw] bg-gradient-to-r from-[#040405] to-[#4B88A3] shadow-lg z-50 mt-4 py-8 transition-all duration-500 ease-in-out"
+            style={{ maxWidth: '1200px', color: '#fff' }}
+          >
+            <Category />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+    </div>
 
         <div className="flex items-center space-x-2 ml-10">
           <NavLink
