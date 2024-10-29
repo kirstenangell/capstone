@@ -11,6 +11,7 @@ export default function SupplierPage() {
         <Routes>
             <Route path="/" element={<SupplierLanding />} />
             <Route path="/supplier-information" element={<SupplierInformation />} />
+            <Route path="/supplier-address" element={<SupplierAddress/>} />
         </Routes>
     );
 }

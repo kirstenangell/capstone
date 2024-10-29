@@ -35,7 +35,7 @@ import SupplierAddress from './supplier-page-component/SupplierAddress';
 import ProductDetail from './product-page-component/ProductDetail';
 import Login from './login-page-component/Login';
 import ForgotPassword from './login-page-component/ForgotPassword';
-import SetPassword from './login-page-component/SetPassword';
+
 
 
 // Context Providers
@@ -311,7 +311,7 @@ function App() {
                     <Route path="/returns" element={<Returns />} />
                     <Route path="/product-detail" element={<ProductDetail onAddToCart={handleAddToCart} />} />
                     <Route path="/manage-account" element={<ManageAcc />} />
-                     <Route path="/set-password" element={<SetPassword />} />   
+
 
 
                   </Routes>
