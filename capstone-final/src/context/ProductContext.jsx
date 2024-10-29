@@ -1,28 +1,25 @@
+// src/context/ProductContext.js
 import React, { createContext, useState, useEffect } from 'react';
 
-// Create the context
 export const ProductContext = createContext();
 
-// Create the provider component
 export const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState([]);  // Initialize products as an empty array
+  const [products, setProducts] = useState([]);
 
-  // Fetch products from the backend on initial render
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:5000/products');  // Replace with your backend API endpoint
+        const response = await fetch('http://localhost:5000/products');
         const data = await response.json();
-        setProducts(data);  // Update state with fetched products
+        setProducts(data.filter(product => !product.archived)); // Filter out archived products
       } catch (error) {
         console.error('Error fetching products:', error);
       }
     };
 
-    fetchProducts();  // Fetch products when the component mounts
-  }, []);  // Empty dependency array ensures it only runs on mount
+    fetchProducts();
+  }, []);
 
-  // Function to add a new product
   const addProduct = async (product) => {
     try {
       const response = await fetch('http://localhost:5000/add-product', {
@@ -35,7 +32,7 @@ export const ProductProvider = ({ children }) => {
 
       if (response.ok) {
         const savedProduct = await response.json();
-        setProducts((prevProducts) => [...prevProducts, savedProduct]);  // Add the newly saved product to the state
+        setProducts(prevProducts => [...prevProducts, savedProduct]);
       } else {
         console.error('Failed to add product:', response.statusText);
       }
@@ -44,7 +41,6 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  // Function to update an existing product
   const updateProduct = async (updatedProduct) => {
     try {
       const response = await fetch(`http://localhost:5000/update-product/${updatedProduct.id}`, {
@@ -56,33 +52,30 @@ export const ProductProvider = ({ children }) => {
       });
   
       if (response.ok) {
-        const updatedProductFromDB = await response.json(); // This ensures you have the latest version
-  
-        setProducts((prevProducts) =>
-          prevProducts.map((product) =>
-            product.id === updatedProduct.id ? updatedProductFromDB : product // Update the specific product in the array
+        const updatedProductFromDB = await response.json();
+        setProducts(prevProducts =>
+          prevProducts.map(product =>
+            product.id === updatedProduct.id ? updatedProductFromDB : product
           )
         );
-        console.log('Product updated successfully');
       } else {
         console.error('Failed to update product:', response.statusText);
       }
     } catch (error) {
       console.error('Error updating product:', error);
     }
-  };  
+  };
 
-  // Function to archive (remove) a product
   const archiveProduct = async (productId) => {
     try {
-      const response = await fetch(`http://localhost:5000/delete-product/${productId}`, {
-        method: 'DELETE',
+      const response = await fetch(`http://localhost:5000/archive-product/${productId}`, {
+        method: 'PUT',
       });
 
       if (response.ok) {
-        // Remove the product from the state
-        setProducts((prevProducts) =>
-          prevProducts.filter((product) => product.id !== productId)
+        // Update state to reflect archived product
+        setProducts(prevProducts =>
+          prevProducts.filter(product => product.id !== productId)
         );
       } else {
         console.error('Failed to archive product:', response.statusText);

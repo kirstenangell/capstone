@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
 import Wheel1 from "../assets/wheel1.png";
@@ -7,39 +7,6 @@ import Wheel3 from "../assets/wheel3.png";
 import Wheel5 from "../assets/wheel5.png";
 import dashboardImage from '../assets/dashboard.png';
 import { ProductContext } from '../context/ProductContext'; 
-
-const products = [
-  { 
-    id: 1, 
-    image: Wheel5, 
-    name: "Wheel A", 
-    price: 30000, 
-    reviews: 11, 
-    rating: 4,
-    relatedImages: [Wheel1, Wheel2, Wheel3],
-    category: "wheels",
-  },
-  { 
-    id: 2, 
-    image: Wheel2, 
-    name: "Wheel B", 
-    price: 32000, 
-    reviews: 8, 
-    rating: 5,
-    relatedImages: [Wheel1, Wheel3],
-    category: "wheels",
-  },
-  { 
-    id: 3, 
-    image: Wheel1, 
-    name: "Wheel C", 
-    price: 35000, 
-    reviews: 15, 
-    rating: 3,
-    relatedImages: [Wheel2, Wheel3],
-    category: "wheels",
-  }
-];
 
 const ProductSection = ({ onAddToCart }) => {
   const { products } = useContext(ProductContext);
@@ -53,7 +20,6 @@ const ProductSection = ({ onAddToCart }) => {
 
   const handleProductClick = (product) => {
     navigate('/product-detail', { state: { product } }); // Pass the selected product to the route
-    //setSelectedProduct({ ...product, quantity: 0 });
     window.scrollTo(0, 0); // Scroll to the top when a product is clicked
   };
 
@@ -68,7 +34,7 @@ const ProductSection = ({ onAddToCart }) => {
 
   // Filtering related products by category (for recommendations)
   const getRelatedProducts = (product) => {
-    return products.filter(p => p.category === product.category && p.id !== product.id);
+    return products.filter(p => p.category === product.category && p.id !== product.id && !p.archived);
   };
 
   return (
@@ -252,7 +218,7 @@ const ProductSection = ({ onAddToCart }) => {
 
           {/* Product Grid Section */}
           <div className="relative mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-6 md:px-12 lg:px-24">
-            {products.map((product) => (
+            {products.filter(product => !product.archived).map((product) => (
               <div 
                 key={product.id} 
                 className="bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-4 shadow-lg cursor-pointer"

@@ -29,16 +29,16 @@ const InventoryLanding = () => {
       const newProduct = {
         id: Math.random().toString(36).substr(2, 9),
         name: selectedProduct.name || "Untitled Product",
-        image: selectedProduct.image || Wheel1, // Use a default image if not provided
+        image: selectedProduct.image || "/assets/wheel1.png", // Use a default image if not provided
         price: selectedProduct.price || 0,
         reviews: selectedProduct.reviews || 0,
         rating: selectedProduct.rating || 0,
         category: selectedProduct.category || "Uncategorized",
       };
-  
+
       // Add the new product to the global product list using addProduct from ProductContext
       addProduct(newProduct);
-  
+
       // Navigate to the ProductSection after publishing
       navigate('/products'); // Navigate to the product section
     }
