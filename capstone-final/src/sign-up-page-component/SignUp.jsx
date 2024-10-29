@@ -34,6 +34,14 @@ const SignUp = () => {
       return;
     }
   
+    // Log the signup data being sent
+    console.log("Signup Data:", {
+      first_name: firstName,
+      last_name: lastName,
+      email: email,
+      password: password
+    });
+  
     try {
       const response = await axios.post('http://localhost:5000/register', {
         first_name: firstName,   // First name being sent
@@ -49,10 +57,22 @@ const SignUp = () => {
         setErrorMessage(response.data.message);
       }
     } catch (error) {
-      setErrorMessage('An error occurred during sign up.');  // Modify this for better clarity
-      console.error('Signup error:', error);  // Log the error for debugging
+      // Log the exact error message from the server
+      console.error("Signup error:", error.response?.data || error.message);
+      setErrorMessage('An error occurred during sign up.');
+  
+      // Log the entire error object to inspect the validation errors
+      if (error.response?.data?.errors) {
+        console.log("Validation Errors:", error.response.data.errors);
+        setErrorMessage(error.response.data.errors.map(err => err.msg).join(", "));
+      } else {
+        console.log("Error response data:", error.response.data);
+      }
     }
   };
+  
+  
+  
   
   
 

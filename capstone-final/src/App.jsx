@@ -33,6 +33,10 @@ import ProductInformation from './inventory-page-component/ProductInformation';
 import SupplierInformation from './supplier-page-component/SupplierInformation'; 
 import SupplierAddress from './supplier-page-component/SupplierAddress'; 
 import ProductDetail from './product-page-component/ProductDetail';
+import Login from './login-page-component/Login';
+import ForgotPassword from './login-page-component/ForgotPassword';
+
+
 
 // Context Providers
 import { CustomerProvider } from './context/CustomerContext';
@@ -52,7 +56,22 @@ function App() {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('email');
+    localStorage.removeItem('firstName');
+    localStorage.removeItem('lastName');
+  };
+
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true');
+  };
 
   // Cart Functions
   const handleAddToCart = (product) => {
@@ -267,7 +286,7 @@ function App() {
               path="*"
               element={
                 <>
-                  <Navbar cartItemCount={cartItemCount} />
+                  <Navbar cartItemCount={cartItems.length} isLoggedIn={isLoggedIn} handleLogout={handleLogout} />
                   <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/about" element={<AboutUsPage />} />
@@ -283,14 +302,16 @@ function App() {
 
                     <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
                     <Route path="/signup" element={<SignUpPage />} />
-                    <Route path="/login/*" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
-                    <Route path="/manage-account" element={<ManageAcc />} />
+                    <Route path="/login/*" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+                    <Route path="/login/forgot-password" element={<ForgotPassword />} />
                     <Route path="/contact" element={<ContactUs />} />
                     <Route path="/faqs" element={<Faqs />} />
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/shipping" element={<Shipping />} />
                     <Route path="/returns" element={<Returns />} />
                     <Route path="/product-detail" element={<ProductDetail onAddToCart={handleAddToCart} />} />
+                    <Route path="/manage-account" element={<ManageAcc />} />
+
 
 
                   </Routes>
