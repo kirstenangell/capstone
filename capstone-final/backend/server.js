@@ -14,7 +14,6 @@ app.use(cors({
   origin: '*',  // Allow all origins (this is not recommended in production)
 }));
 
-
 // MySQL Database Connection
 const db = mysql.createConnection({
   host: 'localhost',
@@ -84,6 +83,7 @@ const sendVerificationEmail = (email, token) => {
   });
 };
 
+// Register API
 app.post('/register', [
   // Validation rules
   body('first_name').notEmpty().withMessage('First name is required'),
@@ -139,9 +139,6 @@ app.post('/register', [
   }
 });
 
-
-
-
 // Email Verification API
 app.get('/verify-email', (req, res) => {
   const { token } = req.query;
@@ -168,7 +165,6 @@ app.get('/verify-email', (req, res) => {
     });
   });
 });
-
 
 // Login API
 app.post('/login', (req, res) => {
@@ -479,4 +475,3 @@ const port = 5000;
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
-
