@@ -785,6 +785,9 @@ const SupplierInformation = () => {
             {/* Product List Fields */}
             {supplierData.productLists.map((product, index) => (
               <div key={index} className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <h3 className="text-white text-md font-semibold mb-2">{`Product #${index + 1}`}</h3>
+                </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Product ID

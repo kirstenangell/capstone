@@ -419,32 +419,40 @@ const SupplierLanding = () => {
       {selectedSupplier.productLists && selectedSupplier.productLists.length > 0 ? (
         selectedSupplier.productLists.map((product, index) => (
           <div key={index} className="mb-4">
-            <p className="text-sm text-gray-400">
-              <strong>Product ID:</strong> {product.productId || 'N/A'}
-            </p>
-            <p className="text-sm text-gray-400">
-              <strong>Product Name:</strong> {product.productName || 'N/A'}
-            </p>
-            <p className="text-sm text-gray-400">
-              <strong>Category:</strong> {product.category || 'N/A'}
-            </p>
-            <p className="text-sm text-gray-400">
-              <strong>Description:</strong> {product.productDescription || 'N/A'}
-            </p>
-            <p className="text-sm text-gray-400">
-              <strong>Quantity Available:</strong> {product.quantityAvailable || 'N/A'}
-            </p>
-            <p className="text-sm text-gray-400">
-              <strong>Unit Price:</strong> {product.unitPrice || 'N/A'}
-            </p>
+            <h3 className="text-white text-md font-semibold mb-2">{`Product #${index + 1}`}</h3>
+            <div className="flex">
+              <span className="text-xs text-gray-400 w-40">PRODUCT ID:</span>
+              <span className="text-xs">{product.productId || 'N/A'}</span>
+            </div>
+            <div className="flex">
+              <span className="text-xs text-gray-400 w-40">PRODUCT NAME:</span>
+              <span className="text-xs">{product.productName || 'N/A'}</span>
+            </div>
+            <div className="flex">
+              <span className="text-xs text-gray-400 w-40">CATEGORY:</span>
+              <span className="text-xs">{product.category || 'N/A'}</span>
+            </div>
+            <div className="flex">
+              <span className="text-xs text-gray-400 w-40">DESCRIPTION:</span>
+              <span className="text-xs">{product.productDescription || 'N/A'}</span>
+            </div>
+            <div className="flex">
+              <span className="text-xs text-gray-400 w-40">QUANTITY AVAILABLE:</span>
+              <span className="text-xs">{product.quantityAvailable || 'N/A'}</span>
+            </div>
+            <div className="flex">
+              <span className="text-xs text-gray-400 w-40">UNIT PRICE:</span>
+              <span className="text-xs">{product.unitPrice || 'N/A'}</span>
+            </div>
           </div>
         ))
       ) : (
-        <p className="text-sm text-gray-400">No products available.</p>
+        <p className="text-xs text-gray-400">No products available.</p>
       )}
     </div>
   </div>
 )}
+
 
 </div>
 
