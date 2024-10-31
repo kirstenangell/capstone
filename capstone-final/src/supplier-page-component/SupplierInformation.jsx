@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { IoIosInformationCircle } from 'react-icons/io';
+import { FaOpencart } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SupplierContext } from '../context/SupplierContext';
 
@@ -13,10 +14,10 @@ const SupplierInformation = () => {
   const isEdit = location.state?.isEdit || false;
   const existingSupplier = location.state?.supplier || {};
 
-  // Manage the current step (1: General Info, 2: Address Details)
+  // Manage the current step (1: General Info, 2: Address Details, 3: Product Lists)
   const [currentStep, setCurrentStep] = useState(1);
 
-  // Combined state for general info and address details
+  // Combined state for general info, address details, and product lists
   const [supplierData, setSupplierData] = useState({
     // General Information
     id: existingSupplier.id || null,
@@ -40,6 +41,8 @@ const SupplierInformation = () => {
     newProvince: existingSupplier.newAddress?.province || '',
     newZipCode: existingSupplier.newAddress?.zipCode || '',
     newLandmark: existingSupplier.newAddress?.landmark || '',
+    // Product Lists
+    productLists: existingSupplier.productLists || [],
   });
 
   // Handle input changes for all form fields
@@ -103,47 +106,50 @@ const SupplierInformation = () => {
   // Handle navigation to the next step
   const handleNextClick = (e) => {
     e.preventDefault();
-    // Basic validation for required fields in General Information
-    if (
-      !supplierData.name ||
-      !supplierData.type ||
-      !supplierData.email ||
-      !supplierData.phone ||
-      !supplierData.contactName || // Ensure Contact Name is filled
-      !supplierData.status // Ensure Status is selected
-    ) {
-      alert('Please fill in all required fields.');
-      return;
+    if (currentStep === 1) {
+      // Basic validation for required fields in General Information
+      if (
+        !supplierData.name ||
+        !supplierData.type ||
+        !supplierData.email ||
+        !supplierData.phone ||
+        !supplierData.contactName || // Ensure Contact Name is filled
+        !supplierData.status // Ensure Status is selected
+      ) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
+      // Basic validation for required fields in Address Details
+      const requiredAddressFields = [
+        'currentAddressType',
+        'currentStreet',
+        'currentCity',
+        'currentProvince',
+        'currentZipCode',
+      ];
+
+      for (let field of requiredAddressFields) {
+        if (!supplierData[field]) {
+          alert('Please fill in all required address fields.');
+          return;
+        }
+      }
+      setCurrentStep(3);
     }
-    setCurrentStep(2);
     window.scrollTo(0, 0); // Scroll to the top of the page
   };
 
   // Handle navigation to the previous step
   const handleBackClick = () => {
-    setCurrentStep(1);
+    setCurrentStep(currentStep - 1);
     window.scrollTo(0, 0); // Scroll to the top of the page
   };
 
   // Handle form submission to save the supplier
   const handleSaveClick = (e) => {
     e.preventDefault();
-
-    // Basic validation for required fields in Address Details
-    const requiredAddressFields = [
-      'currentAddressType',
-      'currentStreet',
-      'currentCity',
-      'currentProvince',
-      'currentZipCode',
-    ];
-
-    for (let field of requiredAddressFields) {
-      if (!supplierData[field]) {
-        alert('Please fill in all required address fields.');
-        return;
-      }
-    }
 
     // Prepare supplier data object
     const preparedSupplierData = {
@@ -171,6 +177,7 @@ const SupplierInformation = () => {
         zipCode: supplierData.newZipCode,
         landmark: supplierData.newLandmark,
       },
+      productLists: supplierData.productLists,
     };
 
     if (isEdit) {
@@ -194,30 +201,56 @@ const SupplierInformation = () => {
     navigate('/supplier');
   };
 
+  // Handle product list input changes
+  const handleProductInputChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedProductLists = [...supplierData.productLists];
+    updatedProductLists[index] = {
+      ...updatedProductLists[index],
+      [name]: value,
+    };
+    setSupplierData((prevData) => ({
+      ...prevData,
+      productLists: updatedProductLists,
+    }));
+  };
+
+  // Add new product to the product list
+  const handleAddProduct = () => {
+    setSupplierData((prevData) => ({
+      ...prevData,
+      productLists: [
+        ...prevData.productLists,
+        {
+          productId: '',
+          productName: '',
+          category: '',
+          productDescription: '',
+          quantityAvailable: '',
+          unitPrice: '',
+        },
+      ],
+    }));
+  };
+
   // Pre-fill form if editing
   useEffect(() => {
     if (isEdit && existingSupplier) {
       setSupplierData({
-        id: existingSupplier.id,
-        name: existingSupplier.name,
-        contactName: existingSupplier.contactName || '', // Added Contact Name
-        type: existingSupplier.type,
-        email: existingSupplier.email,
-        phone: existingSupplier.phone,
-        status: existingSupplier.status || '', // Renamed from paymentStatus
-        additionalNotes: existingSupplier.additionalNotes || '', // Replaced paymentReference
-        currentAddressType: existingSupplier.currentAddress?.addressType || '', // Added Address Type for Current Address
+        ...existingSupplier,
+        currentAddressType: existingSupplier.currentAddress?.addressType || '',
         currentStreet: existingSupplier.currentAddress?.street || '',
         currentCity: existingSupplier.currentAddress?.city || '',
         currentProvince: existingSupplier.currentAddress?.province || '',
         currentZipCode: existingSupplier.currentAddress?.zipCode || '',
         currentLandmark: existingSupplier.currentAddress?.landmark || '',
-        newAddressType: existingSupplier.newAddress?.addressType || '', // Added Address Type for New Address
+        newAddressType: existingSupplier.newAddress?.addressType || '',
         newStreet: existingSupplier.newAddress?.street || '',
         newCity: existingSupplier.newAddress?.city || '',
         newProvince: existingSupplier.newAddress?.province || '',
         newZipCode: existingSupplier.newAddress?.zipCode || '',
         newLandmark: existingSupplier.newAddress?.landmark || '',
+        productLists: existingSupplier.productLists || [],
       });
     }
   }, [isEdit, existingSupplier]);
@@ -227,7 +260,11 @@ const SupplierInformation = () => {
       {/* Header */}
       <div className="mb-10 mt-16 text-center">
         <h1 className="text-xl font-bold text-white mt-2">
-          {currentStep === 1 ? 'GENERAL INFORMATION' : 'ADDRESS DETAILS'}
+          {currentStep === 1
+            ? 'GENERAL INFORMATION'
+            : currentStep === 2
+            ? 'ADDRESS DETAILS'
+            : 'PRODUCT LISTS'}
         </h1>
         <h2 className="text-sm font-bold text-white">Add New Supplier</h2>
       </div>
@@ -285,6 +322,33 @@ const SupplierInformation = () => {
               }`}
             >
               Address Details
+            </h2>
+          </div>
+        </div>
+        <div
+          className={`mb-4 flex items-center space-x-2 p-4 rounded-lg ${
+            currentStep === 3 ? 'bg-gray-800' : 'bg-transparent'
+          }`}
+        >
+          <FaOpencart
+            className={`text-2xl ${
+              currentStep === 3 ? 'text-white' : 'text-gray-400'
+            }`}
+          />
+          <div>
+            <h3
+              className={`text-sm ${
+                currentStep === 3 ? 'text-white' : 'text-gray-400'
+              }`}
+            >
+              STEP 3
+            </h3>
+            <h2
+              className={`text-sm ${
+                currentStep === 3 ? 'text-white' : 'text-gray-400'
+              }`}
+            >
+              Product Lists
             </h2>
           </div>
         </div>
@@ -461,7 +525,6 @@ const SupplierInformation = () => {
                 rows="4"
               ></textarea>
             </div>
-
             {/* Buttons */}
             <div className="flex justify-end mt-6">
               <button
@@ -479,9 +542,9 @@ const SupplierInformation = () => {
               </button>
             </div>
           </form>
-        ) : (
+        ) : currentStep === 2 ? (
           // Address Details Form
-          <form className="space-y-6" onSubmit={handleSaveClick}>
+          <form className="space-y-6" onSubmit={handleNextClick}>
             {/* Current Address Section */}
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -700,6 +763,115 @@ const SupplierInformation = () => {
                 />
               </div>
             </div>
+            <div className="flex justify-between mt-6">
+              <button
+                type="button"
+                className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
+                onClick={handleBackClick}
+              >
+                BACK
+              </button>
+              <button
+                type="submit"
+                className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
+              >
+                NEXT
+              </button>
+            </div>
+          </form>
+        ) : (
+          // Product Lists Form
+          <form className="space-y-6" onSubmit={handleSaveClick}>
+            {/* Product List Fields */}
+            {supplierData.productLists.map((product, index) => (
+              <div key={index} className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Product ID
+                  </label>
+                  <input
+                    type="text"
+                    name="productId"
+                    value={product.productId}
+                    onChange={(e) => handleProductInputChange(index, e)}
+                    placeholder="Product ID"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Product Name
+                  </label>
+                  <input
+                    type="text"
+                    name="productName"
+                    value={product.productName}
+                    onChange={(e) => handleProductInputChange(index, e)}
+                    placeholder="Product Name"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    name="category"
+                    value={product.category}
+                    onChange={(e) => handleProductInputChange(index, e)}
+                    placeholder="Category"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Product Description
+                  </label>
+                  <input
+                    type="text"
+                    name="productDescription"
+                    value={product.productDescription}
+                    onChange={(e) => handleProductInputChange(index, e)}
+                    placeholder="Product Description"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Quantity Available
+                  </label>
+                  <input
+                    type="text"
+                    name="quantityAvailable"
+                    value={product.quantityAvailable}
+                    onChange={(e) => handleProductInputChange(index, e)}
+                    placeholder="Quantity Available"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Unit Price
+                  </label>
+                  <input
+                    type="text"
+                    name="unitPrice"
+                    value={product.unitPrice}
+                    onChange={(e) => handleProductInputChange(index, e)}
+                    placeholder="Unit Price"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="w-full py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500 mt-4"
+              onClick={handleAddProduct}
+            >
+              Add Product
+            </button>
 
             {/* Buttons */}
             <div className="flex justify-between mt-6">

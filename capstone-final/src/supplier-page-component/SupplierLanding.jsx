@@ -284,112 +284,170 @@ const SupplierLanding = () => {
             </div>
  
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto">
-              {activeTab === 'general' && (
-                <div className="grid grid-cols-1 gap-4">
-                  {/* Supplier Details Section */}
-                  <div>
-                    <h3 className="text-white text-md font-semibold mb-2">
-                      Supplier Details
-                    </h3>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">
-                        SUPPLIER NAME:
-                      </span>
-                      <span className="text-xs">{selectedSupplier.name}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">
-                        SUPPLIER TYPE:
-                      </span>
-                      <span className="text-xs">{selectedSupplier.type}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">
-                        PAYMENT STATUS:
-                      </span>
-                      <span className="text-xs">
-                        {selectedSupplier.paymentStatus || 'N/A'}
-                      </span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">
-                        PAYMENT REFERENCE:
-                      </span>
-                      <span className="text-xs">
-                        {selectedSupplier.paymentReference || 'N/A'}
-                      </span>
-                    </div>
-                  </div>
- 
-                  {/* Contact Information Section */}
-                  <div>
-                    <h3 className="text-white text-md font-semibold mb-2">
-                      Contact Information
-                    </h3>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">EMAIL:</span>
-                      <span className="text-xs">{selectedSupplier.email}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">PHONE:</span>
-                      <span className="text-xs">{selectedSupplier.phone}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
- 
-              {activeTab === 'supply' && (
-                <div className="grid grid-cols-1 gap-4">
-                  {/* Supply Details Section */}
-                  <div>
-                    <h3 className="text-white text-md font-semibold mb-2">
-                      Supply Details
-                    </h3>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">
-                        SUPPLY DETAILS:
-                      </span>
-                      <span className="text-xs">{selectedSupplier.supplyDetails}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">
-                        SUPPLY PRICE:
-                      </span>
-                      <span className="text-xs">{selectedSupplier.supplyPrice}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
- 
-              {activeTab === 'supplies' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-white font-semibold mb-2">Supplies</h3>
-                    {selectedSupplier.supplies.length > 0 ? (
-                      selectedSupplier.supplies.map((supply) => (
-                        <div key={supply.id} className="mb-4">
-                          <p>
-                            <strong>Supply ID:</strong> {supply.id}
-                          </p>
-                          <p>
-                            <strong>Item:</strong> {supply.item}
-                          </p>
-                          <p>
-                            <strong>Price:</strong> {supply.price}
-                          </p>
-                          <p>
-                            <strong>Status:</strong> {supply.status}
-                          </p>
-                        </div>
-                      ))
-                    ) : (
-                      <p>No supplies available.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Modal Content */}
+<div className="flex-1 overflow-y-auto">
+  {activeTab === 'general' && (
+    <div className="grid grid-cols-1 gap-4">
+      {/* Supplier Details Section */}
+      <div>
+        <h3 className="text-white text-md font-semibold mb-2">
+          Supplier Details
+        </h3>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">
+            CONTACT NAME:
+          </span>
+          <span className="text-xs">
+            {selectedSupplier.contactName || 'N/A'}
+          </span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">
+            SUPPLIER TYPE:
+          </span>
+          <span className="text-xs">{selectedSupplier.type}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">
+            STATUS:
+          </span>
+          <span className="text-xs">
+            {selectedSupplier.status || 'N/A'}
+          </span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">
+            ADDITIONAL NOTES:
+          </span>
+          <span className="text-xs">
+            {selectedSupplier.additionalNotes || 'N/A'}
+          </span>
+        </div>
+      </div>
+
+      {/* Contact Information Section */}
+      <div>
+        <h3 className="text-white text-md font-semibold mb-2">
+          Contact Information
+        </h3>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">EMAIL:</span>
+          <span className="text-xs">{selectedSupplier.email}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">PHONE:</span>
+          <span className="text-xs">{selectedSupplier.phone}</span>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {activeTab === 'supply' && (
+    <div className="grid grid-cols-1 gap-4">
+      {/* Current Address Section */}
+      <div>
+        <h3 className="text-white text-md font-semibold mb-2">
+          Current Address
+        </h3>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">
+            ADDRESS TYPE:
+          </span>
+          <span className="text-xs">{selectedSupplier.currentAddress?.addressType || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">STREET:</span>
+          <span className="text-xs">{selectedSupplier.currentAddress?.street || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">CITY:</span>
+          <span className="text-xs">{selectedSupplier.currentAddress?.city || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">PROVINCE:</span>
+          <span className="text-xs">{selectedSupplier.currentAddress?.province || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">ZIP CODE:</span>
+          <span className="text-xs">{selectedSupplier.currentAddress?.zipCode || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">LANDMARK:</span>
+          <span className="text-xs">{selectedSupplier.currentAddress?.landmark || 'N/A'}</span>
+        </div>
+      </div>
+
+      {/* New Address Section */}
+      <div>
+        <h3 className="text-white text-md font-semibold mb-2">
+          New Address
+        </h3>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">
+            ADDRESS TYPE:
+          </span>
+          <span className="text-xs">{selectedSupplier.newAddress?.addressType || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">STREET:</span>
+          <span className="text-xs">{selectedSupplier.newAddress?.street || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">CITY:</span>
+          <span className="text-xs">{selectedSupplier.newAddress?.city || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">PROVINCE:</span>
+          <span className="text-xs">{selectedSupplier.newAddress?.province || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">ZIP CODE:</span>
+          <span className="text-xs">{selectedSupplier.newAddress?.zipCode || 'N/A'}</span>
+        </div>
+        <div className="flex">
+          <span className="text-xs text-gray-400 w-40">LANDMARK:</span>
+          <span className="text-xs">{selectedSupplier.newAddress?.landmark || 'N/A'}</span>
+        </div>
+      </div>
+    </div>
+  )}
+
+{activeTab === 'supplies' && (
+  <div className="grid grid-cols-1 gap-4">
+    <div>
+      <h3 className="text-white text-md font-semibold mb-2">Product Lists</h3>
+      {selectedSupplier.productLists && selectedSupplier.productLists.length > 0 ? (
+        selectedSupplier.productLists.map((product, index) => (
+          <div key={index} className="mb-4">
+            <p className="text-sm text-gray-400">
+              <strong>Product ID:</strong> {product.productId || 'N/A'}
+            </p>
+            <p className="text-sm text-gray-400">
+              <strong>Product Name:</strong> {product.productName || 'N/A'}
+            </p>
+            <p className="text-sm text-gray-400">
+              <strong>Category:</strong> {product.category || 'N/A'}
+            </p>
+            <p className="text-sm text-gray-400">
+              <strong>Description:</strong> {product.productDescription || 'N/A'}
+            </p>
+            <p className="text-sm text-gray-400">
+              <strong>Quantity Available:</strong> {product.quantityAvailable || 'N/A'}
+            </p>
+            <p className="text-sm text-gray-400">
+              <strong>Unit Price:</strong> {product.unitPrice || 'N/A'}
+            </p>
+          </div>
+        ))
+      ) : (
+        <p className="text-sm text-gray-400">No products available.</p>
+      )}
+    </div>
+  </div>
+)}
+
+</div>
+
           </div>
         </div>
       )}
