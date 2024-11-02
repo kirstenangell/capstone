@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
-import { useNavigate, useLocation } from 'react-router-dom'; 
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CustomerContext } from '../context/CustomerContext';
 
 const CustomerAddress = () => {
@@ -11,26 +11,42 @@ const CustomerAddress = () => {
 
   const { generalInfo, isEdit } = location.state || {};
 
-  // Initialize state for address details
-  // Initialize state for address details
+  // Initialize state for address details and saving status
   const [addressInfo, setAddressInfo] = useState({
-    currentStreet: generalInfo?.currentAddress?.street || '',
-    currentCity: generalInfo?.currentAddress?.city || '',
-    currentProvince: generalInfo?.currentAddress?.province || '',
-    currentZipCode: generalInfo?.currentAddress?.zipCode || '',
-    currentLandmark: generalInfo?.currentAddress?.landmark || '',
-    newStreet: generalInfo?.newAddress?.street || '',
-    newCity: generalInfo?.newAddress?.city || '',
-    newProvince: generalInfo?.newAddress?.province || '',
-    newZipCode: generalInfo?.newAddress?.zipCode || '',
-    newLandmark: generalInfo?.newAddress?.landmark || '',
+    currentStreet: '',
+    currentCity: '',
+    currentProvince: '',
+    currentZipCode: '',
+    currentLandmark: '',
+    newStreet: '',
+    newCity: '',
+    newProvince: '',
+    newZipCode: '',
+    newLandmark: '',
   });
 
+  const [isSaving, setIsSaving] = useState(false); // Track saving state
 
+  // Populate addressInfo from generalInfo if editing
   useEffect(() => {
-    // Scroll to the top when the component is mounted
-    window.scrollTo(0, 0);
-  }, []);
+    if (isEdit && generalInfo) {
+      console.log("Edit Mode - Prepopulating Address Info");
+      console.log("General Info:", generalInfo); // Debug information
+
+      setAddressInfo({
+        currentStreet: generalInfo.currentAddress?.street || '',
+        currentCity: generalInfo.currentAddress?.city || '',
+        currentProvince: generalInfo.currentAddress?.province || '',
+        currentZipCode: generalInfo.currentAddress?.zipCode || '',
+        currentLandmark: generalInfo.currentAddress?.landmark || '',
+        newStreet: generalInfo.newAddress?.street || '',
+        newCity: generalInfo.newAddress?.city || '',
+        newProvince: generalInfo.newAddress?.province || '',
+        newZipCode: generalInfo.newAddress?.zipCode || '',
+        newLandmark: generalInfo.newAddress?.landmark || '',
+      });
+    }
+  }, [isEdit, generalInfo]);
 
   // Handle input changes for address forms
   const handleInputChange = (e) => {
@@ -41,28 +57,26 @@ const CustomerAddress = () => {
     }));
   };
 
-  // Handle form submission
-  const handleSaveClick = (e) => {
+  // Handle form submission to save or update customer data
+  const handleSaveClick = async (e) => {
     e.preventDefault();
+    if (isSaving) return;
 
-    // Validate required fields (optional but recommended)
-    const requiredFields = [
-      'currentStreet',
-      'currentCity',
-      'currentProvince',
-      'currentZipCode',
-    ];
+    setIsSaving(true);
 
+    // Validate required fields
+    const requiredFields = ['currentStreet', 'currentCity', 'currentProvince', 'currentZipCode'];
     for (let field of requiredFields) {
       if (!addressInfo[field]) {
         alert('Please fill in all required fields.');
+        setIsSaving(false);
         return;
       }
     }
 
     // Prepare customer data
     const customerData = {
-      ...generalInfo, // General Information from CustomerInformation
+      ...generalInfo,
       currentAddress: {
         street: addressInfo.currentStreet,
         city: addressInfo.currentCity,
@@ -77,42 +91,62 @@ const CustomerAddress = () => {
         zipCode: addressInfo.newZipCode,
         landmark: addressInfo.newLandmark || '',
       },
-      orderID: `OID-${Math.floor(Math.random() * 10000)}`, // Generate a random Order ID
-      orderDetails: 'New Order', // Placeholder, modify as needed
-      orderPrice: generalInfo.paymentReference || '₱0.00', // Using Payment Reference as Price for demonstration
-      orders: generalInfo.orders || [], // Initialize with existing orders if any
     };
 
-    if (isEdit) {
-      // Update existing customer
-      updateCustomer({
-        ...customerData,
-        id: generalInfo.id, // Ensure the ID remains the same
-      });
-    } else {
-      // Add new customer
-      addCustomer(customerData);
+    try {
+      if (isEdit) {
+        // Update existing customer
+        const response = await fetch(`http://localhost:5000/update-customer/${generalInfo.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(customerData),
+        });
+
+        if (response.ok) {
+          const updatedCustomer = await response.json();
+          updateCustomer(updatedCustomer); // Update customer in context
+          alert('Customer updated successfully!');
+        } else {
+          alert('Failed to update customer. Please try again.');
+        }
+      } else {
+        // Add new customer
+        const response = await fetch('http://localhost:5000/add-customer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(customerData),
+        });
+
+        if (response.ok) {
+          const newCustomer = await response.json();
+          addCustomer(newCustomer); // Add new customer to context
+          alert('Customer added successfully!');
+        } else {
+          alert('Failed to add customer. Please try again.');
+        }
+      }
+      navigate('/customer');
+    } catch (error) {
+      console.error('Error saving customer:', error);
+      alert('An error occurred while saving. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-
-    // Scroll to the top of the page after saving
-    window.scrollTo(0, 0);
-
-    // Navigate back to CustomerLanding
-    navigate('/customer');
   };
 
   // Handle back button click
   const handleBackClick = () => {
-    // Scroll to the top when the user clicks the "Back" button
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0); // Scroll to the top when the user clicks the "Back" button
     navigate('/customer/customer-information', { state: { customer: generalInfo, isEdit } });
   };
-
+  
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       <div className="mb-10 mt-16 text-center">
-        <h1 className="text-xl font-bold text-white mt-2">ADDRESS DETAILS</h1>
-        <h2 className="text-sm text-white">Add New Customer</h2>
+        <h1 className="text-xl font-bold text-white mt-2">
+          {isEdit ? 'EDIT CUSTOMER ADDRESS' : 'ADD NEW CUSTOMER ADDRESS'}
+        </h1>
+        <h2 className="text-sm text-white">{isEdit ? 'Edit Customer' : 'Add New Customer'}</h2>
       </div>
 
       <div className="absolute left-10 top-1/4">
@@ -264,16 +298,17 @@ const CustomerAddress = () => {
           <div className="flex justify-between mt-6">
             <button
               type="button"
-              className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
               onClick={handleBackClick}
+              className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
             >
               BACK
             </button>
             <button
               type="submit"
+              disabled={isSaving}
               className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
             >
-              SAVE
+              {isSaving ? 'Saving...' : 'SAVE'}
             </button>
           </div>
         </form>

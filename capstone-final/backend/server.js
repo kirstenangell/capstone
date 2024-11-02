@@ -356,78 +356,98 @@ app.get('/products', (req, res) => {
   });
 });
 
-app.post('/forgot-password', (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    return res.status(400).json({ message: 'Email is required' });
-  }
+// Add Customer API
+app.post('/add-customer', (req, res) => {
+  console.log('Received add-customer request:', req.body); // Add this log
+  const {
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress, newAddress
+  } = req.body;
 
-  const token = crypto.randomBytes(32).toString('hex');
-  const query = 'UPDATE users SET reset_token = ? WHERE email = ?';
+  const query = `
+    INSERT INTO customers (name, type, email, phone, payment_status, payment_reference,
+      current_street, current_city, current_province, current_zip, current_landmark,
+      new_street, new_city, new_province, new_zip, new_landmark)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
-  db.query(query, [token, email], (err, result) => {
+  db.query(query, [
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress.street, currentAddress.city, currentAddress.province, currentAddress.zipCode, currentAddress.landmark,
+    newAddress.street, newAddress.city, newAddress.province, newAddress.zipCode, newAddress.landmark
+  ], (err, result) => {
     if (err) {
-      console.error('Error updating reset token:', err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error('Error adding customer:', err);
+      return res.status(500).json({ message: 'Error adding customer' });
     }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Email not found' });
+    res.status(200).json({ message: 'Customer added successfully', id: result.insertId });
+  });
+});
+ 
+// Get Customers API
+app.get('/customers', (req, res) => {
+  const query = 'SELECT * FROM customers';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching customers:', err);
+      return res.status(500).json({ message: 'Error fetching customers' });
     }
-
-    const resetUrl = `http://localhost:5173/set-password?token=${token}`;
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Password Reset Request',
-      html: `<p>Please click the following link to set your new password:</p><a href="${resetUrl}">${resetUrl}</a>`
-    };
-
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.error('Error sending email:', err);
-        return res.status(500).json({ message: 'Error sending email' });
-      }
-      res.status(200).json({ message: 'Password reset link sent' });
-    });
+    res.status(200).json(results);
   });
 });
 
-// Password Set API
-app.post('/set-password', async (req, res) => {
-  const { token, newPassword } = req.body;
+// Update Customer API
+app.put('/update-customer/:id', (req, res) => {
+  const customerId = req.params.id;
+  const {
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress, newAddress
+  } = req.body;
 
-  // Validate input
-  if (!token || !newPassword) {
-    return res.status(400).json({ message: 'Token and new password are required' });
-  }
+  const query = `
+    UPDATE customers 
+    SET name = ?, type = ?, email = ?, phone = ?, payment_status = ?, payment_reference = ?,
+        current_street = ?, current_city = ?, current_province = ?, current_zip = ?, current_landmark = ?,
+        new_street = ?, new_city = ?, new_province = ?, new_zip = ?, new_landmark = ?
+    WHERE id = ?
+  `;
 
-  // Find the user with the provided reset token
-  const query = 'SELECT * FROM users WHERE reset_token = ?';
-  db.query(query, [token], async (err, result) => {
+  db.query(query, [
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress.street, currentAddress.city, currentAddress.province, currentAddress.zipCode, currentAddress.landmark,
+    newAddress.street, newAddress.city, newAddress.province, newAddress.zipCode, newAddress.landmark,
+    customerId
+  ], (err, result) => {
     if (err) {
-      console.error('Error querying database for reset token:', err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error('Error updating customer:', err);
+      return res.status(500).json({ message: 'Error updating customer' });
     }
 
-    if (result.length === 0) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    res.status(200).json({ message: 'Customer updated successfully' });
+  });
+});
 
-    // Update user's password and clear reset token
-    const updateQuery = 'UPDATE users SET password = ?, reset_token = NULL WHERE reset_token = ?';
-    db.query(updateQuery, [hashedPassword, token], (updateErr) => {
-      if (updateErr) {
-        console.error('Error updating password:', updateErr);
-        return res.status(500).json({ message: 'Server error' });
-      }
+// Archive (soft delete) Customer API
+app.put('/archive-customer/:id', (req, res) => {
+  const customerId = req.params.id;
 
-      res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
-    });
+  const query = `UPDATE customers SET archived = true WHERE id = ?`;
+
+  db.query(query, [customerId], (err, result) => {
+    if (err) {
+      console.error('Error archiving customer:', err);
+      return res.status(500).json({ message: 'Error archiving customer' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.status(200).json({ message: 'Customer archived successfully' });
   });
 });
 
