@@ -35,6 +35,7 @@ import SupplierAddress from './supplier-page-component/SupplierAddress';
 import ProductDetail from './product-page-component/ProductDetail';
 import Login from './login-page-component/Login';
 import ForgotPassword from './login-page-component/ForgotPassword';
+import ProductSection from './product-page-component/ProductSection';
 
 
 
