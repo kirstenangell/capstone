@@ -36,6 +36,7 @@ import ProductDetail from './product-page-component/ProductDetail';
 import Login from './login-page-component/Login';
 import ForgotPassword from './login-page-component/ForgotPassword';
 import SetPassword from './login-page-component/SetPassword';
+import Category from './product-page-component/Category'; // Adjust the path as necessary
 
 
 // Context Providers
@@ -299,6 +300,9 @@ function App() {
                         </ProductProvider>
                       }
                     />
+
+                     {/* New Category Route */}
+                    <Route path="/category/:categoryName" element={<Category />} />
 
                     <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
                     <Route path="/signup" element={<SignUpPage />} />

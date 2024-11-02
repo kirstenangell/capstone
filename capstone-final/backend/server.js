@@ -4,14 +4,21 @@ const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const crypto = require('crypto'); // For generating verification token
 const nodemailer = require('nodemailer'); // For sending emails
+const session = require('express-session');
 require('dotenv').config();
 
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json());  // For parsing JSON in requests
 app.use(cors({
-  origin: '*',  // Allow all origins (this is not recommended in production)
+  origin: '*',  // Allow all origins (in production, restrict to specific domains)
+}));
+app.use(session({
+  secret: 'yourSecretKey',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: !true } // Set secure to true if you are using https
 }));
 
 // MySQL Database Connection
@@ -24,20 +31,22 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error('Error connecting to database:', err);
+    console.error('Error connecting to the database:', err);
   } else {
     console.log('Connected to MySQL database');
   }
 });
 
-// Contact form submission API
+// Contact Form Submission API
 app.post('/submit-contact', (req, res) => {
   const { name, email, message } = req.body;
 
+  // Validate input
   if (!name || !email || !message) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
+  // Insert contact submission into the database
   const query = 'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)';
   db.query(query, [name, email, message], (err, result) => {
     if (err) {
@@ -63,80 +72,49 @@ const transporter = nodemailer.createTransport({
 });
 
 // Register API with Email Verification
-const { body, validationResult } = require('express-validator');
+app.post('/register', (req, res) => {
+  const { first_name, last_name, email, password } = req.body;
 
-const sendVerificationEmail = (email, token) => {
-  const verificationUrl = `http://localhost:5000/verify-email?token=${token}`;
-  const mailOptions = {
-    from: process.env.EMAIL_USER,  // Sender's email address
-    to: email,                     // Recipient's email address
-    subject: 'Verify your email address',
-    html: `<p>Please click on the following link to verify your email address:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
-  };
-
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.error('Error sending verification email:', err);
-    } else {
-      console.log('Verification email sent:', info.response);
-    }
-  });
-};
-
-// Register API
-app.post('/register', [
-  // Validation rules
-  body('first_name').notEmpty().withMessage('First name is required'),
-  body('last_name').notEmpty().withMessage('Last name is required'),
-  body('email').isEmail().withMessage('Email is invalid'),
-  body('password')
-    .isLength({ min: 10, max: 12 }).withMessage('Password must be between 10 and 12 characters long')
-    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
-    .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
-    .matches(/\d/).withMessage('Password must contain at least one number')
-    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character')
-    .not().matches(/(\d)\1{2,}|([a-zA-Z])\2{2,}/).withMessage('Password should not have repeated or sequential characters')
-    .custom((value, { req }) => {
-      if (value.includes(req.body.first_name) || value.includes(req.body.last_name) || value.includes(req.body.email.split('@')[0])) {
-        throw new Error('Password should not contain personal information like your name or email.');
-      }
-      return true;
-    }),
-], async (req, res) => {
-  // Validation result check
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+  // Input validation
+  if (!first_name || !last_name || !email || !password) {
+    console.error('Validation error: Missing fields');
+    return res.status(400).json({ message: 'All fields are required' });
   }
 
-  const { first_name, last_name, email, password } = req.body;
-  
-  // Hash the password and generate a verification token
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  // Generate a verification token
   const verificationToken = crypto.randomBytes(32).toString('hex');
 
-  try {
-    // Database query wrapped in try-catch
-    const query = 'INSERT INTO users (first_name, last_name, email, password, verification_token) VALUES (?, ?, ?, ?, ?)';
-    
-    // Execute the query
-    db.query(query, [first_name, last_name, email, hashedPassword, verificationToken], (err, result) => {
-      if (err) {
-        console.error("Database Error:", err); // Log the actual error
-        return res.status(500).json({ message: 'Server error. Please try again later.' });
+  // Hash the password using bcrypt
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  // Insert user into database
+  const query = 'INSERT INTO users (first_name, last_name, email, password, verification_token) VALUES (?, ?, ?, ?, ?)';
+  db.query(query, [first_name, last_name, email, hashedPassword, verificationToken], (err, result) => {
+    if (err) {
+      console.error('Error registering user:', err);
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(400).json({ message: 'Email already registered' });
       }
+      return res.status(500).json({ message: 'Error registering user' });
+    }
 
-      // Send verification email after successful registration
-      sendVerificationEmail(email, verificationToken);
+    // Send verification email
+    const verificationLink = `http://localhost:5000/verify-email?token=${verificationToken}`;
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Verify your email address',
+      html: `<p>Please verify your email by clicking on the following link:</p><a href="${verificationLink}">Verify Email</a>`
+    };
 
-      // Send success response if the registration was successful
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending verification email:', error);
+        return res.status(500).json({ message: 'Error sending verification email' });
+      }
       res.status(200).json({ message: 'User registered successfully. Please verify your email.' });
     });
-  } catch (err) {
-    // Catch any unexpected errors
-    console.error("Error during registration:", err);
-    return res.status(500).json({ message: 'Server error. Please try again later.' });
-  }
+  });
 });
 
 // Email Verification API
@@ -154,6 +132,7 @@ app.get('/verify-email', (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired verification token' });
     }
 
+    // Update verification status
     const updateQuery = 'UPDATE users SET verified = true, verification_token = NULL WHERE verification_token = ?';
     db.query(updateQuery, [token], (updateErr) => {
       if (updateErr) {
@@ -171,6 +150,7 @@ app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
   const query = 'SELECT * FROM users WHERE email = ?';
+
   db.query(query, [email], (err, result) => {
     if (err) {
       console.error('Error querying database during login:', err);
@@ -182,10 +162,12 @@ app.post('/login', (req, res) => {
 
     const user = result[0];
 
+    // Check if the user is verified
     if (!user.verified) {
       return res.status(401).json({ message: 'Please verify your email before logging in.' });
     }
 
+    // Compare entered password with stored hash
     bcrypt.compare(password, user.password, (err, isMatch) => {
       if (err) {
         console.error('Error comparing passwords:', err);
@@ -198,6 +180,7 @@ app.post('/login', (req, res) => {
           email: user.email,
         };
 
+        // Send response back with user data
         res.status(200).json({ message: 'Login successful', userData, role: user.email.includes('flacko1990') ? 'admin' : 'customer' });
       } else {
         return res.status(400).json({ message: 'Invalid credentials' });
@@ -261,26 +244,52 @@ app.put('/update-user-details', (req, res) => {
   });
 });
 
-// Add Product API
+// *** NEW CODE: Add Product API ***
 app.post('/add-product', (req, res) => {
   const {
-    name, type, brand, category, description, image, price,
-    discount, totalPrice, dimensions, color, finish, material,
-    model, quantity, totalQuantity, status
+    name,
+    type,
+    brand,
+    category,
+    description,
+    image,
+    price,
+    discount,
+    totalPrice,
+    dimensions,
+    color,
+    finish,
+    material,
+    model,
+    quantity,
+    totalQuantity,
+    status
   } = req.body;
 
-  if (!name || !price || !category) {
-    console.error('Validation error: Missing required fields');
-    return res.status(400).json({ message: 'Product name, price, and category are required' });
-  }
+  console.log(req.body); // Log the incoming request to check if the data is being sent properly
 
   const query = `INSERT INTO products 
     (name, type, brand, category, description, image, price, discount, totalPrice, dimensions, color, finish, material, model, quantity, totalQuantity, status) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   db.query(query, [
-    name, type, brand, category, description, image, price, discount, totalPrice, dimensions,
-    color, finish, material, model, quantity, totalQuantity, status
+    name,
+    type,
+    brand,
+    category,
+    description,
+    image,
+    price,
+    discount,
+    totalPrice,
+    dimensions,
+    color,
+    finish,
+    material,
+    model,
+    quantity,
+    totalQuantity,
+    status
   ], (err, result) => {
     if (err) {
       console.error('Error adding product:', err);
@@ -290,15 +299,10 @@ app.post('/add-product', (req, res) => {
   });
 });
 
-// Update Product API
+// *** NEW CODE: Update Product API ***
 app.put('/update-product/:id', (req, res) => {
   const productId = req.params.id;
   const updatedProduct = req.body;
-
-  if (!updatedProduct.name || !updatedProduct.price || !updatedProduct.category) {
-    console.error('Validation error: Missing required fields for update');
-    return res.status(400).json({ message: 'Product name, price, and category are required' });
-  }
 
   const query = `
     UPDATE products 
@@ -310,10 +314,11 @@ app.put('/update-product/:id', (req, res) => {
   `;
 
   db.query(query, [
-    updatedProduct.name, updatedProduct.type, updatedProduct.brand, updatedProduct.category,
-    updatedProduct.description, updatedProduct.image, updatedProduct.price, updatedProduct.discount,
-    updatedProduct.totalPrice, updatedProduct.dimensions, updatedProduct.color, updatedProduct.finish,
-    updatedProduct.material, updatedProduct.model, updatedProduct.quantity, updatedProduct.totalQuantity,
+    updatedProduct.name, updatedProduct.type, updatedProduct.brand, updatedProduct.category, 
+    updatedProduct.description, updatedProduct.image, updatedProduct.price, 
+    updatedProduct.discount, updatedProduct.totalPrice, updatedProduct.dimensions, 
+    updatedProduct.color, updatedProduct.finish, updatedProduct.material, 
+    updatedProduct.model, updatedProduct.quantity, updatedProduct.totalQuantity, 
     updatedProduct.status, productId
   ], (err, result) => {
     if (err) {
@@ -324,29 +329,9 @@ app.put('/update-product/:id', (req, res) => {
   });
 });
 
-// Archive (soft delete) Product API
-app.put('/archive-product/:id', (req, res) => {
-  const productId = req.params.id;
-
-  const query = `UPDATE products SET archived = true WHERE id = ?`;
-
-  db.query(query, [productId], (err, result) => {
-    if (err) {
-      console.error('Error archiving product:', err);
-      return res.status(500).json({ message: 'Error archiving product' });
-    }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    res.status(200).json({ message: 'Product archived successfully' });
-  });
-});
-
-// Get Products API
+// *** NEW CODE: Get Products API ***
 app.get('/products', (req, res) => {
-  const query = 'SELECT * FROM products WHERE archived IS NULL OR archived = false';
+  const query = 'SELECT * FROM products';
   db.query(query, (err, results) => {
     if (err) {
       console.error('Error fetching products:', err);
@@ -356,119 +341,63 @@ app.get('/products', (req, res) => {
   });
 });
 
-app.post('/forgot-password', (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    return res.status(400).json({ message: 'Email is required' });
-  }
-
-  const token = crypto.randomBytes(32).toString('hex');
-  const query = 'UPDATE users SET reset_token = ? WHERE email = ?';
-
-  db.query(query, [token, email], (err, result) => {
+// *** NEW CODE: Delete Product API ***
+app.delete('/delete-product/:id', (req, res) => {
+  const query = 'DELETE FROM products WHERE id = ?';
+  db.query(query, [req.params.id], (err, result) => {
     if (err) {
-      console.error('Error updating reset token:', err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error('Error deleting product:', err);
+      return res.status(500).json({ message: 'Error deleting product' });
     }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Email not found' });
-    }
-
-    const resetUrl = `http://localhost:5173/set-password?token=${token}`;
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Password Reset Request',
-      html: `<p>Please click the following link to set your new password:</p><a href="${resetUrl}">${resetUrl}</a>`
-    };
-
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.error('Error sending email:', err);
-        return res.status(500).json({ message: 'Error sending email' });
-      }
-      res.status(200).json({ message: 'Password reset link sent' });
-    });
+    res.status(200).json({ message: 'Product deleted successfully' });
   });
 });
 
-// Password Set API
-app.post('/set-password', async (req, res) => {
-  const { token, newPassword } = req.body;
-
-  // Validate input
-  if (!token || !newPassword) {
-    return res.status(400).json({ message: 'Token and new password are required' });
+// *** NEW CODE: Add to Cart API ***
+app.post('/add-to-cart', (req, res) => {
+  console.log("Session User:", req.session.user);  // Log the session data
+  if (!req.session.user) {
+    return res.status(401).json({ message: "You must be logged in to perform this action." });
   }
 
-  // Find the user with the provided reset token
-  const query = 'SELECT * FROM users WHERE reset_token = ?';
-  db.query(query, [token], async (err, result) => {
+  const { productId, quantity } = req.body;
+  const userId = req.session.user.id; // assuming your session holds user info
+
+  // SQL to insert the product into the cart
+  const sqlInsert = `
+    INSERT INTO carts (user_id, product_id, quantity)
+    VALUES (?, ?, ?)
+  `;
+  
+  db.query(sqlInsert, [userId, productId, quantity], (err, result) => {
     if (err) {
-      console.error('Error querying database for reset token:', err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error('Error adding item to cart:', err);
+      return res.status(500).json({ message: 'Failed to add item to cart' });
     }
-
-    if (result.length === 0) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
-    }
-
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update user's password and clear reset token
-    const updateQuery = 'UPDATE users SET password = ?, reset_token = NULL WHERE reset_token = ?';
-    db.query(updateQuery, [hashedPassword, token], (updateErr) => {
-      if (updateErr) {
-        console.error('Error updating password:', updateErr);
-        return res.status(500).json({ message: 'Server error' });
-      }
-
-      res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
-    });
+    res.json({ message: "Product added to cart successfully", cartId: result.insertId });
   });
 });
 
-// Update Password API after reset
-// Backend - Update Password API after reset
-app.post('/update-password', async (req, res) => {
-  const { token, newPassword } = req.body;
-
-  // Validate input
-  if (!token || !newPassword) {
-    return res.status(400).json({ message: 'Token and new password are required' });
+// *** NEW CODE: Buy Now API ***
+app.post('/buy-now', (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "You must be logged in to perform this action." });
   }
 
-  // Find the user with the provided reset token
-  const query = 'SELECT * FROM users WHERE reset_token = ?';
-  db.query(query, [token], async (err, result) => {
+  const { productId, quantity } = req.body;
+  const userId = req.session.user.id;
+
+  // Insert to cart and then redirect to the checkout page
+  const query = 'INSERT INTO carts (user_id, product_id, quantity, added_on) VALUES (?, ?, ?, NOW())';
+  db.query(query, [userId, productId, quantity], (err, result) => {
     if (err) {
-      console.error('Error querying database for reset token:', err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error('Error processing buy now:', err);
+      return res.status(500).json({ message: 'Error processing buy now' });
     }
-
-    if (result.length === 0) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
-    }
-
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update user's password and clear reset token
-    const updateQuery = 'UPDATE users SET password = ?, reset_token = NULL WHERE reset_token = ?';
-    db.query(updateQuery, [hashedPassword, token], (updateErr) => {
-      if (updateErr) {
-        console.error('Error updating password:', updateErr);
-        return res.status(500).json({ message: 'Server error' });
-      }
-
-      res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
-    });
+    // Redirect or handle logic to proceed to checkout
+    res.json({ message: "Proceeding to checkout", cartId: result.insertId });
   });
 });
-
 
 // Start the server
 const port = 5000;
