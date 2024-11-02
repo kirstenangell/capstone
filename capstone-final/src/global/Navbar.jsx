@@ -4,6 +4,7 @@ import { FaUser } from 'react-icons/fa'; // Import User icon from react-icons/fa
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Category from '../product-page-component/Category'; // Corrected import
+import FlackoLogo from '../assets/FlackoLogo.png';
 
 const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
   const [showCategories, setShowCategories] = useState(false);
@@ -22,7 +23,7 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
       style={{ backgroundColor: 'black' }}
     >
       <NavLink to="/" className="text-white text-2xl font-bold">
-        LOGO
+        <img src={FlackoLogo} alt="Flacko Logo" style={{ height: '50px' }} />
       </NavLink>
       <div
         className="flex items-center py-2 px-4 rounded-full text-xs drop-shadow-3xl"

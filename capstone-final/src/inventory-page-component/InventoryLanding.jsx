@@ -27,7 +27,7 @@ const InventoryLanding = () => {
   const handlePublish = () => {
     if (selectedProduct) {
       const newProduct = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: 'PID-' + Math.random().toString(36).substr(2, 9), // Generate a prefixed unique ID
         name: selectedProduct.name || "Untitled Product",
         image: selectedProduct.image || "/assets/wheel1.png", // Use a default image if not provided
         price: selectedProduct.price || 0,
@@ -157,6 +157,7 @@ const InventoryLanding = () => {
                         <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
                       </div>
                       <div className="text-left">
+                        <h3 className="text-lg font-bold text-white">PID-{product.id}</h3> {/* Display the Product ID */}
                         <h2 className="text-lg font-bold text-white">{product.name}</h2>
                         <p className="text-sm text-gray-400">Retail Price | Stock | Variant | Timestamp</p>
                       </div>
