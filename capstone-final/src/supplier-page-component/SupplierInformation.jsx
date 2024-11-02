@@ -184,38 +184,6 @@ const SupplierInformation = () => {
     }));
   };
 
-  // Handle product list input changes
-  const handleProductInputChange = (index, e) => {
-    const { name, value } = e.target;
-    const updatedProductLists = [...supplierData.productLists];
-    updatedProductLists[index] = {
-      ...updatedProductLists[index],
-      [name]: value,
-    };
-    setSupplierData((prevData) => ({
-      ...prevData,
-      productLists: updatedProductLists,
-    }));
-  };
-
-  // Add new product to the product list
-  const handleAddProduct = () => {
-    setSupplierData((prevData) => ({
-      ...prevData,
-      productLists: [
-        ...prevData.productLists,
-        {
-          productId: '',
-          productName: '',
-          category: '',
-          productDescription: '',
-          quantityAvailable: '',
-          unitPrice: '',
-        },
-      ],
-    }));
-  };
-
   const [isOpen, setIsOpen] = useState(false);
   const supplierTypes = ['Wholesale', 'Retail', 'Distributor'];
 
