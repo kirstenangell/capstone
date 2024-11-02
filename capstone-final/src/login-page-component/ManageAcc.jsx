@@ -139,6 +139,39 @@ const ManageAcc = () => {
         navigate('/'); // Redirect to the landing page
     };
     
+    // State to hold current, new, and confirm passwords
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const handlePasswordUpdate = async () => {
+        if (newPassword !== confirmPassword) {
+          alert("New password and confirm password do not match.");
+          return;
+        }
+      
+        const email = formData.email;
+      
+        try {
+          const response = await axios.post('http://localhost:5000/update-password-tab', {
+            email,
+            currentPassword,
+            newPassword,
+          });
+      
+          if (response.status === 200) {
+            alert("Password updated successfully.");
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+          }
+        } catch (error) {
+          alert('Error updating password: ' + (error.response?.data?.message || error.message));
+        }
+      };
+      
+    
+
     return (
         <div className="min-h-screen flex bg-black text-white px-8">
             <div className="w-1/4 p-6 bg-black">
@@ -471,7 +504,7 @@ const ManageAcc = () => {
                         </div>
                     </div>
                 )}
-                 {activeTab === 'password' && (
+                {activeTab === 'password' && (
                     <div className="space-y-6">
                         <div className="w-full max-w-2xl text-white rounded-lg shadow-lg">
                             <form className="space-y-6">
@@ -481,6 +514,8 @@ const ManageAcc = () => {
                                     <div className="relative">
                                         <input
                                             type={showCurrentPassword ? 'text' : 'password'}
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
                                             placeholder="Current Password"
                                             className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
                                         />
@@ -499,6 +534,8 @@ const ManageAcc = () => {
                                     <div className="relative">
                                         <input
                                             type={showNewPassword ? 'text' : 'password'}
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
                                             placeholder="New Password"
                                             className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
                                         />
@@ -517,6 +554,8 @@ const ManageAcc = () => {
                                     <div className="relative">
                                         <input
                                             type={showConfirmPassword ? 'text' : 'password'}
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
                                             placeholder="Confirm Password"
                                             className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg"
                                         />
@@ -530,10 +569,22 @@ const ManageAcc = () => {
                                 </div>
 
                                 <div className="flex justify-between mt-6">
-                                    <button type="button" className="px-6 py-2 bg-gray-600 rounded-md text-xs">
+                                    <button
+                                        type="button"
+                                        className="px-6 py-2 bg-gray-600 rounded-md text-xs"
+                                        onClick={() => {
+                                            setCurrentPassword('');
+                                            setNewPassword('');
+                                            setConfirmPassword('');
+                                        }}
+                                    >
                                         CANCEL
                                     </button>
-                                    <button type="button" className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md">
+                                    <button
+                                        type="button"
+                                        className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md"
+                                        onClick={handlePasswordUpdate}
+                                    >
                                         SAVE CHANGES
                                     </button>
                                 </div>
@@ -541,6 +592,7 @@ const ManageAcc = () => {
                         </div>
                     </div>
                 )}
+
                  {activeTab === 'orderHistory' && (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center mb-4">

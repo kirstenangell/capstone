@@ -341,23 +341,153 @@ app.get('/products', (req, res) => {
   });
 });
 
-// *** NEW CODE: Delete Product API ***
-app.delete('/delete-product/:id', (req, res) => {
-  const query = 'DELETE FROM products WHERE id = ?';
-  db.query(query, [req.params.id], (err, result) => {
+app.post('/forgot-password', (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    console.log('No email provided');
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const query = 'UPDATE users SET reset_token = ? WHERE email = ?';
+
+  db.query(query, [token, email], (err, result) => {
     if (err) {
       console.error('Error deleting product:', err);
       return res.status(500).json({ message: 'Error deleting product' });
     }
-    res.status(200).json({ message: 'Product deleted successfully' });
+
+    if (result.affectedRows === 0) {
+      console.log('Email not found in the database');
+      return res.status(404).json({ message: 'Email not found' });
+    }
+
+    const resetUrl = `http://localhost:5173/set-password?token=${token}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `<p>Please click the following link to set your new password:</p><a href="${resetUrl}">${resetUrl}</a>`
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error('Error sending email:', err);
+        return res.status(500).json({ message: 'Error sending email' });
+      }
+      console.log('Reset email sent:', info.response); // Log for successful email sending
+      res.status(200).json({ message: 'Password reset link sent' });
+    });
   });
 });
 
-// *** NEW CODE: Add to Cart API ***
-app.post('/add-to-cart', (req, res) => {
-  console.log("Session User:", req.session.user);  // Log the session data
-  if (!req.session.user) {
-    return res.status(401).json({ message: "You must be logged in to perform this action." });
+// Add Customer API
+app.post('/add-customer', (req, res) => {
+  console.log('Received add-customer request:', req.body); // Add this log
+  const {
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress, newAddress
+  } = req.body;
+
+  const query = `
+    INSERT INTO customers (name, type, email, phone, payment_status, payment_reference,
+      current_street, current_city, current_province, current_zip, current_landmark,
+      new_street, new_city, new_province, new_zip, new_landmark)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress.street, currentAddress.city, currentAddress.province, currentAddress.zipCode, currentAddress.landmark,
+    newAddress.street, newAddress.city, newAddress.province, newAddress.zipCode, newAddress.landmark
+  ], (err, result) => {
+    if (err) {
+      console.error('Error adding customer:', err);
+      return res.status(500).json({ message: 'Error adding customer' });
+    }
+    res.status(200).json({ message: 'Customer added successfully', id: result.insertId });
+  });
+});
+ 
+// Get Customers API
+app.get('/customers', (req, res) => {
+  const query = 'SELECT * FROM customers';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching customers:', err);
+      return res.status(500).json({ message: 'Error fetching customers' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// Update Customer API
+app.put('/update-customer/:id', (req, res) => {
+  const customerId = req.params.id;
+  const {
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress, newAddress
+  } = req.body;
+
+  const query = `
+    UPDATE customers 
+    SET name = ?, type = ?, email = ?, phone = ?, payment_status = ?, payment_reference = ?,
+        current_street = ?, current_city = ?, current_province = ?, current_zip = ?, current_landmark = ?,
+        new_street = ?, new_city = ?, new_province = ?, new_zip = ?, new_landmark = ?
+    WHERE id = ?
+  `;
+
+  db.query(query, [
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress.street, currentAddress.city, currentAddress.province, currentAddress.zipCode, currentAddress.landmark,
+    newAddress.street, newAddress.city, newAddress.province, newAddress.zipCode, newAddress.landmark,
+    customerId
+  ], (err, result) => {
+    if (err) {
+      console.error('Error updating customer:', err);
+      return res.status(500).json({ message: 'Error updating customer' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.status(200).json({ message: 'Customer updated successfully' });
+  });
+});
+
+// Archive (soft delete) Customer API
+app.put('/archive-customer/:id', (req, res) => {
+  const customerId = req.params.id;
+
+  const query = 'UPDATE customers SET archived = true WHERE id = ?';
+
+  db.query(query, [customerId], (err, result) => {
+    if (err) {
+      console.error('Error archiving customer:', err);
+      return res.status(500).json({ message: 'Error archiving customer' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.status(200).json({ message: 'Customer archived successfully' });
+  });
+});
+
+
+// Password Set API
+// Password Set API
+// Password Set API
+app.post('/set-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  // Validate input
+  if (!token || !newPassword) {
+    console.log('Missing token or newPassword');
+    return res.status(400).json({ message: 'Token and new password are required' });
   }
 
   const { productId, quantity } = req.body;
@@ -374,14 +504,51 @@ app.post('/add-to-cart', (req, res) => {
       console.error('Error adding item to cart:', err);
       return res.status(500).json({ message: 'Failed to add item to cart' });
     }
-    res.json({ message: "Product added to cart successfully", cartId: result.insertId });
+
+    if (result.length === 0) {
+      console.log('Invalid or expired reset token');
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    console.log('User found with reset token');
+
+    // Ensure this function is asynchronous
+async function hashPassword(newPassword) {
+  // Hash the new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  console.log('New password hashed');
+  return hashedPassword; // You might want to return or use the hashed password
+}
+
+    // Update user's password, set password_verified to 1, and clear reset token
+    const updateQuery = 'UPDATE users SET password = ?, reset_token = NULL, password_verified = 1 WHERE reset_token = ?';
+    db.query(updateQuery, [hashedPassword, token], (updateErr, updateResult) => {
+      if (updateErr) {
+        console.error('Error updating password:', updateErr);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      if (updateResult.affectedRows === 0) {
+        console.log('No rows affected - password not updated');
+        return res.status(400).json({ message: 'Failed to update password' });
+      }
+
+      console.log('Password updated successfully');
+      res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
+    });
   });
 });
 
-// *** NEW CODE: Buy Now API ***
-app.post('/buy-now', (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ message: "You must be logged in to perform this action." });
+
+
+// Update Password API after reset
+// Backend - Update Password API after reset
+app.post('/update-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  // Validate input
+  if (!token || !newPassword) {
+    return res.status(400).json({ message: 'Token and new password are required' });
   }
 
   const { productId, quantity } = req.body;
@@ -398,6 +565,52 @@ app.post('/buy-now', (req, res) => {
     res.json({ message: "Proceeding to checkout", cartId: result.insertId });
   });
 });
+
+// Update Password API
+// Update Password from Password Tab API
+app.post('/update-password-tab', async (req, res) => {
+  const { email, currentPassword, newPassword } = req.body;
+
+  if (!email || !currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  const query = 'SELECT * FROM users WHERE email = ?';
+  db.query(query, [email], async (err, result) => {
+    if (err) {
+      console.error('Error querying database:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = result[0];
+    
+    // Verify the current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password
+    const updateQuery = 'UPDATE users SET password = ? WHERE email = ?';
+    db.query(updateQuery, [hashedPassword, email], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating password:', updateErr);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      res.status(200).json({ message: 'Password updated successfully' });
+    });
+  });
+});
+
+
 
 // Start the server
 const port = 5000;

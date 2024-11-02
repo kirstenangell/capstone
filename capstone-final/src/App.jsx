@@ -35,8 +35,8 @@ import SupplierAddress from './supplier-page-component/SupplierAddress';
 import ProductDetail from './product-page-component/ProductDetail';
 import Login from './login-page-component/Login';
 import ForgotPassword from './login-page-component/ForgotPassword';
-import SetPassword from './login-page-component/SetPassword';
-import Category from './product-page-component/Category'; // Adjust the path as necessary
+import ProductSection from './product-page-component/ProductSection';
+
 
 
 // Context Providers
@@ -44,6 +44,7 @@ import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
 import { OrderProvider } from './context/OrderContext'; 
 import { SupplierProvider } from './context/SupplierContext'; 
+import SetPassword from './login-page-component/SetPassword';
 
 
 function App() {
@@ -296,26 +297,27 @@ function App() {
                       path="/products"
                       element={
                         <ProductProvider>
-                          <ProductPage onAddToCart={handleAddToCart} />
+                          <ProductSection onAddToCart={handleAddToCart} isLoggedIn={isLoggedIn} /> {/* Added ProductSection route */}
                         </ProductProvider>
                       }
                     />
-
-                     {/* New Category Route */}
-                    <Route path="/category/:categoryName" element={<Category />} />
 
                     <Route path="/cart/*" element={<CartPage cartItems={cartItems} onRemoveFromCart={handleRemoveFromCart} onUpdateQuantity={handleUpdateQuantity} />} />
                     <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/login/*" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
                     <Route path="/login/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/set-password" element={<SetPassword />} />
                     <Route path="/contact" element={<ContactUs />} />
                     <Route path="/faqs" element={<Faqs />} />
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/shipping" element={<Shipping />} />
                     <Route path="/returns" element={<Returns />} />
-                    <Route path="/product-detail" element={<ProductDetail onAddToCart={handleAddToCart} />} />
+                    <Route 
+                      path="/product-detail" 
+                      element={<ProductDetail onAddToCart={handleAddToCart} isLoggedIn={isLoggedIn} />}
+                    />
                     <Route path="/manage-account" element={<ManageAcc />} />
-                     <Route path="/set-password" element={<SetPassword />} />   
+
 
 
                   </Routes>

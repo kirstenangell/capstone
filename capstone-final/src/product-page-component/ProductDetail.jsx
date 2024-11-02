@@ -1,45 +1,68 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ProductContext } from '../context/ProductContext'; 
-import Wheel1 from "../assets/wheel1.png";
-import Wheel2 from "../assets/wheel2.png";
-import Wheel3 from "../assets/wheel3.png";
-import Wheel5 from "../assets/wheel5.png";
+import { ProductContext } from '../context/ProductContext';
 
-const ProductDetail = ({ onAddToCart }) => {
-  const { products } = useContext(ProductContext); 
-  const location = useLocation(); 
+const ProductDetail = ({ onAddToCart, isLoggedIn }) => {
+  const { products } = useContext(ProductContext);
+  const location = useLocation();
   const navigate = useNavigate();
   const [selectedProduct, setSelectedProduct] = useState(location.state?.product || products[0]);
-  
+  const [showLoginWarning, setShowLoginWarning] = useState(false);
+
   useEffect(() => {
     if (location.state?.product) {
       setSelectedProduct(location.state.product);
     }
   }, [location.state]);
 
-  const handleProductClick = (product) => {
-    setSelectedProduct(product);
+  const handleAddToCartClick = () => {
+    if (isLoggedIn) {
+      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
+    } else {
+      setShowLoginWarning(true);
+    }
   };
 
-  const handleAddToCart = () => {
-    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
+  const handleBuyNowClick = () => {
+    if (isLoggedIn) {
+      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
+      navigate('/cart');
+    } else {
+      setShowLoginWarning(true);
+    }
   };
-  
 
-  const handleBuyNow = () => {
-    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 0 });
-    navigate('/cart'); 
+  const handleLoginRedirect = () => {
+    navigate('/login');
   };
-
-  
 
   return (
     <div className="min-h-screen bg-black text-white p-6 mt-12">
+      {showLoginWarning && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+          <div className="p-6 bg-gradient-to-br from-[#4B88A3] to-[#000000] text-white rounded-md shadow-lg text-center">
+            <p className="mb-4">You need to login</p>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={handleLoginRedirect}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+              >
+                Log in now
+              </button>
+              <button
+                onClick={() => setShowLoginWarning(false)}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto flex">
         {/* Left Side - Thumbnails and Main Image */}
         <div className="flex flex-col justify-center space-y-4 mr-8">
-          {/* Thumbnails */}
           <div className="flex flex-col items-center space-y-4">
             {selectedProduct.relatedImages?.map((image, index) => (
               <img
@@ -54,13 +77,8 @@ const ProductDetail = ({ onAddToCart }) => {
             ))}
           </div>
           
-          {/* Main Image */}
           <div className="w-full bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-8 shadow-lg flex items-center justify-center">
-            <img
-              src={selectedProduct.image}
-              alt={selectedProduct.name}
-              className="w-96 h-96 object-contain"
-            />
+            <img src={selectedProduct.image} alt={selectedProduct.name} className="w-96 h-96 object-contain" />
           </div>
         </div>
 
@@ -76,18 +94,16 @@ const ProductDetail = ({ onAddToCart }) => {
             <span className="text-[#335C6E] text-2xl">
               &#9733; &#9733; &#9733; &#9733; &#9734; {/* Static 4 stars filled and 1 star empty */}
             </span>
-            <span className="ml-2 text-sm text-gray-400">(11 Reviews)</span> {/* Adjust review count */}
+            <span className="ml-2 text-sm text-gray-400">(11 Reviews)</span>
           </div>
 
-
-            {/* Price */}
-            <div className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
+          {/* Price */}
+          <div className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
             PHP {selectedProduct.price.toLocaleString()}
           </div>
 
-
-            {/* Quantity Selector */}
-            <div className="flex items-center mt-4">
+          {/* Quantity Selector */}
+          <div className="flex items-center mt-4">
             <button
               onClick={() => setSelectedProduct({ ...selectedProduct, quantity: selectedProduct.quantity > 0 ? selectedProduct.quantity - 1 : 0 })}
               className="px-4 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none hover:bg-gray-700"
@@ -105,8 +121,8 @@ const ProductDetail = ({ onAddToCart }) => {
             </button>
           </div>
 
-            {/* Product Additional Details */}
-            <div className="mt-6 space-y-2 text-gray-400 font-thin">
+          {/* Additional Product Details */}
+          <div className="mt-6 space-y-2 text-gray-400 font-thin">
             <p>Product Type: {selectedProduct.type || 'N/A'}</p>
             <p>Category: {selectedProduct.category || 'N/A'}</p>
             <p>Dimensions: {selectedProduct.dimensions || 'N/A'}</p>
@@ -114,18 +130,18 @@ const ProductDetail = ({ onAddToCart }) => {
             <p>Finish: {selectedProduct.finish || 'N/A'}</p>
             <p>Material: {selectedProduct.material || 'N/A'}</p>
             <p>Model: {selectedProduct.model || 'N/A'}</p>
-            </div>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex mt-6 space-x-4">
+          {/* Action Buttons */}
+          <div className="flex mt-6 space-x-4">
             <button
-              onClick={handleAddToCart}
+              onClick={handleAddToCartClick}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
             >
               ADD TO CART
             </button>
             <button
-              onClick={handleBuyNow}
+              onClick={handleBuyNowClick}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
             >
               BUY NOW
@@ -133,6 +149,7 @@ const ProductDetail = ({ onAddToCart }) => {
           </div>
         </div>
       </div>
+
       {/* "You may also like" Section */}
       <div className="mt-16">
         <h2 className="text-xl font-semibold mb-4">You may also like</h2>
@@ -142,7 +159,7 @@ const ProductDetail = ({ onAddToCart }) => {
               key={product.id}
               className="text-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer"
               style={{ backgroundColor: 'rgba(217, 217, 217, 0.04)' }}
-              onClick={() => handleProductClick(product)}
+              onClick={() => setSelectedProduct(product)}
             >
               <img src={product.image} alt={product.name} className="w-full h-64 object-contain rounded-md" />
               <div className="mt-4">

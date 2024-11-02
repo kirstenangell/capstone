@@ -1,26 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IoArrowBackCircle } from 'react-icons/io5';
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
+import { IoArrowBackCircle } from 'react-icons/io5';
 import { RiErrorWarningLine } from 'react-icons/ri';
+import axios from 'axios';
 
 const SetPassword = () => {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [token, setToken] = useState('');
-
-  // Extract token from the URL when the component mounts
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = urlParams.get('token');
-    if (tokenFromUrl) {
-      setToken(tokenFromUrl);
-    } else {
-      alert('Invalid or missing token.');
-      navigate('/login');
-    }
-  }, [navigate]);
+  const [newPassword, setNewPassword] = useState(''); // Added state for new password
+  const [confirmPassword, setConfirmPassword] = useState(''); // Added state for confirm password
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -30,46 +20,47 @@ const SetPassword = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const handleSavePassword = async (e) => {
-    e.preventDefault();
-    const newPassword = document.querySelector('input[placeholder="New Password"]').value;
-    const confirmPassword = document.querySelector('input[placeholder="Confirm Password"]').value;
+  const handleSavePassword = async (event) => {
+    event.preventDefault();
+    const token = new URLSearchParams(window.location.search).get('token');
 
-    if (newPassword !== confirmPassword) {
-      alert('Passwords do not match');
+    if (!token || newPassword !== confirmPassword) {
+      alert('Passwords do not match or token is missing.');
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/update-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, newPassword }),
+      const response = await axios.post('http://localhost:5000/set-password', {
+        token,
+        newPassword,
       });
-      const data = await response.json();
-      if (response.ok) {
-        alert('Password updated successfully. Please log in with your new password.');
+
+      if (response.status === 200) {
+        alert('Password updated successfully.');
         navigate('/login');
-      } else {
-        alert(data.message);
       }
     } catch (error) {
       console.error('Error updating password:', error);
-      alert('Error updating password. Please try again later.');
+      alert('Failed to update password. Please try again.');
     }
+  };
+
+  const handleBackToLoginClick = () => {
+    navigate('/login');
   };
 
   return (
     <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]">
       <div className="w-full max-w-sm space-y-6 p-8 rounded-lg">
         <h1 className="text-2xl font-medium text-center mb-4">ENTER A NEW PASSWORD</h1>
+
         <form className="space-y-4" onSubmit={handleSavePassword}>
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="New Password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
               style={{
                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -87,6 +78,8 @@ const SetPassword = () => {
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
               style={{
                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -124,10 +117,11 @@ const SetPassword = () => {
             SAVE
           </button>
         </form>
+
         <div className="text-center mt-4 text-xs">
           <a
             href="#"
-            onClick={() => navigate('/login')}
+            onClick={handleBackToLoginClick}
             className="flex items-center justify-center hover:underline bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
           >
             <IoArrowBackCircle
@@ -135,10 +129,20 @@ const SetPassword = () => {
               style={{
                 fill: 'url(#grad1)',
                 width: '16px',
-                height: '16px',
               }}
             />
             Back to Login
+          </a>
+        </div>
+
+        <div className="text-center mt-4 text-xs">
+          <span>Don't have an account? </span>
+          <a
+            href="#"
+            onClick={() => navigate('/signup')}
+            className="hover:underline bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
+          >
+            Sign Up
           </a>
         </div>
       </div>
