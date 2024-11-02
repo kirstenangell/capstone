@@ -43,6 +43,7 @@ import { CustomerProvider } from './context/CustomerContext';
 import { ProductProvider } from './context/ProductContext'; 
 import { OrderProvider } from './context/OrderContext'; 
 import { SupplierProvider } from './context/SupplierContext'; 
+import SetPassword from './login-page-component/SetPassword';
 
 
 function App() {
@@ -304,6 +305,7 @@ function App() {
                     <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/login/*" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
                     <Route path="/login/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/set-password" element={<SetPassword />} />
                     <Route path="/contact" element={<ContactUs />} />
                     <Route path="/faqs" element={<Faqs />} />
                     <Route path="/terms" element={<Terms />} />

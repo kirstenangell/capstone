@@ -356,100 +356,99 @@ app.get('/products', (req, res) => {
   });
 });
 
-// Add Customer API
-app.post('/add-customer', (req, res) => {
-  console.log('Received add-customer request:', req.body); // Add this log
-  const {
-    name, type, email, phone, paymentStatus, paymentReference,
-    currentAddress, newAddress
-  } = req.body;
+app.post('/forgot-password', (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    console.log('No email provided');
+    return res.status(400).json({ message: 'Email is required' });
+  }
 
-  const query = `
-    INSERT INTO customers (name, type, email, phone, payment_status, payment_reference,
-      current_street, current_city, current_province, current_zip, current_landmark,
-      new_street, new_city, new_province, new_zip, new_landmark)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  const token = crypto.randomBytes(32).toString('hex');
+  const query = 'UPDATE users SET reset_token = ? WHERE email = ?';
 
-  db.query(query, [
-    name, type, email, phone, paymentStatus, paymentReference,
-    currentAddress.street, currentAddress.city, currentAddress.province, currentAddress.zipCode, currentAddress.landmark,
-    newAddress.street, newAddress.city, newAddress.province, newAddress.zipCode, newAddress.landmark
-  ], (err, result) => {
+  db.query(query, [token, email], (err, result) => {
     if (err) {
-      console.error('Error adding customer:', err);
-      return res.status(500).json({ message: 'Error adding customer' });
-    }
-    res.status(200).json({ message: 'Customer added successfully', id: result.insertId });
-  });
-});
- 
-// Get Customers API
-app.get('/customers', (req, res) => {
-  const query = 'SELECT * FROM customers';
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Error fetching customers:', err);
-      return res.status(500).json({ message: 'Error fetching customers' });
-    }
-    res.status(200).json(results);
-  });
-});
-
-// Update Customer API
-app.put('/update-customer/:id', (req, res) => {
-  const customerId = req.params.id;
-  const {
-    name, type, email, phone, paymentStatus, paymentReference,
-    currentAddress, newAddress
-  } = req.body;
-
-  const query = `
-    UPDATE customers 
-    SET name = ?, type = ?, email = ?, phone = ?, payment_status = ?, payment_reference = ?,
-        current_street = ?, current_city = ?, current_province = ?, current_zip = ?, current_landmark = ?,
-        new_street = ?, new_city = ?, new_province = ?, new_zip = ?, new_landmark = ?
-    WHERE id = ?
-  `;
-
-  db.query(query, [
-    name, type, email, phone, paymentStatus, paymentReference,
-    currentAddress.street, currentAddress.city, currentAddress.province, currentAddress.zipCode, currentAddress.landmark,
-    newAddress.street, newAddress.city, newAddress.province, newAddress.zipCode, newAddress.landmark,
-    customerId
-  ], (err, result) => {
-    if (err) {
-      console.error('Error updating customer:', err);
-      return res.status(500).json({ message: 'Error updating customer' });
+      console.error('Error updating reset token:', err);
+      return res.status(500).json({ message: 'Server error' });
     }
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Customer not found' });
+      console.log('Email not found in the database');
+      return res.status(404).json({ message: 'Email not found' });
     }
 
-    res.status(200).json({ message: 'Customer updated successfully' });
+    const resetUrl = `http://localhost:5173/set-password?token=${token}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `<p>Please click the following link to set your new password:</p><a href="${resetUrl}">${resetUrl}</a>`
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error('Error sending email:', err);
+        return res.status(500).json({ message: 'Error sending email' });
+      }
+      console.log('Reset email sent:', info.response); // Log for successful email sending
+      res.status(200).json({ message: 'Password reset link sent' });
+    });
   });
 });
 
-// Archive (soft delete) Customer API
-app.put('/archive-customer/:id', (req, res) => {
-  const customerId = req.params.id;
 
-  const query = `UPDATE customers SET archived = true WHERE id = ?`;
+// Password Set API
+// Password Set API
+// Password Set API
+app.post('/set-password', async (req, res) => {
+  const { token, newPassword } = req.body;
 
-  db.query(query, [customerId], (err, result) => {
+  // Validate input
+  if (!token || !newPassword) {
+    console.log('Missing token or newPassword');
+    return res.status(400).json({ message: 'Token and new password are required' });
+  }
+
+  // Find the user with the provided reset token
+  const query = 'SELECT * FROM users WHERE reset_token = ?';
+  db.query(query, [token], async (err, result) => {
     if (err) {
-      console.error('Error archiving customer:', err);
-      return res.status(500).json({ message: 'Error archiving customer' });
+      console.error('Error querying database for reset token:', err);
+      return res.status(500).json({ message: 'Server error' });
     }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Customer not found' });
+    if (result.length === 0) {
+      console.log('Invalid or expired reset token');
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
 
-    res.status(200).json({ message: 'Customer archived successfully' });
+    console.log('User found with reset token');
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    console.log('New password hashed');
+
+    // Update user's password, set password_verified to 1, and clear reset token
+    const updateQuery = 'UPDATE users SET password = ?, reset_token = NULL, password_verified = 1 WHERE reset_token = ?';
+    db.query(updateQuery, [hashedPassword, token], (updateErr, updateResult) => {
+      if (updateErr) {
+        console.error('Error updating password:', updateErr);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      if (updateResult.affectedRows === 0) {
+        console.log('No rows affected - password not updated');
+        return res.status(400).json({ message: 'Failed to update password' });
+      }
+
+      console.log('Password updated successfully');
+      res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
+    });
   });
 });
+
+
 
 // Update Password API after reset
 // Backend - Update Password API after reset

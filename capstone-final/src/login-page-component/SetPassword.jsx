@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 import { useNavigate } from 'react-router-dom';
+import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 import { IoArrowBackCircle } from 'react-icons/io5';
 import { RiErrorWarningLine } from 'react-icons/ri';
+import axios from 'axios';
 
 const SetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState(''); // Added state for new password
+  const [confirmPassword, setConfirmPassword] = useState(''); // Added state for confirm password
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
@@ -17,9 +20,29 @@ const SetPassword = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const handleSavePassword = (event) => {
+  const handleSavePassword = async (event) => {
     event.preventDefault();
-    navigate('/login/password-confirmation');
+    const token = new URLSearchParams(window.location.search).get('token');
+
+    if (!token || newPassword !== confirmPassword) {
+      alert('Passwords do not match or token is missing.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:5000/set-password', {
+        token,
+        newPassword,
+      });
+
+      if (response.status === 200) {
+        alert('Password updated successfully.');
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      alert('Failed to update password. Please try again.');
+    }
   };
 
   const handleBackToLoginClick = () => {
@@ -36,6 +59,8 @@ const SetPassword = () => {
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="New Password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
               style={{
                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -52,7 +77,9 @@ const SetPassword = () => {
           <div className="relative">
             <input
               type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Confirm Pasword"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
               style={{
                 background: 'linear-gradient(90deg, #040405, #335C6E)',
@@ -68,17 +95,17 @@ const SetPassword = () => {
 
           <div>
             <p className="text-xs text-gray-400 mt-2 flex items-center">
-                <RiErrorWarningLine 
-                className="mr-1" 
+              <RiErrorWarningLine
+                className="mr-1"
                 style={{
-                    fill: 'url(#grad1)',
-                    width: '14px',
-                    height: '14px',
-                }} 
-                />
-                Must be at least 8 characters
+                  fill: 'url(#grad1)',
+                  width: '14px',
+                  height: '14px',
+                }}
+              />
+              Must be at least 8 characters
             </p>
-            </div>
+          </div>
 
           <button
             type="submit"
@@ -102,19 +129,10 @@ const SetPassword = () => {
               style={{
                 fill: 'url(#grad1)',
                 width: '16px',
-                height: '16px',
               }}
             />
             Back to Login
           </a>
-          <svg width="0" height="0">
-            <defs>
-              <linearGradient id="grad1" x1="0%" y1="0%" x2="100%">
-                <stop offset="0%" style={{ stopColor: '#62B1D4', stopOpacity: 1 }} />
-                <stop offset="100%" style={{ stopColor: '#335C6E', stopOpacity: 1 }} />
-              </linearGradient>
-            </defs>
-          </svg>
         </div>
 
         <div className="text-center mt-4 text-xs">

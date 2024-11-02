@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { IoArrowBackCircle } from 'react-icons/io5'; // Correct
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Correct
 import { RiErrorWarningLine } from 'react-icons/ri'; // Correct
+import axios from 'axios';
+
 
 
 const ForgotPassword = () => {
@@ -15,11 +17,23 @@ const ForgotPassword = () => {
     navigate('/login');
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    // Add logic here if you want to validate the email or send an API request
-    setIsPasswordReset(true); // Mark as password reset to show new password form
+    const emailInput = e.target.elements[0].value;
+  
+    try {
+      const response = await axios.post('http://localhost:5000/forgot-password', { email: emailInput });
+  
+      if (response.status === 200) {
+        alert('Password reset link sent to your email.');
+        setIsPasswordReset(true); // Show new password form if needed
+      }
+    } catch (error) {
+      console.error('Error sending reset request:', error);
+      alert('Failed to send reset link. Please check your email and try again.');
+    }
   };
+  
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -29,10 +43,29 @@ const ForgotPassword = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
   
-  const handleSavePassword = (event) => {
+    
+  
+  
+  const handleSavePassword = async (event) => {
     event.preventDefault();
-    navigate('/login');
+    const token = new URLSearchParams(window.location.search).get('token'); 
+    const newPassword = event.target.elements[0].value;
+  
+    try {
+      const response = await axios.post('http://localhost:5000/set-password', {
+        token,
+        newPassword
+      });
+      if (response.status === 200) {
+        alert('Password updated successfully.');
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      alert('Failed to update password. Please try again.');
+    }
   };
+  
 
 
   return (
