@@ -469,6 +469,51 @@ app.post('/update-password', async (req, res) => {
   });
 });
 
+// Update Password API
+// Update Password from Password Tab API
+app.post('/update-password-tab', async (req, res) => {
+  const { email, currentPassword, newPassword } = req.body;
+
+  if (!email || !currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  const query = 'SELECT * FROM users WHERE email = ?';
+  db.query(query, [email], async (err, result) => {
+    if (err) {
+      console.error('Error querying database:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = result[0];
+    
+    // Verify the current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password
+    const updateQuery = 'UPDATE users SET password = ? WHERE email = ?';
+    db.query(updateQuery, [hashedPassword, email], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating password:', updateErr);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      res.status(200).json({ message: 'Password updated successfully' });
+    });
+  });
+});
+
+
 
 // Start the server
 const port = 5000;

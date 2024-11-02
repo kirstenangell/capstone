@@ -20,11 +20,16 @@ const ProfileAccount = () => {
     });
 
     const fileInputRef = useRef(null);
-    const navigate = useNavigate(); // useNavigate hook for redirection
+    const navigate = useNavigate();
 
-    // New state variables
+    // New state variables for profile editing
     const [isEditing, setIsEditing] = useState(false);
     const [initialFormData, setInitialFormData] = useState({});
+
+    // New state variables for password update
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     // Fetch user data when the component loads
     useEffect(() => {
@@ -64,7 +69,7 @@ const ProfileAccount = () => {
                     });
                 } else {
                     alert('Access restricted');
-                    navigate('/'); // Redirect if unauthorized
+                    navigate('/');
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -73,26 +78,19 @@ const ProfileAccount = () => {
     
         fetchUserData();
     }, [navigate]);
-    
 
-    const handleTabClick = (tab) => {
-        setActiveTab(tab);
-    };
+    const handleTabClick = (tab) => setActiveTab(tab);
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setProfilePic(reader.result);
-            };
+            reader.onloadend = () => setProfilePic(reader.result);
             reader.readAsDataURL(file);
         }
     };
 
-    const handleUploadClick = () => {
-        fileInputRef.current.click();
-    };
+    const handleUploadClick = () => fileInputRef.current.click();
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -117,19 +115,46 @@ const ProfileAccount = () => {
     
             if (response.status === 200) {
                 console.log('User details updated successfully');
-                setInitialFormData(formData); // Update initial formData with saved data
+                setInitialFormData(formData);
                 setIsEditing(false);
             }
         } catch (error) {
             console.error('Error updating user details:', error);
         }
     };
-    
 
     const handleLogout = () => {
-        localStorage.clear(); // Clear localStorage on logout
-        navigate('/'); // Redirect to the homepage
+        localStorage.clear();
+        navigate('/');
     };
+
+    // New function to handle password update
+    const handlePasswordUpdate = async () => {
+        if (newPassword !== confirmPassword) {
+            alert("New password and confirm password do not match.");
+            return;
+        }
+
+        const email = formData.email;
+
+        try {
+            const response = await axios.post('http://localhost:5000/update-password-tab', {
+                email,
+                currentPassword,
+                newPassword,
+            });
+
+            if (response.status === 200) {
+                alert("Password updated successfully.");
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+            }
+        } catch (error) {
+            alert('Error updating password: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
     
 
     return (
@@ -441,7 +466,7 @@ const ProfileAccount = () => {
                     </div>
                 )}
 
-                {activeTab === 'password' && (
+{activeTab === 'password' && (
                     <div className="space-y-6">
                         <div className="w-full max-w-2xl text-white rounded-lg shadow-lg">
                             <form className="space-y-6">
@@ -450,6 +475,8 @@ const ProfileAccount = () => {
                                     <input
                                         type="password"
                                         placeholder="Current Password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
                                         className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
@@ -458,6 +485,8 @@ const ProfileAccount = () => {
                                     <input
                                         type="password"
                                         placeholder="New Password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
                                         className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
@@ -466,20 +495,27 @@ const ProfileAccount = () => {
                                     <input
                                         type="password"
                                         placeholder="Confirm Password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
                                         className="w-full p-3 text-xs bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
-                                {/* Buttons */}
                                 <div className="flex justify-between mt-6">
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gray-600 rounded-md text-xs"
+                                        onClick={() => {
+                                            setCurrentPassword('');
+                                            setNewPassword('');
+                                            setConfirmPassword('');
+                                        }}
                                     >
                                         CANCEL
                                     </button>
                                     <button
                                         type="button"
                                         className="px-6 py-2 bg-gradient-to-r from-[#335C6E] to-[#000000] text-xs rounded-md"
+                                        onClick={handlePasswordUpdate}
                                     >
                                         SAVE CHANGES
                                     </button>
