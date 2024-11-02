@@ -356,8 +356,100 @@ app.get('/products', (req, res) => {
   });
 });
 
+// Add Customer API
+app.post('/add-customer', (req, res) => {
+  console.log('Received add-customer request:', req.body); // Add this log
+  const {
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress, newAddress
+  } = req.body;
 
+  const query = `
+    INSERT INTO customers (name, type, email, phone, payment_status, payment_reference,
+      current_street, current_city, current_province, current_zip, current_landmark,
+      new_street, new_city, new_province, new_zip, new_landmark)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
+  db.query(query, [
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress.street, currentAddress.city, currentAddress.province, currentAddress.zipCode, currentAddress.landmark,
+    newAddress.street, newAddress.city, newAddress.province, newAddress.zipCode, newAddress.landmark
+  ], (err, result) => {
+    if (err) {
+      console.error('Error adding customer:', err);
+      return res.status(500).json({ message: 'Error adding customer' });
+    }
+    res.status(200).json({ message: 'Customer added successfully', id: result.insertId });
+  });
+});
+ 
+// Get Customers API
+app.get('/customers', (req, res) => {
+  const query = 'SELECT * FROM customers';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching customers:', err);
+      return res.status(500).json({ message: 'Error fetching customers' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// Update Customer API
+app.put('/update-customer/:id', (req, res) => {
+  const customerId = req.params.id;
+  const {
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress, newAddress
+  } = req.body;
+
+  const query = `
+    UPDATE customers 
+    SET name = ?, type = ?, email = ?, phone = ?, payment_status = ?, payment_reference = ?,
+        current_street = ?, current_city = ?, current_province = ?, current_zip = ?, current_landmark = ?,
+        new_street = ?, new_city = ?, new_province = ?, new_zip = ?, new_landmark = ?
+    WHERE id = ?
+  `;
+
+  db.query(query, [
+    name, type, email, phone, paymentStatus, paymentReference,
+    currentAddress.street, currentAddress.city, currentAddress.province, currentAddress.zipCode, currentAddress.landmark,
+    newAddress.street, newAddress.city, newAddress.province, newAddress.zipCode, newAddress.landmark,
+    customerId
+  ], (err, result) => {
+    if (err) {
+      console.error('Error updating customer:', err);
+      return res.status(500).json({ message: 'Error updating customer' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.status(200).json({ message: 'Customer updated successfully' });
+  });
+});
+
+// Archive (soft delete) Customer API
+app.put('/archive-customer/:id', (req, res) => {
+  const customerId = req.params.id;
+
+  const query = `UPDATE customers SET archived = true WHERE id = ?`;
+
+  db.query(query, [customerId], (err, result) => {
+    if (err) {
+      console.error('Error archiving customer:', err);
+      return res.status(500).json({ message: 'Error archiving customer' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.status(200).json({ message: 'Customer archived successfully' });
+  });
+});
 
 // Start the server
 const port = 5000;

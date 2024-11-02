@@ -24,21 +24,40 @@ const CustomerInformation = () => {
     paymentReference: existingCustomer.paymentReference || '',
   });
 
+  useEffect(() => {
+    // Log existing customer data for debugging
+    console.log("Existing customer data:", existingCustomer);
+  }, [existingCustomer]);
+
   const handleNextClick = (e) => {
     e.preventDefault();
     window.scrollTo(0, 0); // Scroll to the top of the page
-  
-    // Add the currentAddress and newAddress to generalInfo
+
+    // Prepare the address information for passing to the next step
     const updatedGeneralInfo = {
       ...generalInfo,
-      currentAddress: existingCustomer.currentAddress || {}, // Ensure address is passed
-      newAddress: existingCustomer.newAddress || {},         // Ensure new address is passed
+      currentAddress: existingCustomer.currentAddress || {
+        street: '',
+        city: '',
+        province: '',
+        zipCode: '',
+        landmark: '',
+      },
+      newAddress: existingCustomer.newAddress || {
+        street: '',
+        city: '',
+        province: '',
+        zipCode: '',
+        landmark: '',
+      },
     };
-  
+
+    // Debugging log to check if addresses are being passed correctly
+    console.log("Navigating to CustomerAddress with:", updatedGeneralInfo);
+
     // Navigate to CustomerAddress with the updated general information
     navigate('/customer/customer-address', { state: { generalInfo: updatedGeneralInfo, isEdit } });
   };
-  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -76,7 +95,7 @@ const CustomerInformation = () => {
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       <div className="mb-10 mt-16 text-center">
         <h1 className="text-xl font-bold text-white mt-2">GENERAL INFORMATION</h1>
-        <h2 className="text-sm font-bold text-white">Add New Customer</h2>
+        <h2 className="text-sm font-bold text-white">{isEdit ? "Edit Customer" : "Add New Customer"}</h2>
       </div>
 
       <div className="absolute left-10 top-1/4">
@@ -113,16 +132,12 @@ const CustomerInformation = () => {
 
           <div>
             <label className="block text-sm font-medium mb-1 text-white">Customer Type</label>
-
-            {/* Dropdown Button */}
             <button
               onClick={toggleDropdown}
               className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left"
             >
               {generalInfo.type || 'Select Customer Type'}
             </button>
-
-            {/* Dropdown Menu */}
             {isOpen && (
               <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
                 <ul className="text-sm text-white">
