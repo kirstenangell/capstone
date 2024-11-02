@@ -296,7 +296,7 @@ function App() {
                       path="/products"
                       element={
                         <ProductProvider>
-                          <ProductPage onAddToCart={handleAddToCart} />
+                          <ProductSection onAddToCart={handleAddToCart} isLoggedIn={isLoggedIn} /> {/* Added ProductSection route */}
                         </ProductProvider>
                       }
                     />
@@ -311,7 +311,10 @@ function App() {
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/shipping" element={<Shipping />} />
                     <Route path="/returns" element={<Returns />} />
-                    <Route path="/product-detail" element={<ProductDetail onAddToCart={handleAddToCart} />} />
+                    <Route 
+                      path="/product-detail" 
+                      element={<ProductDetail onAddToCart={handleAddToCart} isLoggedIn={isLoggedIn} />}
+                    />
                     <Route path="/manage-account" element={<ManageAcc />} />
 
 
