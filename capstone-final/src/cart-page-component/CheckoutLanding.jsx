@@ -120,6 +120,7 @@ const CheckoutLanding = () => {
   const handleEditClick = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -208,7 +209,12 @@ if (!selectedPaymentMethod) {
       <FaUser className="text-lg align-middle" />
       <div className="text-lg font-semibold align-middle">Information</div>
     </div>
-    <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('information')}>Edit</div>
+    <div
+    className="text-sm font-medium cursor-pointer"
+    onClick={() => handleEditClick('information')}
+  >
+    {expandedSection === 'information' ? 'Done' : 'Edit'}
+  </div>
   </div>
   {expandedSection !== 'information' && (
     <div className="mt-4">
@@ -297,7 +303,12 @@ if (!selectedPaymentMethod) {
                 <IoMdPin className="text-lg align-middle" />
                 <div className="text-lg font-semibold align-middle">Address</div>
               </div>
-              <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('address')}>Edit</div>
+              <div
+                className="text-sm font-medium cursor-pointer"
+                onClick={() => handleEditClick('address')}
+              >
+                {expandedSection === 'address' ? 'Done' : 'Edit'}
+              </div>
             </div>
             {expandedSection !== 'address' && (
               <div className="mt-4">
@@ -393,7 +404,8 @@ if (!selectedPaymentMethod) {
       <FaTruck className="text-lg align-middle" />
       <div className="text-lg font-semibold align-middle">Delivery</div>
     </div>
-    <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('delivery')}>Edit</div>
+    <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('delivery')}>
+      {expandedSection === 'delivery' ? 'Done' : 'Edit'}</div>
   </div>
   {expandedSection !== 'delivery' && selectedDeliveryOption && (
     <div className="mt-4 text-sm">
@@ -771,9 +783,12 @@ if (!selectedPaymentMethod) {
       <MdPayments className="text-lg align-middle" />
       <div className="text-lg font-semibold align-middle">Payment</div>
     </div>
-    <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('payment')}>
-      Edit
-    </div>
+    <div
+    className="text-sm font-medium cursor-pointer"
+    onClick={() => handleEditClick('payment')}
+  >
+    {expandedSection === 'payment' ? 'Done' : 'Edit'}
+  </div>
   </div>
   {expandedSection !== 'payment' && selectedPaymentMethod && (
   <div className="mt-4 text-sm">
