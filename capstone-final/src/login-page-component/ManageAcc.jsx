@@ -64,7 +64,15 @@ const ManageAcc = () => {
 
         fetchUserData();
     }, []);
-    
+
+    useEffect(() => {
+        const fetchOrders = () => {
+            const savedOrders = JSON.parse(localStorage.getItem('orders')) || [];
+            setOrderHistory(savedOrders);
+        };
+
+        fetchOrders();
+    }, []);
 
 
     const handleTabClick = (tab) => {
@@ -173,7 +181,8 @@ const ManageAcc = () => {
         }
       };
       
-    
+      const [orderHistory, setOrderHistory] = useState([]);
+
 
     return (
         <div className="min-h-screen flex bg-black text-white px-8">
@@ -602,66 +611,36 @@ const ManageAcc = () => {
             <h3 className="text-lg font-semibold">Order History</h3>
         </div>
         {/* Order History Content */}
-        <div
-            className="flex justify-between items-center bg-gray-800 p-4 rounded-md cursor-pointer"
-            style={{ background: 'linear-gradient(90deg, #335C6E, #040405)' }}
-            onClick={() => {
-                setSelectedOrder({
-                    id: '12345',
-                    items: [
-                        { name: 'Sports Jacket', quantity: 1, price: 120.99, category: 'Fashion' },
-                    ],
-                    createdAt: 'March 03, 2024',
-                    deliveryService: 'Express',
-                    paymentMethod: 'Bank Transfer',
-                    status: 'Processed',
-                    customerName: 'Cameron Williamson',
-                    email: 'cameronwilliamson@mail.com',
-                    phone: '(+1) 840-492-1485',
-                    timeline: [
-                        {
-                            status: 'Order Processed',
-                            description: 'The order is being prepared (products are being packed).',
-                        },
-                        {
-                            status: 'Payment Confirmed',
-                            description: 'Payment has been successfully processed and verified.',
-                        },
-                        {
-                            status: 'Order Placed',
-                            description: 'Order has been successfully placed by the customer.',
-                        },
-                    ],
-                    paymentSummary: {
-                        subtotal: 120.99,
-                        shippingFee: 5.75,
-                        total: 120.99 + 5.75, // Dynamically calculated
-                    },
-                });
-                setModalVisible(true);
-            }}
-        >
-            <div>
-                <h4 className="font-semibold text-white">Order #12345</h4>
-                <p className="text-sm text-gray-300">Placed on March 03, 2024</p>
+        {orderHistory.map((order) => (
+            <div
+                key={order.id}
+                className="flex justify-between items-center bg-gray-800 p-4 rounded-md cursor-pointer"
+                style={{ background: 'linear-gradient(90deg, #335C6E, #040405)' }}
+                onClick={() => {
+                    setSelectedOrder(order);
+                    setModalVisible(true);
+                }}
+            >
+                <div>
+                    <h4 className="font-semibold text-white">Order #{order.id}</h4>
+                    <p className="text-sm text-gray-300">Placed on {order.createdAt}</p>
+                </div>
+                <div className="font-semibold text-white">
+                    PHP {order.paymentSummary.total.toFixed(2)}
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    order.status === 'Delivered' ? 'bg-green-500 text-black' : 'bg-yellow-500 text-black'
+                }`}>
+                    {order.status}
+                </span>
             </div>
-            <div className="font-semibold text-white">
-                PHP {120.99 + 5.75} {/* Dynamically matches the modal */}
-            </div>
-            <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-500 text-black">
-                DELIVERED
-            </span>
-        </div>
+        ))}
     </div>
 )}
-
 {modalVisible && selectedOrder && (
     <div
         className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-        onClick={() => {
-            setModalVisible(false);
-            setSelectedOrder(null);
-        }}
+        onClick={() => setModalVisible(false)}
     >
         <div
             className="bg-white rounded-lg w-full max-w-3xl p-6 relative"
@@ -669,10 +648,7 @@ const ManageAcc = () => {
         >
             <button
                 className="absolute top-2 right-4 text-gray-600 hover:text-black text-xl"
-                onClick={() => {
-                    setModalVisible(false);
-                    setSelectedOrder(null);
-                }}
+                onClick={() => setModalVisible(false)}
             >
                 &times;
             </button>
@@ -685,11 +661,15 @@ const ManageAcc = () => {
                         <div key={index} className="flex justify-between text-sm text-black">
                             <p>{item.name} ({item.category})</p>
                             <p>{item.quantity} pcs</p>
-                            <p>PHP {item.price.toFixed(2)}</p>
+                            <p>
+                                PHP {typeof item.price === 'number' ? item.price.toFixed(2) : item.price}
+                            </p>
                         </div>
                     ))}
                 </div>
+
                 <hr className="my-4 border-gray-300" />
+
                 {/* Summary Section */}
                 <div>
                     <h3 className="text-lg font-semibold text-black">Summary</h3>
@@ -698,15 +678,25 @@ const ManageAcc = () => {
                     <p className="text-black">Payment Method: {selectedOrder.paymentMethod}</p>
                     <p className="text-black">Status: {selectedOrder.status}</p>
                 </div>
+
                 <hr className="my-4 border-gray-300" />
+
                 {/* Payment Section */}
                 <div>
                     <h3 className="text-lg font-semibold text-black">Payment</h3>
-                    <p className="text-black">Subtotal: PHP {selectedOrder.paymentSummary.subtotal.toFixed(2)}</p>
-                    <p className="text-black">Delivery Fee: PHP {selectedOrder.paymentSummary.shippingFee.toFixed(2)}</p>
-                    <p className="text-black">Total: PHP {selectedOrder.paymentSummary.total.toFixed(2)}</p>
+                    <p className="text-black">
+                        Subtotal: PHP {selectedOrder.paymentSummary.subtotal.toFixed(2)}
+                    </p>
+                    <p className="text-black">
+                        Delivery Fee: PHP {selectedOrder.paymentSummary.shippingFee.toFixed(2)}
+                    </p>
+                    <p className="text-black">
+                        Total: PHP {selectedOrder.paymentSummary.total.toFixed(2)}
+                    </p>
                 </div>
+
                 <hr className="my-4 border-gray-300" />
+
                 {/* Customer Info Section */}
                 <div>
                     <h3 className="text-lg font-semibold text-black">Customer Info</h3>
@@ -718,6 +708,7 @@ const ManageAcc = () => {
         </div>
     </div>
 )}
+
 
 
 

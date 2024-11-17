@@ -164,8 +164,38 @@ const CheckoutLanding = () => {
   };
 
   const handlePlaceOrder = () => {
-    setOrderPlaced(true); // Show the modal when checkout is clicked
+    const orderDetails = {
+      id: `OID-${Math.floor(Math.random() * 10000)}`,
+      items: cartItems.map((item) => ({
+        ...item,
+        price: parseFloat(item.price) || 0, // Ensure price is a number
+      })),
+      createdAt: new Date().toLocaleDateString(),
+      deliveryService: selectedDeliveryOption === 'courier' ? selectedCourier : 'Pickup',
+      paymentMethod: selectedPaymentMethod === 'gcash' ? 'GCash' : 'Physical Store',
+      status: 'Processing',
+      customerName: `${userInfo.firstName} ${userInfo.lastName}`,
+      email: userInfo.email,
+      phone: userInfo.contactNumber,
+      paymentSummary: {
+          subtotal: total,
+          shippingFee: selectedDeliveryOption === 'courier' ? 50 : 0,
+          total: total + (selectedDeliveryOption === 'courier' ? 50 : 0),
+      },
   };
+  
+
+
+    // Save order to localStorage or Context
+    const existingOrders = JSON.parse(localStorage.getItem('orders')) || [];
+    existingOrders.push(orderDetails);
+    localStorage.setItem('orders', JSON.stringify(existingOrders));
+
+    setOrderPlaced(true); // Show modal
+    setTimeout(() => {
+        navigate('/manage-account'); // Redirect to manage account page
+    }, 2000);
+};
 
   const isFutureDate = (date) => {
     const today = new Date();
@@ -188,6 +218,7 @@ if (!selectedDeliveryOption || (selectedDeliveryOption === 'courier' && !selecte
 if (!selectedPaymentMethod) {
   missingFields.push('Payment');
 }
+
 
 
 
