@@ -953,7 +953,6 @@ if (!selectedPaymentMethod) {
     </div>
   </div>
 )}
-
     </div>
     </div>
   );
