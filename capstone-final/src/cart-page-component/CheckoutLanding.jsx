@@ -24,6 +24,8 @@ const CheckoutLanding = () => {
   const [pickupTime, setPickupTime] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+
 
   const [userInfo, setUserInfo] = useState({
     email: '',
@@ -64,18 +66,18 @@ const CheckoutLanding = () => {
             countryCode: '+63',
           });
   
-          // Populate address information
-          setAddresses([
-            {
-              houseNumber: street || '',
-              streetName: street || '',
-              barangay: barangay || '',
-              city: city || '',
-              region: region || '',
-              province: province || '',
-              zipCode: zipCode || '',
-            },
-          ]);
+          // Populate addresses and set the default address
+          const defaultAddress = {
+            streetName: street || '',
+            barangay: barangay || '',
+            city: city || '',
+            region: region || '',
+            province: province || '',
+            zipCode: zipCode || '',
+          };
+  
+          setAddresses([defaultAddress]); // Set default address in addresses
+          setSelectedAddress(defaultAddress); // Set the selected address as the default
         } catch (error) {
           console.error('Error fetching user details:', error);
         }
@@ -87,15 +89,20 @@ const CheckoutLanding = () => {
   
   
   
+  
+  
 
 
 
   const [addressInfo, setAddressInfo] = useState({
-    houseNumber: '',
     streetName: '',
     barangay: '',
     city: '',
+    region: '',
+    province: '',
+    zipCode: '',
   });
+  
 
   const [addresses, setAddresses] = useState([
     {
@@ -379,30 +386,35 @@ if (!selectedPaymentMethod) {
           
           {/* Delivery Section */}
           <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <FaTruck className="text-lg align-middle" />
-                <div className="text-lg font-semibold align-middle">Delivery</div>
-              </div>
-              <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('delivery')}>Edit</div>
-            </div>
-            {expandedSection !== 'delivery' && selectedDeliveryOption && (
-              <div className="mt-4 text-sm">
-                {selectedDeliveryOption === 'courier' ? (
-                  <>
-                    <p>Via Courier</p>
-                    {selectedCourier && <p>{selectedCourier}</p>}
-                    {bookingMethod && <p>{bookingMethod === 'self' ? 'Self-Managed' : 'Flacko-Managed'}</p>}
-                  </>
-                ) : (
-                  <>
-                    <p>Via Pickup</p>
-                    <p>{pickupDate.toDateString()}</p>
-                    {pickupTime && <p>{pickupTime}</p>}
-                  </>
-                )}
-              </div>
-            )}
+  <div className="flex justify-between items-center">
+    <div className="flex items-center space-x-2">
+      <FaTruck className="text-lg align-middle" />
+      <div className="text-lg font-semibold align-middle">Delivery</div>
+    </div>
+    <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('delivery')}>Edit</div>
+  </div>
+  {expandedSection !== 'delivery' && selectedDeliveryOption && (
+    <div className="mt-4 text-sm">
+      {selectedDeliveryOption === 'courier' ? (
+        <>
+          <p>Via Courier</p>
+          {selectedCourier && <p>{selectedCourier}</p>}
+          {bookingMethod && <p>{bookingMethod === 'self' ? 'Self-Managed' : 'Flacko-Managed'}</p>}
+          {selectedAddress && (
+            <p>
+              {selectedAddress.streetName}, {selectedAddress.barangay}, {selectedAddress.city}, {selectedAddress.province}, {selectedAddress.zipCode}
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <p>Via Pickup</p>
+          <p>{pickupDate.toDateString()}</p>
+          {pickupTime && <p>{pickupTime}</p>}
+        </>
+      )}
+    </div>
+  )}
           
             {expandedSection === 'delivery' && (
               <div className="mt-4">
@@ -516,48 +528,164 @@ if (!selectedPaymentMethod) {
 
                     {/* Address Selection */}
                     {bookingMethod && (
-                      <div className="mt-4">
-                        <p className="text-sm mb-2">Select your Address</p>
-                        <div 
-                          className="p-4 bg-transparent rounded-md mb-4 cursor-pointer"
-                          style={{ 
-                            background: 'linear-gradient(90deg, #040405, #335C6E)', 
-                            borderWidth: '0.5px', 
-                            borderColor: 'white', 
-                            border: '1px solid gray',
-                            transition: 'box-shadow 0.3s ease',
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-                          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-                        >
-                          <div className="text-xs flex justify-between items-center">
-                            <span>Current Address</span>
-                            <span className="text-xs text-blue-400">Default</span>
-                          </div>
-                          <p className="text-xs text-gray-400">Loren Ipsum Dolor, Sit Amet Consectetur</p>
-                        </div>
-                        <div 
-                          className="p-4 bg-transparent rounded-md text-center text-xs cursor-pointer"
-                          style={{ 
-                            background: 'linear-gradient(90deg, #040405, #335C6E)', 
-                            borderWidth: '0.5px', 
-                            borderColor: 'white', 
-                            border: '1px solid gray',
-                            transition: 'box-shadow 0.3s ease',
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-                          onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-                        >
-                          + Add New Address
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+  <div className="mt-4">
+    <p className="text-sm mb-2">Select your Address</p>
+    {addresses.map((address, index) => (
+      <div
+        key={index}
+        className={`p-4 bg-transparent rounded-md mb-4 cursor-pointer ${selectedAddress === address ? 'border-blue-500' : ''}`}
+        style={{
+          background: 'linear-gradient(90deg, #040405, #335C6E)',
+          borderWidth: '0.5px',
+          borderColor: selectedAddress === address ? 'blue' : 'white',
+          border: '1px solid gray',
+          transition: 'box-shadow 0.3s ease',
+        }}
+        onClick={() => setSelectedAddress(address)}
+        onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)')}
+        onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
+      >
+        <div className="text-xs flex justify-between items-center">
+          <span>{address.streetName}, {address.barangay}, {address.city}, {address.region}, {address.province}, {address.zipCode}</span>
+          {index === 0 && <span className="text-xs text-blue-400">Default</span>}
+        </div>
+        <p className="text-xs text-gray-400">
+          {address.streetName}, {address.barangay}, {address.city}
+        </p>
+      </div>
+    ))}
+    <div
+      className="p-4 bg-transparent rounded-md text-center text-xs cursor-pointer"
+      style={{
+        background: 'linear-gradient(90deg, #040405, #335C6E)',
+        borderWidth: '0.5px',
+        borderColor: 'white',
+        border: '1px solid gray',
+        transition: 'box-shadow 0.3s ease',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)')}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
+      onClick={handleAddAddressClick} // Toggles the "Add Address" form
+    >
+      + Add New Address
+    </div>
+    {addAddressExpanded && (
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="relative">
+        <label className="text-xs mb-1 block">Street Name</label>
+        <input
+          type="text"
+          name="streetName"
+          placeholder="Enter street name"
+          value={addressInfo.streetName}
+          onChange={handleAddressInputChange}
+          className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+          style={{
+            background: 'linear-gradient(90deg, #040405, #335C6E)',
+            borderWidth: '0.5px',
+            borderColor: 'white',
+          }}
+        />
+      </div>
+      <div className="relative">
+        <label className="text-xs mb-1 block">Barangay</label>
+        <input
+          type="text"
+          name="barangay"
+          placeholder="Enter barangay"
+          value={addressInfo.barangay}
+          onChange={handleAddressInputChange}
+          className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+          style={{
+            background: 'linear-gradient(90deg, #040405, #335C6E)',
+            borderWidth: '0.5px',
+            borderColor: 'white',
+          }}
+        />
+      </div>
+      <div className="relative">
+        <label className="text-xs mb-1 block">City</label>
+        <input
+          type="text"
+          name="city"
+          placeholder="Enter city"
+          value={addressInfo.city}
+          onChange={handleAddressInputChange}
+          className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+          style={{
+            background: 'linear-gradient(90deg, #040405, #335C6E)',
+            borderWidth: '0.5px',
+            borderColor: 'white',
+          }}
+        />
+      </div>
+      <div className="relative">
+        <label className="text-xs mb-1 block">Region</label>
+        <input
+          type="text"
+          name="region"
+          placeholder="Enter region"
+          value={addressInfo.region}
+          onChange={handleAddressInputChange}
+          className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+          style={{
+            background: 'linear-gradient(90deg, #040405, #335C6E)',
+            borderWidth: '0.5px',
+            borderColor: 'white',
+          }}
+        />
+      </div>
+      <div className="relative">
+        <label className="text-xs mb-1 block">Province</label>
+        <input
+          type="text"
+          name="province"
+          placeholder="Enter province"
+          value={addressInfo.province}
+          onChange={handleAddressInputChange}
+          className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+          style={{
+            background: 'linear-gradient(90deg, #040405, #335C6E)',
+            borderWidth: '0.5px',
+            borderColor: 'white',
+          }}
+        />
+      </div>
+      <div className="relative">
+        <label className="text-xs mb-1 block">Zip Code</label>
+        <input
+          type="text"
+          name="zipCode"
+          placeholder="Enter zip code"
+          value={addressInfo.zipCode}
+          onChange={handleAddressInputChange}
+          className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+          style={{
+            background: 'linear-gradient(90deg, #040405, #335C6E)',
+            borderWidth: '0.5px',
+            borderColor: 'white',
+          }}
+        />
+      </div>
+      <div className="col-span-2 mt-4">
+        <button
+          type="button"
+          className="w-full p-3 bg-black text-white rounded-md text-xs"
+          style={{ background: '#007BFF' }}
+          onClick={handleAddNewAddress}
+        >
+          Add Address
+        </button>
+      </div>
+    </div>
+  )}
+  </div>
+)}
+
 
                 {/* Pickup Options */}
                 {selectedDeliveryOption === 'pickup' && (
-      <div className="mt-4">
+                  <div className="mt-4">
           <p className="text-sm mb-2">Select a pickup date</p>
           <div className="cursor-pointer w-full flex justify-center" onClick={() => setCalendarOpen(!calendarOpen)}>
         <DatePicker
@@ -593,12 +721,6 @@ if (!selectedPaymentMethod) {
           style={{ width: '100%', maxWidth: '320px' }} // Restrict width and center calendar
         />
       </div>
-
-
-
-
-
-
                     <p className="text-sm mt-4 mb-2">Select a pickup time</p>
                     <div className="grid grid-cols-2 gap-4">
                       {['09:00 AM', '10:00 AM', '02:00 PM', '04:30 PM'].map((time) => (
@@ -637,6 +759,8 @@ if (!selectedPaymentMethod) {
               </div>
             )}
           </div>
+            )}
+            </div>
 
           {/* Payment Section */}
           <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer">
@@ -648,10 +772,11 @@ if (!selectedPaymentMethod) {
               <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('payment')}>Edit</div>
             </div>
             {expandedSection !== 'payment' && selectedPaymentMethod && (
-              <div className="mt-4 text-sm">
-                <p>Payment Method: {selectedPaymentMethod === 'gcash' ? 'Via GCash' : 'Via Physical Store'}</p>
-              </div>
-            )}
+  <div className="mt-4 text-sm">
+    <p>Payment Method: {selectedPaymentMethod === 'gcash' ? 'Via GCash' : 'Via Physical Store'}</p>
+  </div>
+)}
+
             {expandedSection === 'payment' && (
               <div className="mt-4">
                 <p className="text-sm mb-4">Select your Payment Method</p>
