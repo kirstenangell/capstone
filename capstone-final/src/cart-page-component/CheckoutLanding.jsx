@@ -942,11 +942,16 @@ if (!selectedPaymentMethod) {
       {missingFields.length === 0 && cartItems.length > 0 && (
         <div className="flex justify-center">
           <button
-            className="text-sm mt-4 w-36 h-10 p-2 rounded-full text-white bg-gradient-to-r from-[#4B88A3] via-[#040405] to-[#4B88A3] hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.3)] transition-shadow"
-            onClick={handlePlaceOrder}
-          >
-            CHECKOUT
-          </button>
+          className="text-sm mt-4 w-36 h-10 p-2 rounded-full text-white flex items-center justify-center transition-shadow"
+          style={{
+            background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+            boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
+          }}
+          onClick={handlePlaceOrder}
+        >
+          CHECKOUT
+        </button>
+
         </div>
       )}
 
@@ -970,25 +975,32 @@ if (!selectedPaymentMethod) {
 </div>
       {/* Modal for Order Placed */}
       {orderPlaced && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur">
-          <div className="bg-gradient-to-r from-[rgba(75,136,163,0.4)] via-[rgba(4,4,5,0.7)] to-[rgba(75,136,163,0.3)] p-10 rounded-lg shadow-xl text-center">
-            <h2 className="text-2xl font-bold mb-4">YOUR ORDER HAS BEEN PLACED</h2>
-            <p className="text-sm mb-2">OID-0000</p>
-            <p className="text-sm mb-6">Wait for your order confirmation.</p>
-            <div className="w-16 h-28 mx-auto mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <button
-              className="text-xs p-4 rounded-md bg-gradient-to-r from-[#4B88A3] via-[#040405] to-[#4B88A3] hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.3)] transition-shadow"
-              onClick={() => navigate('/products')}
-            >
-              Continue Shopping
-            </button>
-          </div>
-        </div>
-      )}
+  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur">
+    <div className="bg-gradient-to-r from-[rgba(75,136,163,0.4)] via-[rgba(4,4,5,0.7)] to-[rgba(75,136,163,0.3)] p-10 rounded-lg shadow-xl text-center">
+      <h2 className="text-2xl font-bold mb-4">YOUR ORDER HAS BEEN PLACED</h2>
+      <p className="text-sm mb-2">OID-0000</p>
+      <p className="text-sm mb-6">Wait for your order confirmation.</p>
+      <div className="w-16 h-28 mx-auto mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <div className="flex justify-center">
+        <button
+          className="text-xs p-4 rounded-md flex items-center justify-center transition-shadow"
+          style={{
+            background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+            boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
+          }}
+          onClick={() => navigate('/products')}
+        >
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
     </div>
   );

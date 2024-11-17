@@ -177,11 +177,16 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                 className="w-full mt-8"
               >
                 <button
-                  className="w-full py-2 rounded-full font-semibold bg-gradient-to-r from-[#4B88A3] via-[#000000] to-[#4B88A3] flex items-center justify-center"
-                >
-                  Proceed to Checkout
-                  <IoArrowForwardCircle className="ml-2" />
-                </button>
+                className="w-full py-2 rounded-full font-semibold flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                  boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
+                }}
+              >
+                Proceed to Checkout
+                <IoArrowForwardCircle className="ml-2" />
+              </button>
+
               </NavLink>
             </>
           )}
