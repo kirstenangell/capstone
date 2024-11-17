@@ -25,6 +25,8 @@ const CheckoutLanding = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [paymentMessageInput, setPaymentMessageInput] = useState('');
+
 
 
   const [userInfo, setUserInfo] = useState({
@@ -764,98 +766,124 @@ if (!selectedPaymentMethod) {
 
           {/* Payment Section */}
           <div className="p-6 rounded-lg shadow-lg bg-gradient-to-r from-[rgba(75,136,163,0.3)] via-[rgba(4,4,5,0.5)] to-[rgba(75,136,163,0.3)] border border-transparent cursor-pointer">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <MdPayments className="text-lg align-middle" />
-                <div className="text-lg font-semibold align-middle">Payment</div>
-              </div>
-              <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('payment')}>Edit</div>
-            </div>
-            {expandedSection !== 'payment' && selectedPaymentMethod && (
+  <div className="flex justify-between items-center">
+    <div className="flex items-center space-x-2">
+      <MdPayments className="text-lg align-middle" />
+      <div className="text-lg font-semibold align-middle">Payment</div>
+    </div>
+    <div className="text-sm font-medium cursor-pointer" onClick={() => handleEditClick('payment')}>
+      Edit
+    </div>
+  </div>
+  {expandedSection !== 'payment' && selectedPaymentMethod && (
   <div className="mt-4 text-sm">
     <p>Payment Method: {selectedPaymentMethod === 'gcash' ? 'Via GCash' : 'Via Physical Store'}</p>
+    {paymentMessageInput && (
+      <p className="mt-2 text-gray-400">
+        Note: {paymentMessageInput}
+      </p>
+    )}
   </div>
 )}
 
-            {expandedSection === 'payment' && (
-              <div className="mt-4">
-                <p className="text-sm mb-4">Select your Payment Method</p>
-                <div className="flex space-x-4">
-                  <button 
-                    className={`w-full h-12 text-xs p-4 rounded-md ${selectedPaymentMethod === 'gcash' ? 'bg-blue-600' : ''}`}
-                    style={{ 
-                      background: selectedPaymentMethod === 'gcash' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
-                      borderWidth: '0.5px', 
-                      borderColor: 'white', 
-                      border: '1px solid gray',
-                      transition: 'box-shadow 0.3s ease',
-                    }}
-                    onClick={() => handlePaymentOptionClick('gcash')}
-                    onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-                    onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-                    onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-                    onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-                  >
-                    Via GCash
-                  </button>
-                  <button 
-                    className={`w-full h-12 text-xs p-4 rounded-md ${selectedPaymentMethod === 'store' ? 'bg-blue-600' : ''}`}
-                    style={{ 
-                      background: selectedPaymentMethod === 'store' ? 'linear-gradient(90deg, #033649, #23394d)' : 'linear-gradient(90deg, #040405, #335C6E)', 
-                      borderWidth: '0.5px', 
-                      borderColor: 'white', 
-                      border: '1px solid gray',
-                      transition: 'box-shadow 0.3s ease',
-                    }}
-                    onClick={() => handlePaymentOptionClick('store')}
-                    onMouseDown={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #033649, #23394d)'}
-                    onMouseUp={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #040405, #335C6E)'}
-                    onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px 5px rgba(0, 255, 255, 0.2)'}
-                    onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
-                  >
-                    Via Physical Store
-                  </button>
-                </div>
 
-                {/* Display QR Code for GCash */}
-                {selectedPaymentMethod === 'gcash' && (
-                  <div 
-                    className="mt-4 p-6 rounded-md text-center"
-                    style={{ 
-                      background: 'linear-gradient(90deg, #040405, #335C6E)', 
-                      border: '1px solid gray',
-                      cursor: 'default'
-                    }}
-                  >
-                    <p className="mb-4">Scan the QR code below to pay via GCash:</p>
-                    <div 
-                      className="p-4 inline-block rounded-md" 
-                      style={{ 
-                        background: 'white', 
-                        border: '1px solid gray',
-                      }}
-                    >
-                      <QRCode value="GCash Payment Info" size={128} />
-                    </div>
-                  </div>
-                )}
+  {expandedSection === 'payment' && (
+    <div className="mt-4">
+      <p className="text-sm mb-4">Select your Payment Method</p>
+      <div className="flex space-x-4">
+        <button
+          className={`w-full h-12 text-xs p-4 rounded-md ${
+            selectedPaymentMethod === 'gcash' ? 'bg-blue-600 text-white' : ''
+          }`}
+          style={{
+            background:
+              selectedPaymentMethod === 'gcash'
+                ? 'linear-gradient(90deg, #033649, #23394d)'
+                : 'linear-gradient(90deg, #040405, #335C6E)',
+            borderWidth: '0.5px',
+            borderColor: 'white',
+            border: '1px solid gray',
+            transition: 'box-shadow 0.3s ease',
+          }}
+          onClick={() => handlePaymentOptionClick('gcash')}
+        >
+          Via GCash
+        </button>
+        <button
+          className={`w-full h-12 text-xs p-4 rounded-md ${
+            selectedPaymentMethod === 'store' ? 'bg-blue-600 text-white' : ''
+          }`}
+          style={{
+            background:
+              selectedPaymentMethod === 'store'
+                ? 'linear-gradient(90deg, #033649, #23394d)'
+                : 'linear-gradient(90deg, #040405, #335C6E)',
+            borderWidth: '0.5px',
+            borderColor: 'white',
+            border: '1px solid gray',
+            transition: 'box-shadow 0.3s ease',
+          }}
+          onClick={() => handlePaymentOptionClick('store')}
+        >
+          Via Physical Store
+        </button>
+      </div>
 
-                {/* Display confirmation for Physical Store */}
-                {selectedPaymentMethod === 'store' && (
-                  <div 
-                    className="text-xs mt-4 p-6 rounded-md text-left"
-                    style={{ 
-                      background: 'linear-gradient(90deg, #040405, #335C6E)', 
-                      cursor: 'default'
-                    }}
-                  >
-                    <p>Payment will be completed in store.</p>
-                    <p>Thank you for choosing to pay at our physical store. Please visit us to complete your transaction.</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+      {/* Conditional Message Box */}
+      {selectedPaymentMethod && (
+  <div
+    className="mt-6 p-4 rounded-md flex flex-col items-center justify-center"
+    style={{
+      background: 'linear-gradient(90deg, #040405, #335C6E)',
+      border: '1px solid gray',
+      textAlign: 'center', // Ensures text and content are centrally aligned
+    }}
+  >
+    {selectedPaymentMethod === 'gcash' ? (
+      <>
+        <p className="mb-4 text-sm">Scan the QR code below to pay via GCash:</p>
+        <div className="p-4 bg-white inline-block rounded-md">
+          <QRCode value="GCash Payment Info" size={128} />
+        </div>
+      </>
+    ) : (
+      <>
+        <p className="text-sm">Payment will be completed in-store.</p>
+        <p className="text-xs text-gray-400">
+          Thank you for choosing to pay at our physical store. Please visit us to complete your transaction.
+        </p>
+      </>
+    )}
+  </div>
+)}
+
+
+      {/* Note Box for Additional Message */}
+      {selectedPaymentMethod && (
+        <div className="mt-4">
+          <label htmlFor="paymentMessageInput" className="text-xs mb-2 inline-block text-gray-400">
+            Add Additional Notes or Instructions (Optional)
+          </label>
+          <textarea
+            id="paymentMessageInput"
+            rows="3"
+            placeholder="Write a note or additional instructions..."
+            value={paymentMessageInput}
+            onChange={(e) => setPaymentMessageInput(e.target.value)}
+            className="w-full p-3 rounded-md bg-gray-700 text-gray-300 text-xs "
+            style={{
+              background: 'linear-gradient(90deg, #040405, #335C6E)',
+              borderWidth: '0.5px',
+              borderColor: 'white',
+            }}
+          />
+        </div>
+      )}
+    </div>
+  )}
+</div>
+ 
+
         </div>
 
         {/* Right Column: Summary */}
