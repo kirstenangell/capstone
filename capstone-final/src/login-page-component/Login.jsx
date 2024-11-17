@@ -23,6 +23,7 @@ const Login = ({ setIsLoggedIn }) => {
             if (response.status === 200) {
                 const { userData, role } = response.data;
                 localStorage.setItem('email', userData.email);
+
                 localStorage.setItem('firstName', userData.firstName);
                 localStorage.setItem('lastName', userData.lastName);
 

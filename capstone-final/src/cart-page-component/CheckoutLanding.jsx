@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaUser, FaTruck } from 'react-icons/fa';
 import { IoMdPin } from 'react-icons/io';
@@ -7,6 +7,7 @@ import { IoArrowForwardCircle, IoArrowBackOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import QRCode from 'react-qr-code';
+import axios from 'axios';
 
 const CheckoutLanding = () => {
   const location = useLocation();
@@ -23,13 +24,45 @@ const CheckoutLanding = () => {
   const [pickupTime, setPickupTime] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
+
   const [userInfo, setUserInfo] = useState({
-    email: 'loremipsumdolor@gmail.com',
-    phone: '912 456 7891',
+    email: '',
+    contactNumber: '',
     countryCode: '+63',
-    firstName: 'Lorem',
-    lastName: 'Ipsum',
+    firstName: '',
+    lastName: '',
   });
+  
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const email = localStorage.getItem('email');
+      if (email) {
+        try {
+          const response = await axios.get('http://localhost:5000/user-details', {
+            params: { email },
+          });
+          const { firstName, lastName, email: userEmail, contactNumber } = response.data;
+          setUserInfo({
+            firstName,
+            lastName,
+            email: userEmail,
+            contactNumber: contactNumber || '', // Default to empty if null
+            countryCode: '+63',
+          });
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      }
+    };
+  
+    fetchUserDetails();
+  }, []);
+  
+  
+  
+
+
 
   const [addressInfo, setAddressInfo] = useState({
     houseNumber: '',
@@ -101,9 +134,10 @@ const CheckoutLanding = () => {
   };
 
   // Validation for required fields
+// Validation for required fields
 const missingFields = [];
 
-if (!userInfo.firstName || !userInfo.lastName || !userInfo.email || !userInfo.phone) {
+if (!userInfo.firstName || !userInfo.lastName || !userInfo.email || !userInfo.contactNumber) {
   missingFields.push('Information');
 }
 if (!addresses.length) {
@@ -115,6 +149,9 @@ if (!selectedDeliveryOption || (selectedDeliveryOption === 'courier' && !selecte
 if (!selectedPaymentMethod) {
   missingFields.push('Payment');
 }
+
+
+
 
   return (
     <div className="min-h-screen flex bg-black text-white py-10 relative">
@@ -142,7 +179,7 @@ if (!selectedPaymentMethod) {
     <div className="mt-4">
       <div className="text-sm">{userInfo.firstName} {userInfo.lastName}</div>
       <div className="text-sm">{userInfo.email}</div>
-      <div className="text-sm">{userInfo.countryCode} {userInfo.phone}</div>
+      <div className="text-sm">{userInfo.contactNumber}</div>
     </div>
   )}
   {expandedSection === 'information' && (
@@ -150,20 +187,20 @@ if (!selectedPaymentMethod) {
                 <div className="mt-4">
                     <div className="text-sm">{userInfo.firstName} {userInfo.lastName}</div>
                     <div className="text-sm">{userInfo.email}</div>
-                    <div className="text-sm">{userInfo.countryCode} {userInfo.phone}</div>
+                    <div className="text-sm">{userInfo.contactNumber}</div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-4">
                   <div className="relative">
                     <label className="text-xs mb-1 block">First Name</label>
                     <input
-                      type="text"
-                      name="firstName"
-                      placeholder="Enter first name"
-                      value={userInfo.firstName}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
-                      style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
-                    />
+                    type="text"
+                    name="firstName"
+                    placeholder="Enter first name"
+                    value={userInfo.firstName}
+                    onChange={handleInputChange}
+                    className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+                    style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+                  />
                   </div>
                   <div className="relative">
                     <label className="text-xs mb-1 block">Last Name</label>
@@ -178,41 +215,32 @@ if (!selectedPaymentMethod) {
                     />
                   </div>
                 </div>
-                <div className="relative mt-4">
-                  <label className="text-xs mb-1 block">Email Address</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Enter email"
-                    value={userInfo.email}
-                    onChange={handleInputChange}
-                    className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
-                    style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
-                  />
-                </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-4">
-                  <div className="relative">
-                    <label className="text-xs mb-1 block">Country Code</label>
-                    <div
-                      className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
-                      style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
-                    >
-                      {userInfo.countryCode}
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <label className="text-xs mb-1 block">Phone</label>
-                    <input
-                      type="text"
-                      name="phone"
-                      placeholder="Enter phone number"
-                      value={userInfo.phone}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
-                      style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
-                    />
-                  </div>
-                </div>
+        <div className="relative">
+          <label className="text-xs mb-1 block">Email Address</label>
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter email"
+            value={userInfo.email}
+            onChange={handleInputChange}
+            className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+            style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+          />
+        </div>
+        <div className="relative">
+          <label className="text-xs mb-1 block">Contact Number</label>
+          <input
+            type="text"
+            name="contactNumber"
+            placeholder="Enter contact number"
+            value={userInfo.contactNumber}
+            onChange={handleInputChange}
+            className="w-full p-3 bg-transparent border border-gray-700 rounded-md text-xs"
+            style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
+          />
+        </div>
+      </div>
                 <button 
                   className="mt-4 w-full bg-black p-2 rounded-full text-sm bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
                   onClick={handleProceedToAddress}

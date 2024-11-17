@@ -611,6 +611,36 @@ app.post('/update-password-tab', async (req, res) => {
 });
 
 
+app.get('/user-details', (req, res) => {
+  const email = req.query.email;
+
+  const query = `
+    SELECT 
+      first_name AS firstName, 
+      last_name AS lastName, 
+      email, 
+      contact_number AS contactNumber 
+    FROM users 
+    WHERE email = ?
+  `;
+  db.query(query, [email], (err, result) => {
+    if (err) {
+      console.error('Error fetching user details:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(result[0]);
+  });
+});
+
+
+
+
+
 
 // Start the server
 const port = 5000;
