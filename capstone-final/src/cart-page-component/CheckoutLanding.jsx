@@ -42,14 +42,40 @@ const CheckoutLanding = () => {
           const response = await axios.get('http://localhost:5000/user-details', {
             params: { email },
           });
-          const { firstName, lastName, email: userEmail, contactNumber } = response.data;
+          const {
+            firstName,
+            lastName,
+            email: userEmail,
+            contactNumber,
+            street,
+            barangay,
+            city,
+            region,
+            province,
+            zipCode,
+          } = response.data;
+  
+          // Populate user information
           setUserInfo({
             firstName,
             lastName,
             email: userEmail,
-            contactNumber: contactNumber || '', // Default to empty if null
+            contactNumber: contactNumber || '',
             countryCode: '+63',
           });
+  
+          // Populate address information
+          setAddresses([
+            {
+              houseNumber: street || '',
+              streetName: street || '',
+              barangay: barangay || '',
+              city: city || '',
+              region: region || '',
+              province: province || '',
+              zipCode: zipCode || '',
+            },
+          ]);
         } catch (error) {
           console.error('Error fetching user details:', error);
         }
@@ -267,10 +293,11 @@ if (!selectedPaymentMethod) {
             {expandedSection !== 'address' && (
               <div className="mt-4">
                 {addresses.map((address, index) => (
-                  <div key={index} className="text-sm mt-2">
-                    {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
-                  </div>
-                ))}
+                <div key={index} className="text-sm mt-2">
+                 {address.streetName}, {address.barangay}, {address.city}, {address.region}, {address.province}, {address.zipCode}
+                </div>
+              ))}
+
               </div>
             )}
             {expandedSection === 'address' && (
@@ -281,7 +308,7 @@ if (!selectedPaymentMethod) {
                     className="w-full p-4 bg-transparent border border-gray-700 rounded-md text-xs mt-2"
                     style={{ background: 'linear-gradient(90deg, #040405, #335C6E)', borderWidth: '0.5px', borderColor: 'white' }}
                   >
-                    {address.houseNumber}, {address.streetName}, {address.barangay}, {address.city}
+                     {address.streetName}, {address.barangay}, {address.city}, {address.region}, {address.province}, {address.zipCode}
                   </div>
                 ))}
                 {addAddressExpanded && (

@@ -616,12 +616,19 @@ app.get('/user-details', (req, res) => {
 
   const query = `
     SELECT 
-      first_name AS firstName, 
-      last_name AS lastName, 
-      email, 
-      contact_number AS contactNumber 
-    FROM users 
-    WHERE email = ?
+  first_name AS firstName, 
+  last_name AS lastName, 
+  email, 
+  contact_number AS contactNumber,
+  street,
+  barangay,
+  city,
+  region,
+  province,
+  zip_code AS zipCode
+FROM users
+WHERE email = ?;
+
   `;
   db.query(query, [email], (err, result) => {
     if (err) {
