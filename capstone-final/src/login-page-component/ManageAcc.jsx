@@ -29,6 +29,9 @@ const ManageAcc = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [initialFormData, setInitialFormData] = useState({});
+    const [modalVisible, setModalVisible] = useState(false);
+   const [selectedOrder, setSelectedOrder] = useState(null);
+
 
     // Fetch user data when the component loads
     useEffect(() => {
@@ -61,7 +64,15 @@ const ManageAcc = () => {
 
         fetchUserData();
     }, []);
-    
+
+    useEffect(() => {
+        const fetchOrders = () => {
+            const savedOrders = JSON.parse(localStorage.getItem('orders')) || [];
+            setOrderHistory(savedOrders);
+        };
+
+        fetchOrders();
+    }, []);
 
 
     const handleTabClick = (tab) => {
@@ -170,7 +181,8 @@ const ManageAcc = () => {
         }
       };
       
-    
+      const [orderHistory, setOrderHistory] = useState([]);
+
 
     return (
         <div className="min-h-screen flex bg-black text-white px-8">
@@ -593,147 +605,114 @@ const ManageAcc = () => {
                     </div>
                 )}
 
-                 {activeTab === 'orderHistory' && (
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Order History</h3>
-                            <div className="relative flex space-x-4">
-                                {/* Filter Dropdown */}
-                                <button
-                                    className="relative flex items-center p-2 rounded-md text-sm text-white bg-gray-700"
-                                    onClick={() => toggleDropdown('filter')}
-                                    style={{ background: 'linear-gradient(90deg, #122229,#040405)' }}
-                                >
-                                    <span className="mr-2">All Status</span>
-                                    {activeDropdown === 'filter' ? <FaChevronUp className="text-xs ml-2" /> : <FaChevronDown className="text-xs ml-2" />}
-                                </button>
-                                {activeDropdown === 'filter' && (
-                                    <div className="absolute top-full left-[-18px] text-white mt-1 text-sm rounded-md shadow-lg p-2 w-full"
-                                        style={{ background: 'linear-gradient(90deg, #122229,#040405)' }}>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            All Status
-                                        </p>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            Payment Pending
-                                        </p>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            Completed
-                                        </p>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            Processing
-                                        </p>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            Pre-ordered
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Sort Dropdown */}
-                                <button
-                                    className="relative flex items-center p-2 rounded-md text-sm text-white bg-gray-700"
-                                    onClick={() => toggleDropdown('sort')}
-                                    style={{ background: 'linear-gradient(90deg, #040405, #122229)' }}
-                                >
-                                    <span className="mr-1">Last 3 Months</span>
-                                    {activeDropdown === 'sort' ? <FaChevronUp className="text-xs ml-2" /> : <FaChevronDown className="text-xs ml-2" />}
-                                </button>
-                                {activeDropdown === 'sort' && (
-                                    <div className="absolute top-full right-0 mt-1 bg-white text-white rounded-md shadow-lg p-2 text-sm"
-                                        style={{ background: 'linear-gradient(90deg, #122229,#040405)' }}>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            Last 30 Days
-                                        </p>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            Last 3 Months
-                                        </p>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            Last 6 Months
-                                        </p>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            All in 2024
-                                        </p>
-                                        <p className="cursor-pointer p-2 rounded-md"
-                                            style={{ background: 'linear-gradient(90deg, #122229, #040405)' }}
-                                            onMouseOver={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #335C6E, #122229)'}
-                                            onMouseOut={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #122229, #040405)'}
-                                        >
-                                            All
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Order History Content */}
-                        <div className="flex justify-between items-center bg-gray-800 p-4 rounded-md"
-                            style={{ background: 'linear-gradient(90deg, #335C6E, #040405)' }}>
-                            <div>
-                                <h4 className="font-semibold">Order #12345</h4>
-                                <p className="text-sm">Placed on June 1, 2023</p>
-                            </div>
-                            <div className="font-semibold">PHP 30,000</div>
-                            <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-500 text-black">
-                                DELIVERED
-                            </span>
-                        </div>
-
-                        <div className="flex justify-between items-center bg-gray-800 p-4 rounded-md"
-                            style={{ background: 'linear-gradient(90deg, #040405, #335C6E)' }}>
-                            <div>
-                                <h4 className="font-semibold">Order #12345</h4>
-                                <p className="text-sm">Placed on June 1, 2023</p>
-                            </div>
-                            <div className="font-semibold">PHP 30,000</div>
-                            <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-500 text-black">
-                                CANCELLED
-                            </span>
-                        </div>
-                    </div>
-                )}
-                  <div className="mt-10">
-                    <button
-                        onClick={handleLogout}
-                        className="px-6 py-2 bg-red-500 text-white text-xs rounded-md hover:bg-red-600 transition-all"
-                    >
-                        LOGOUT
-                    </button>
+{activeTab === 'orderHistory' && (
+    <div className="space-y-4">
+        <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Order History</h3>
+        </div>
+        {/* Order History Content */}
+        {orderHistory.map((order) => (
+            <div
+                key={order.id}
+                className="flex justify-between items-center bg-gray-800 p-4 rounded-md cursor-pointer"
+                style={{ background: 'linear-gradient(90deg, #335C6E, #040405)' }}
+                onClick={() => {
+                    setSelectedOrder(order);
+                    setModalVisible(true);
+                }}
+            >
+                <div>
+                    <h4 className="font-semibold text-white">Order #{order.id}</h4>
+                    <p className="text-sm text-gray-300">Placed on {order.createdAt}</p>
                 </div>
+                <div className="font-semibold text-white">
+                    PHP {order.paymentSummary.total.toFixed(2)}
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    order.status === 'Delivered' ? 'bg-green-500 text-black' : 'bg-yellow-500 text-black'
+                }`}>
+                    {order.status}
+                </span>
+            </div>
+        ))}
+    </div>
+)}
+{modalVisible && selectedOrder && (
+    <div
+        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+        onClick={() => setModalVisible(false)}
+    >
+        <div
+            className="bg-white rounded-lg w-full max-w-3xl p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+        >
+            <button
+                className="absolute top-2 right-4 text-gray-600 hover:text-black text-xl"
+                onClick={() => setModalVisible(false)}
+            >
+                &times;
+            </button>
+            <h2 className="text-xl font-semibold mb-4 text-black">Order Details - #{selectedOrder.id}</h2>
+            <div className="space-y-4">
+                {/* Items Section */}
+                <div>
+                    <h3 className="text-lg font-semibold text-black">Items</h3>
+                    {selectedOrder.items.map((item, index) => (
+                        <div key={index} className="flex justify-between text-sm text-black">
+                            <p>{item.name} ({item.category})</p>
+                            <p>{item.quantity} pcs</p>
+                            <p>
+                                PHP {typeof item.price === 'number' ? item.price.toFixed(2) : item.price}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
+                <hr className="my-4 border-gray-300" />
+
+                {/* Summary Section */}
+                <div>
+                    <h3 className="text-lg font-semibold text-black">Summary</h3>
+                    <p className="text-black">Placed on: {selectedOrder.createdAt}</p>
+                    <p className="text-black">Delivery Options: {selectedOrder.deliveryService}</p>
+                    <p className="text-black">Payment Method: {selectedOrder.paymentMethod}</p>
+                    <p className="text-black">Status: {selectedOrder.status}</p>
+                </div>
+
+                <hr className="my-4 border-gray-300" />
+
+                {/* Payment Section */}
+                <div>
+                    <h3 className="text-lg font-semibold text-black">Payment</h3>
+                    <p className="text-black">
+                        Subtotal: PHP {selectedOrder.paymentSummary.subtotal.toFixed(2)}
+                    </p>
+                    <p className="text-black">
+                        Delivery Fee: PHP {selectedOrder.paymentSummary.shippingFee.toFixed(2)}
+                    </p>
+                    <p className="text-black">
+                        Total: PHP {selectedOrder.paymentSummary.total.toFixed(2)}
+                    </p>
+                </div>
+
+                <hr className="my-4 border-gray-300" />
+
+                {/* Customer Info Section */}
+                <div>
+                    <h3 className="text-lg font-semibold text-black">Customer Info</h3>
+                    <p className="text-black">Name: {selectedOrder.customerName}</p>
+                    <p className="text-black">Email: {selectedOrder.email}</p>
+                    <p className="text-black">Phone: {selectedOrder.phone}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+)}
+
+
+
+
+                 
             </div>
         </div>
     );

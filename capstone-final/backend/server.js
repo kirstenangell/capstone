@@ -609,279 +609,43 @@ app.get('/suppliers', (req, res) => {
       console.error('Error fetching suppliers:', err);
       return res.status(500).json({ message: 'Error fetching suppliers' });
     }
-
-    // Structure suppliers with nested products
-    const suppliers = {};
-    results.forEach(row => {
-      if (!suppliers[row.id]) {
-        suppliers[row.id] = {
-          id: row.id,
-          name: row.name,
-          contact_name: row.contact_name,
-          type: row.type,
-          email: row.email,
-          phone: row.phone,
-          status: row.status,
-          additional_notes: row.additional_notes,
-          current_address_type: row.current_address_type,
-          current_address_street: row.current_address_street,
-          current_address_city: row.current_address_city,
-          current_address_province: row.current_address_province,
-          current_address_zip: row.current_address_zip,
-          current_address_landmark: row.current_address_landmark,
-          new_address_type: row.new_address_type,
-          new_address_street: row.new_address_street,
-          new_address_city: row.new_address_city,
-          new_address_province: row.new_address_province,
-          new_address_zip: row.new_address_zip,
-          new_address_landmark: row.new_address_landmark,
-          supply_id: row.supply_id,
-          created_at: row.created_at,
-          updated_at: row.updated_at,
-          products: []
-        };
-      }
-
-      if (row.product_name) {
-        suppliers[row.id].products.push({
-          product_name: row.product_name,
-          category: row.category,
-          product_description: row.product_description,
-          quantity_available: row.quantity_available,
-          unit_price: row.unit_price
-        });
-      }
-    });
-
-    res.status(200).json(Object.values(suppliers));
+    res.status(200).json(results);
   });
 });
 
+app.get('/user-details', (req, res) => {
+  const email = req.query.email;
 
-// Update Supplier API
-// Update Supplier API with Product Handling
-app.put('/update-supplier/:id', (req, res) => {
-  const supplierId = req.params.id;
-  const {
-    name,
-    contactName,
-    type,
-    email,
-    phone,
-    status,
-    additionalNotes,
-    currentAddressType,
-    currentStreet,
-    currentCity,
-    currentProvince,
-    currentZipCode,
-    currentLandmark,
-    newAddressType,
-    newStreet,
-    newCity,
-    newProvince,
-    newZipCode,
-    newLandmark,
-    productLists // Array of products to update or add
-  } = req.body;
-
-  const supplierQuery = `
-    UPDATE suppliers 
-    SET name = ?, contact_name = ?, type = ?, email = ?, phone = ?, status = ?, additional_notes = ?,
-        current_address_type = ?, current_address_street = ?, current_address_city = ?, 
-        current_address_province = ?, current_address_zip = ?, current_address_landmark = ?,
-        new_address_type = ?, new_address_street = ?, new_address_city = ?, 
-        new_address_province = ?, new_address_zip = ?, new_address_landmark = ?
-    WHERE id = ?
-  `;
-
-  db.beginTransaction((err) => {
-    if (err) throw err;
-
-    db.query(supplierQuery, [
-      name,
-      contactName,
-      type,
-      email,
-      phone,
-      status,
-      additionalNotes,
-      currentAddressType,
-      currentStreet,
-      currentCity,
-      currentProvince,
-      currentZipCode,
-      currentLandmark,
-      newAddressType,
-      newStreet,
-      newCity,
-      newProvince,
-      newZipCode,
-      newLandmark,
-      supplierId
-    ], (err, result) => {
-      if (err) {
-        return db.rollback(() => {
-          console.error('Error updating supplier:', err);
-          res.status(500).json({ message: 'Error updating supplier' });
-        });
-      }
-
-      // Filter valid products
-      const validProducts = productLists.filter(product => 
-        product.productName && product.category && product.productDescription && 
-        product.quantityAvailable && product.unitPrice
-      );
-
-      if (validProducts.length > 0) {
-        const productUpdatePromises = validProducts.map((product) => {
-          const { productId, productName, category, productDescription, quantityAvailable, unitPrice } = product;
-
-          if (productId) {
-            // Update existing product in supplier_products
-            const updateProductQuery = `
-              UPDATE supplier_products 
-              SET product_name = ?, category = ?, product_description = ?, quantity_available = ?, unit_price = ?
-              WHERE supplier_id = ? AND product_id = ?
-            `;
-            return new Promise((resolve, reject) => {
-              db.query(updateProductQuery, [productName, category, productDescription, quantityAvailable, unitPrice, supplierId, productId], (err) => {
-                if (err) reject(err);
-                else resolve();
-              });
-            });
-          } else {
-            // Insert new product if productId does not exist
-            const insertProductQuery = `
-              INSERT INTO supplier_products 
-              (supplier_id, product_name, category, product_description, quantity_available, unit_price)
-              VALUES (?, ?, ?, ?, ?, ?)
-            `;
-            return new Promise((resolve, reject) => {
-              db.query(insertProductQuery, [supplierId, productName, category, productDescription, quantityAvailable, unitPrice], (err) => {
-                if (err) reject(err);
-                else resolve();
-              });
-            });
-          }
-        });
-
-        // Wait for all product updates/inserts to complete
-        Promise.all(productUpdatePromises)
-          .then(() => {
-            db.commit((err) => {
-              if (err) {
-                return db.rollback(() => {
-                  console.error('Error committing transaction:', err);
-                  res.status(500).json({ message: 'Transaction commit failed' });
-                });
-              }
-              res.status(200).json({ message: 'Supplier and products updated successfully' });
-            });
-          })
-          .catch(err => {
-            db.rollback(() => {
-              console.error('Error updating products:', err);
-              res.status(500).json({ message: 'Error updating products', error: err.message });
-            });
-          });
-      } else {
-        // Commit transaction if no products to update
-        db.commit((err) => {
-          if (err) {
-            return db.rollback(() => {
-              console.error('Error committing transaction:', err);
-              res.status(500).json({ message: 'Transaction commit failed' });
-            });
-          }
-          res.status(200).json({ message: 'Supplier updated successfully' });
-        });
-      }
-    });
-  });
-});
-
-// Fetch non-archived suppliers and associated products API
-app.get('/suppliers', (req, res) => {
   const query = `
-    SELECT s.*, sp.product_name, sp.category, sp.product_description, sp.quantity_available, sp.unit_price
-    FROM suppliers s
-    LEFT JOIN supplier_products sp ON s.id = sp.supplier_id
-    WHERE s.archived IS NULL OR s.archived = false
+    SELECT 
+  first_name AS firstName, 
+  last_name AS lastName, 
+  email, 
+  contact_number AS contactNumber,
+  street,
+  barangay,
+  city,
+  region,
+  province,
+  zip_code AS zipCode
+FROM users
+WHERE email = ?;
+
   `;
-
-  db.query(query, (err, results) => {
+  db.query(query, [email], (err, result) => {
     if (err) {
-      console.error('Error fetching suppliers:', err);
-      return res.status(500).json({ message: 'Error fetching suppliers' });
+      console.error('Error fetching user details:', err);
+      return res.status(500).json({ message: 'Server error' });
     }
 
-    // Structure suppliers with nested products
-    const suppliers = {};
-    results.forEach((row) => {
-      if (!suppliers[row.id]) {
-        suppliers[row.id] = {
-          id: row.id,
-          name: row.name,
-          contact_name: row.contact_name,
-          type: row.type,
-          email: row.email,
-          phone: row.phone,
-          status: row.status,
-          additional_notes: row.additional_notes,
-          current_address_type: row.current_address_type,
-          current_address_street: row.current_address_street,
-          current_address_city: row.current_address_city,
-          current_address_province: row.current_address_province,
-          current_address_zip: row.current_address_zip,
-          current_address_landmark: row.current_address_landmark,
-          new_address_type: row.new_address_type,
-          new_address_street: row.new_address_street,
-          new_address_city: row.new_address_city,
-          new_address_province: row.new_address_province,
-          new_address_zip: row.new_address_zip,
-          new_address_landmark: row.new_address_landmark,
-          supply_id: row.supply_id,
-          created_at: row.created_at,
-          updated_at: row.updated_at,
-          products: [],
-        };
-      }
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-      if (row.product_name) {
-        suppliers[row.id].products.push({
-          product_name: row.product_name,
-          category: row.category,
-          product_description: row.product_description,
-          quantity_available: row.quantity_available,
-          unit_price: row.unit_price,
-        });
-      }
-    });
-
-    res.status(200).json(Object.values(suppliers));
+    res.status(200).json(result[0]);
   });
 });
 
-// Archive (soft delete) Supplier API
-app.put('/archive-supplier/:id', (req, res) => {
-  const supplierId = req.params.id;
-
-  const query = `UPDATE suppliers SET archived = true WHERE id = ?`;
-
-  db.query(query, [supplierId], (err, result) => {
-    if (err) {
-      console.error('Error archiving supplier:', err);
-      return res.status(500).json({ message: 'Error archiving supplier' });
-    }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Supplier not found' });
-    }
-
-    res.status(200).json({ message: 'Supplier archived successfully' });
-  });
-});
 
 // Start the server
 const port = 5000;

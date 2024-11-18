@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { IoIosRemove, IoIosAdd } from 'react-icons/io';
-import { IoArrowForwardCircle } from 'react-icons/io5'; 
-import { NavLink } from 'react-router-dom'; 
+import { IoArrowForwardCircle } from 'react-icons/io5';
+import { NavLink } from 'react-router-dom';
+import { RiDeleteBin2Line } from "react-icons/ri";
 import cartImg from '../assets/CartSection.jpeg';
 import { LiaOpencart } from "react-icons/lia";
 
 const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
   const [quantities, setQuantities] = useState(cartItems.map(item => item.quantity || 1));
-  const [showModal, setShowModal] = useState(false); 
+  const [showModal, setShowModal] = useState(false);
   const [removeIndex, setRemoveIndex] = useState(null);
-  
+  const [showSelectors, setShowSelectors] = useState(false); // For showing selectors
+  const [selectedItems, setSelectedItems] = useState([]); // Track selected items
 
-  // Prevent infinite loop by making sure `useEffect` only runs when quantities change
   useEffect(() => {
     quantities.forEach((quantity, index) => {
       if (quantity !== cartItems[index].quantity) {
@@ -46,14 +47,42 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
     });
   };
 
+  const handleDeleteClick = (index) => {
+    setRemoveIndex(index);
+    setShowModal(true);
+  };
+
   const handleConfirmRemove = () => {
-    onRemoveFromCart(removeIndex); // Remove item from cart
+    onRemoveFromCart(removeIndex);
     setQuantities((prevQuantities) => prevQuantities.filter((_, i) => i !== removeIndex));
     setShowModal(false);
   };
 
   const handleCancelRemove = () => {
     setShowModal(false);
+  };
+
+  const handleSelectToggle = () => {
+    setShowSelectors((prev) => !prev);
+    if (showSelectors) {
+      // If "Deselect" is clicked, remove all selected items
+      handleRemoveSelectedItems();
+    }
+  };
+
+  const handleCheckboxChange = (index, checked) => {
+    if (checked) {
+      setSelectedItems((prev) => [...prev, index]);
+    } else {
+      setSelectedItems((prev) => prev.filter((itemIndex) => itemIndex !== index));
+    }
+  };
+
+  const handleRemoveSelectedItems = () => {
+    const remainingItems = cartItems.filter((_, index) => !selectedItems.includes(index));
+    setQuantities(remainingItems.map(item => item.quantity || 1));
+    setSelectedItems([]);
+    onRemoveFromCart(selectedItems); // Adjust your onRemoveFromCart function to handle multiple deletions
   };
 
   const subtotal = calculateSubtotal();
@@ -91,9 +120,9 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
       <div className="flex w-full max-w-6xl mx-auto">
         <div
           className="w-full max-w-xl p-8 rounded-lg flex flex-col justify-between"
-          style={{ 
-            background: 'linear-gradient(90deg, #000000 45%, #040405 66%)', 
-            boxShadow: '0 10px 30px rgba(0,0,0,0.5)' 
+          style={{
+            background: 'linear-gradient(90deg, #000000 45%, #040405 66%)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
           }}
         >
           {cartItems.length === 0 ? (
@@ -112,7 +141,15 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
             </div>
           ) : (
             <>
-              <h1 className="text-2xl font-semibold text-left mb-4">Shopping Cart</h1>
+              <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-semibold text-left">Shopping Cart</h1>
+                <button
+                  onClick={handleSelectToggle}
+                  className="text-blue-400 font-medium text-sm"
+                >
+                  {showSelectors ? "Deselect" : "Select"}
+                </button>
+              </div>
               <div className="space-y-4">
                 {cartItems.map((item, index) => (
                   <div
@@ -120,6 +157,15 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                     className="flex items-center justify-between py-4 border-b border-gray-700"
                   >
                     <div className="flex items-center">
+                      {showSelectors && (
+                        <input
+                          type="checkbox"
+                          className="mr-2"
+                          onChange={(e) =>
+                            handleCheckboxChange(index, e.target.checked)
+                          }
+                        />
+                      )}
                       <img
                         src={item.image}
                         alt="Product"
@@ -149,7 +195,16 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                         </button>
                       </div>
                     </div>
-                    <div className="font-semibold text-blue-400 text-sm">PHP {item.price.toLocaleString()}</div>
+                    <div className="flex items-center">
+                      <div className="font-semibold text-blue-400 text-sm mr-4">
+                        PHP {item.price.toLocaleString()}
+                      </div>
+                      <RiDeleteBin2Line
+                        size={20}
+                        className="text-red-600 cursor-pointer"
+                        onClick={() => handleDeleteClick(index)}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -171,13 +226,17 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                 </div>
               </div>
 
-              <NavLink 
-                to="checkout-landing" // Relative path
+              <NavLink
+                to="checkout-landing"
                 state={{ cartItems, total }}
                 className="w-full mt-8"
               >
                 <button
-                  className="w-full py-2 rounded-full font-semibold bg-gradient-to-r from-[#4B88A3] via-[#000000] to-[#4B88A3] flex items-center justify-center"
+                  className="w-full py-2 rounded-full font-semibold flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
+                  }}
                 >
                   Proceed to Checkout
                   <IoArrowForwardCircle className="ml-2" />
@@ -187,7 +246,6 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
           )}
         </div>
 
-        {/* Add back the image beside the cart section */}
         <div className="hidden lg:block lg:w-full lg:ml-8 lg:mr-8">
           <img
             src={cartImg}
