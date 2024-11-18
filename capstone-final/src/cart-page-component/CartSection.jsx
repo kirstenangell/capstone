@@ -12,6 +12,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
   const [removeIndex, setRemoveIndex] = useState(null);
   const [showSelectors, setShowSelectors] = useState(false); // For showing selectors
   const [selectedItems, setSelectedItems] = useState([]); // Track selected items
+  const [showDeleteButton, setShowDeleteButton] = useState(false);// State for Delete button
 
   useEffect(() => {
     quantities.forEach((quantity, index) => {
@@ -64,10 +65,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
 
   const handleSelectToggle = () => {
     setShowSelectors((prev) => !prev);
-    if (showSelectors) {
-      // If "Deselect" is clicked, remove all selected items
-      handleRemoveSelectedItems();
-    }
+    setShowDeleteButton((prev) => !prev); // Toggle Delete button visibility
   };
 
   const handleCheckboxChange = (index, checked) => {
@@ -77,13 +75,27 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
       setSelectedItems((prev) => prev.filter((itemIndex) => itemIndex !== index));
     }
   };
-
+  
   const handleRemoveSelectedItems = () => {
-    const remainingItems = cartItems.filter((_, index) => !selectedItems.includes(index));
-    setQuantities(remainingItems.map(item => item.quantity || 1));
+    // Sort selected indices in descending order to avoid index shifting
+    const sortedSelectedItems = [...selectedItems].sort((a, b) => b - a);
+  
+    // Remove selected items from cartItems and update quantities
+    const updatedCartItems = cartItems.filter((_, index) => !sortedSelectedItems.includes(index));
+    setQuantities(updatedCartItems.map((item) => item.quantity || 1));
+  
+    // Call onRemoveFromCart for each selected index
+    sortedSelectedItems.forEach((index) => {
+      onRemoveFromCart(index);
+    });
+  
+    // Clear selected items and reset selectors
     setSelectedItems([]);
-    onRemoveFromCart(selectedItems); // Adjust your onRemoveFromCart function to handle multiple deletions
+    setShowSelectors(false);
+    setShowDeleteButton(false);
   };
+  
+  
 
   const subtotal = calculateSubtotal();
   const total = subtotal;
@@ -143,12 +155,22 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
             <>
               <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-semibold text-left">Shopping Cart</h1>
+                <div className="flex items-center space-x-4">
+                {showDeleteButton && (
+                  <button
+                    onClick={handleRemoveSelectedItems}
+                    className="text-red-500 font-medium text-sm"
+                  >
+                    Delete Selected
+                  </button>
+                )}
                 <button
                   onClick={handleSelectToggle}
                   className="text-blue-400 font-medium text-sm"
                 >
                   {showSelectors ? "Deselect" : "Select"}
                 </button>
+              </div>
               </div>
               <div className="space-y-4">
                 {cartItems.map((item, index) => (
