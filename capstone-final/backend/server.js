@@ -30,24 +30,37 @@ db.connect((err) => {
   }
 });
 
-// Contact form submission API
-app.post('/submit-contact', (req, res) => {
+// Contact Form Submission with Email Validation and Verified Check
+app.post('/submit-contact', async (req, res) => {
   const { name, email, message } = req.body;
 
+  // Validate input
   if (!name || !email || !message) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  const query = 'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)';
-  db.query(query, [name, email, message], (err, result) => {
-    if (err) {
-      console.error('Error inserting contact submission:', err);
-      return res.status(500).json({ message: 'Server error' });
+  try {
+    // Check if the email exists in the database and is verified
+    const emailCheckQuery = 'SELECT email, verified FROM users WHERE email = ?';
+    const [results] = await db.promise().query(emailCheckQuery, [email]);
+
+    if (results.length === 0 || results[0].verified !== 1) {
+      // Return error if email does not exist or is not verified
+      return res.status(404).json({ message: 'The email is not verified. Please create an account.' });
     }
 
+    // Insert contact submission into the database
+    const insertQuery = 'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)';
+    await db.promise().query(insertQuery, [name, email, message]);
+
+    // Respond with success message
     res.status(200).json({ message: 'Contact form submitted successfully' });
-  });
+  } catch (err) {
+    console.error('Error handling contact submission:', err);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 });
+
 
 // Nodemailer Setup for Sending Emails
 const transporter = nodemailer.createTransport({
