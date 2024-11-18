@@ -1,4 +1,3 @@
-// src/context/CustomerContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 
 // Create the context
@@ -16,6 +15,7 @@ const defaultCustomers = [
     status: "Active",
     currentAddress: {
       street: "1234 Elm Street",
+      barangay: "Barangay 1",
       city: "Quezon City",
       province: "Metro Manila",
       zipCode: "1100",
@@ -36,6 +36,7 @@ const defaultCustomers = [
     status: "Inactive",
     currentAddress: {
       street: "5678 Maple Avenue",
+      barangay: "Barangay 2",
       city: "Makati City",
       province: "Metro Manila",
       zipCode: "1200",
@@ -53,10 +54,10 @@ export const CustomerProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch customers from the backend
+  // Fetch non-archived customers from the backend
   const fetchCustomers = () => {
     setLoading(true);
-    fetch('http://localhost:5000/customers')  // Endpoint for fetching customers
+    fetch('http://localhost:5000/customers')  // Endpoint for fetching non-archived customers
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -64,32 +65,36 @@ export const CustomerProvider = ({ children }) => {
         return response.json();
       })
       .then(data => {
-        // Ensure that all fields, including address details, are stored in the state
-        const formattedCustomers = data.map(customer => ({
-          id: customer.id,
-          name: customer.name,
-          type: customer.type,
-          email: customer.email,
-          phone: customer.phone,
-          paymentStatus: customer.payment_status,
-          paymentReference: customer.payment_reference,
-          status: customer.status, // Add status field if present
-          currentAddress: {
-            street: customer.current_street,
-            city: customer.current_city,
-            province: customer.current_province,
-            zipCode: customer.current_zip,
-            landmark: customer.current_landmark,
-          },
-          newAddress: {
-            street: customer.new_street,
-            city: customer.new_city,
-            province: customer.new_province,
-            zipCode: customer.new_zip,
-            landmark: customer.new_landmark,
-          },
-          orders: customer.orders || [], // Include orders if they're fetched
-        }));
+        // Ensure all fields, including address details, are stored in the state
+        const formattedCustomers = data
+          .filter(customer => !customer.archived) // Exclude archived customers
+          .map(customer => ({
+            id: customer.id,
+            name: customer.name,
+            type: customer.type,
+            email: customer.email,
+            phone: customer.phone,
+            paymentStatus: customer.payment_status,
+            paymentReference: customer.payment_reference,
+            status: customer.status, // Add status field if present
+            currentAddress: {
+              street: customer.current_street,
+              barangay: customer.current_barangay,
+              city: customer.current_city,
+              province: customer.current_province,
+              zipCode: customer.current_zip,
+              landmark: customer.current_landmark,
+            },
+            newAddress: {
+              street: customer.new_street,
+              barangay: customer.new_barangay,
+              city: customer.new_city,
+              province: customer.new_province,
+              zipCode: customer.new_zip,
+              landmark: customer.new_landmark,
+            },
+            orders: customer.orders || [], // Include orders if they're fetched
+          }));
         
         setCustomers(formattedCustomers);  // Update customers with formatted data
         setLoading(false);
@@ -100,7 +105,6 @@ export const CustomerProvider = ({ children }) => {
         setLoading(false);
       });
   };
-  
 
   useEffect(() => {
     fetchCustomers(); // Fetch customers when provider mounts

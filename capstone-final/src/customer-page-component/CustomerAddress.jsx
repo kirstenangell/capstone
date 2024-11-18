@@ -14,12 +14,16 @@ const CustomerAddress = () => {
   // Initialize state for address details and saving status
   const [addressInfo, setAddressInfo] = useState({
     currentStreet: '',
+    currentBarangay: '',
     currentCity: '',
+    currentRegion: '',
     currentProvince: '',
     currentZipCode: '',
     currentLandmark: '',
     newStreet: '',
+    newBarangay: '',
     newCity: '',
+    newRegion: '',
     newProvince: '',
     newZipCode: '',
     newLandmark: '',
@@ -30,17 +34,18 @@ const CustomerAddress = () => {
   // Populate addressInfo from generalInfo if editing
   useEffect(() => {
     if (isEdit && generalInfo) {
-      console.log("Edit Mode - Prepopulating Address Info");
-      console.log("General Info:", generalInfo); // Debug information
-
       setAddressInfo({
         currentStreet: generalInfo.currentAddress?.street || '',
+        currentBarangay: generalInfo.currentAddress?.barangay || '',
         currentCity: generalInfo.currentAddress?.city || '',
+        currentRegion: generalInfo.currentAddress?.region || '',
         currentProvince: generalInfo.currentAddress?.province || '',
         currentZipCode: generalInfo.currentAddress?.zipCode || '',
         currentLandmark: generalInfo.currentAddress?.landmark || '',
         newStreet: generalInfo.newAddress?.street || '',
+        newBarangay: generalInfo.newAddress?.barangay || '',
         newCity: generalInfo.newAddress?.city || '',
+        newRegion: generalInfo.newAddress?.region || '',
         newProvince: generalInfo.newAddress?.province || '',
         newZipCode: generalInfo.newAddress?.zipCode || '',
         newLandmark: generalInfo.newAddress?.landmark || '',
@@ -79,14 +84,18 @@ const CustomerAddress = () => {
       ...generalInfo,
       currentAddress: {
         street: addressInfo.currentStreet,
+        barangay: addressInfo.currentBarangay,
         city: addressInfo.currentCity,
+        region: addressInfo.currentRegion,
         province: addressInfo.currentProvince,
         zipCode: addressInfo.currentZipCode,
         landmark: addressInfo.currentLandmark || '',
       },
       newAddress: {
         street: addressInfo.newStreet,
+        barangay: addressInfo.newBarangay,
         city: addressInfo.newCity,
+        region: addressInfo.newRegion,
         province: addressInfo.newProvince,
         zipCode: addressInfo.newZipCode,
         landmark: addressInfo.newLandmark || '',
@@ -95,7 +104,6 @@ const CustomerAddress = () => {
 
     try {
       if (isEdit) {
-        // Update existing customer
         const response = await fetch(`http://localhost:5000/update-customer/${generalInfo.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -110,7 +118,6 @@ const CustomerAddress = () => {
           alert('Failed to update customer. Please try again.');
         }
       } else {
-        // Add new customer
         const response = await fetch('http://localhost:5000/add-customer', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -134,12 +141,11 @@ const CustomerAddress = () => {
     }
   };
 
-  // Handle back button click
   const handleBackClick = () => {
-    window.scrollTo(0, 0); // Scroll to the top when the user clicks the "Back" button
+    window.scrollTo(0, 0);
     navigate('/customer/customer-information', { state: { customer: generalInfo, isEdit } });
   };
-  
+
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       <div className="mb-10 mt-16 text-center">
@@ -186,14 +192,39 @@ const CustomerAddress = () => {
               <div className="w-1/2">
                 <input
                   type="text"
-                  name="currentCity"
-                  value={addressInfo.currentCity}
+                  name="currentBarangay"
+                  value={addressInfo.currentBarangay}
                   onChange={handleInputChange}
-                  placeholder="City"
-                  className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Barangay"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+            <div className="w-1/2">
+              <input
+                type="text"
+                name="currentCity"
+                value={addressInfo.currentCity}
+                onChange={handleInputChange}
+                placeholder="City"
+                className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                required
+              />
+            </div>
+            <div className="w-1/2">
+              <input
+                type="text"
+                name="currentRegion"
+                value={addressInfo.currentRegion}
+                onChange={handleInputChange}
+                placeholder="Region"
+                className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                required
+              />
             </div>
           </div>
 
@@ -243,20 +274,43 @@ const CustomerAddress = () => {
                   name="newStreet"
                   value={addressInfo.newStreet}
                   onChange={handleInputChange}
-                  placeholder="Street Number/Name"
+                  placeholder="Street Number/Street Name"
                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div className="w-1/2">
                 <input
                   type="text"
-                  name="newCity"
-                  value={addressInfo.newCity}
+                  name="newBarangay"
+                  value={addressInfo.newBarangay}
                   onChange={handleInputChange}
-                  placeholder="City"
-                  className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Barangay"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+            <div className="w-1/2">
+              <input
+                type="text"
+                name="newCity"
+                value={addressInfo.newCity}
+                onChange={handleInputChange}
+                placeholder="City"
+                className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="w-1/2">
+              <input
+                type="text"
+                name="newRegion"
+                value={addressInfo.newRegion}
+                onChange={handleInputChange}
+                placeholder="Region"
+                className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+              />
             </div>
           </div>
 
