@@ -167,9 +167,9 @@ const SupplierLanding = () => {
             </div>
           </div>
  
-          {/* Supplier List */}
+          {/* Supplier List with Scrolling */}
           <div className="col-span-3">
-            <div className="space-y-6">
+            <div className="space-y-6 overflow-y-auto h-[500px]">
               {/* If no suppliers are found, display the message */}
               {filteredSuppliers.length === 0 ? (
                 <div className="text-center text-gray-400">
@@ -188,8 +188,7 @@ const SupplierLanding = () => {
                     <div className="ml-6">
                       <h2 className="text-xl font-semibold">{supplier.name}</h2>
                       <p className="text-gray-400 text-sm mt-2">
-                        {supplier.supplyID} | {supplier.phone} | {supplier.email} |{' '}
-                        {supplier.status}
+                        {supplier.supplyID} | {supplier.phone} | {supplier.email} | {supplier.status}
                       </p>
                     </div>
                   </div>
