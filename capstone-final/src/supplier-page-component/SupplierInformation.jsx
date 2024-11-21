@@ -17,6 +17,91 @@ const SupplierInformation = () => {
   // Manage the current step (1: General Info, 2: Address Details, 3: Product Lists)
   const [currentStep, setCurrentStep] = useState(1);
 
+  // Array of all provinces in the Philippines
+  const provinces = [
+    'Abra',
+    'Agusan del Norte',
+    'Agusan del Sur',
+    'Aklan',
+    'Albay',
+    'Antique',
+    'Apayao',
+    'Aurora',
+    'Basilan',
+    'Bataan',
+    'Batanes',
+    'Batangas',
+    'Benguet',
+    'Biliran',
+    'Bohol',
+    'Bukidnon',
+    'Bulacan',
+    'Cagayan',
+    'Camarines Norte',
+    'Camarines Sur',
+    'Camiguin',
+    'Capiz',
+    'Catanduanes',
+    'Cavite',
+    'Cebu',
+    'Compostela Valley',
+    'Cotabato',
+    'Davao del Norte',
+    'Davao del Sur',
+    'Davao Occidental',
+    'Davao Oriental',
+    'Dinagat Islands',
+    'Eastern Samar',
+    'Guimaras',
+    'Ifugao',
+    'Ilocos Norte',
+    'Ilocos Sur',
+    'Iloilo',
+    'Isabela',
+    'Kalinga',
+    'La Union',
+    'Laguna',
+    'Lanao del Norte',
+    'Lanao del Sur',
+    'Leyte',
+    'Maguindanao',
+    'Marinduque',
+    'Masbate',
+    'Misamis Occidental',
+    'Misamis Oriental',
+    'Mountain Province',
+    'Negros Occidental',
+    'Negros Oriental',
+    'Northern Samar',
+    'Nueva Ecija',
+    'Nueva Vizcaya',
+    'Occidental Mindoro',
+    'Oriental Mindoro',
+    'Palawan',
+    'Pampanga',
+    'Pangasinan',
+    'Quezon',
+    'Quirino',
+    'Rizal',
+    'Romblon',
+    'Samar',
+    'Sarangani',
+    'Siquijor',
+    'Sorsogon',
+    'South Cotabato',
+    'Southern Leyte',
+    'Sultan Kudarat',
+    'Sulu',
+    'Surigao del Norte',
+    'Surigao del Sur',
+    'Tarlac',
+    'Tawi-Tawi',
+    'Zambales',
+    'Zamboanga del Norte',
+    'Zamboanga del Sur',
+    'Zamboanga Sibugay',
+  ];
+
   // Combined state for general info, address details, and product lists
   const [supplierData, setSupplierData] = useState({
     id: existingSupplier.id || null,
@@ -51,8 +136,8 @@ const SupplierInformation = () => {
     }));
   };
 
-   // Handle product list input changes, including clearing auto-populated fields when `productId` is erased
-   const handleProductInputChange = async (index, e) => {
+  // Handle product list input changes, including clearing auto-populated fields when `productId` is erased
+  const handleProductInputChange = async (index, e) => {
     const { name, value } = e.target;
     const updatedProductLists = [...supplierData.productLists];
 
@@ -99,9 +184,13 @@ const SupplierInformation = () => {
 
     if (field === 'type') setIsSupplierTypeDropdownOpen(false);
     if (field === 'status') setIsStatusDropdownOpen(false);
+    if (field === 'currentAddressType') setIsCurrentAddressTypeDropdownOpen(false);
+    if (field === 'newAddressType') setIsNewAddressTypeDropdownOpen(false);
+    if (field === 'currentProvince') setIsCurrentProvinceDropdownOpen(false);
+    if (field === 'newProvince') setIsNewProvinceDropdownOpen(false);
   };
 
-  // Dropdown state for supplier type and status
+  // Dropdown state for supplier type, status, and provinces
   const [isSupplierTypeDropdownOpen, setIsSupplierTypeDropdownOpen] = useState(false);
   const supplierTypes = ['Wholesale', 'Retail', 'Distributor'];
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
@@ -109,6 +198,8 @@ const SupplierInformation = () => {
   const [isCurrentAddressTypeDropdownOpen, setIsCurrentAddressTypeDropdownOpen] = useState(false);
   const addressTypeOptions = ['Headquarters', 'Billing', 'Shipping'];
   const [isNewAddressTypeDropdownOpen, setIsNewAddressTypeDropdownOpen] = useState(false);
+  const [isCurrentProvinceDropdownOpen, setIsCurrentProvinceDropdownOpen] = useState(false);
+  const [isNewProvinceDropdownOpen, setIsNewProvinceDropdownOpen] = useState(false);
 
   // Toggle dropdowns
   const toggleSupplierTypeDropdown = () => setIsSupplierTypeDropdownOpen(!isSupplierTypeDropdownOpen);
@@ -604,16 +695,42 @@ return (
               </div>
 
               <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentProvince"
-                    value={supplierData.currentProvince}
-                    onChange={handleInputChange}
-                    placeholder="Province"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
+              <div className="w-1/2">
+                  {/* Dropdown Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsCurrentProvinceDropdownOpen(!isCurrentProvinceDropdownOpen)}
+                    className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left flex justify-between items-center"
+                  >
+                    <span>{supplierData.currentProvince || 'Select Province'}</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isCurrentProvinceDropdownOpen ? 'transform rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+                  {/* Dropdown Menu */}
+                  {isCurrentProvinceDropdownOpen && (
+                    <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <ul className="text-sm text-white">
+                        {provinces.map((province) => (
+                          <li
+                            key={province}
+                            onClick={() => handleSelect('currentProvince', province)}
+                            className="p-2 hover:bg-[#122127] cursor-pointer"
+                          >
+                            {province}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <div className="w-1/2">
                   <input
@@ -712,15 +829,42 @@ return (
               </div>
 
               <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="newProvince"
-                    value={supplierData.newProvince}
-                    onChange={handleInputChange}
-                    placeholder="Province"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
+              <div className="w-1/2">
+                  {/* Dropdown Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsNewProvinceDropdownOpen(!isNewProvinceDropdownOpen)}
+                    className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left flex justify-between items-center"
+                  >
+                    <span>{supplierData.newProvince || 'Select Province'}</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isNewProvinceDropdownOpen ? 'transform rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+                  {/* Dropdown Menu */}
+                  {isNewProvinceDropdownOpen && (
+                    <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <ul className="text-sm text-white">
+                        {provinces.map((province) => (
+                          <li
+                            key={province}
+                            onClick={() => handleSelect('newProvince', province)}
+                            className="p-2 hover:bg-[#122127] cursor-pointer"
+                          >
+                            {province}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <div className="w-1/2">
                   <input
