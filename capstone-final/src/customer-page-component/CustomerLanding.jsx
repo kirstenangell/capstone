@@ -8,7 +8,7 @@ import { BsBoxArrowRight } from "react-icons/bs";
 import { CiSearch } from "react-icons/ci"; // Search icon
 
 const CustomerLanding = () => {
-  const { customers, archiveCustomer, fetchCustomers, addCustomer, updateCustomer } = useContext(CustomerContext);
+  const { customers, archiveCustomer, fetchCustomers } = useContext(CustomerContext);
   const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
@@ -20,7 +20,7 @@ const CustomerLanding = () => {
   const [activeStatus, setActiveStatus] = useState('All'); // Default is 'All'
   const [isOpen, setIsOpen] = useState(false);
 
-  // Fetch customers from the backend when component loads
+  // Fetch customers from the backend when the component loads
   useEffect(() => {
     fetchCustomers();
   }, []);
@@ -37,7 +37,7 @@ const CustomerLanding = () => {
     setShowModal(false);
   };
 
-  // Redirect to Add Customer page when the "Add Customer" button is clicked
+  // Redirect to Add Customer page
   const handleAddCustomerClick = () => {
     navigate('/customer/customer-information');
   };
@@ -54,23 +54,17 @@ const CustomerLanding = () => {
     setShowModal(false);
   };
 
-  // Filter customers based on search query (name or CID) and exclude archived customers
-  const filteredCustomers = customers.filter((customer) =>
-    !customer.archived &&  // Exclude archived customers
-    (customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `CID-${customer.id}`.toLowerCase().includes(searchQuery.toLowerCase())) &&
-    (activeStatus === 'All' || customer.status === activeStatus)
-  );
+  // Filter customers based on search query and status
+  const filteredCustomers = customers.filter((customer) => {
+    const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.toLowerCase();
+    const searchQueryLower = searchQuery.toLowerCase();
 
-  // Function to handle status filter button click
-  const handleStatusClick = (status) => {
-    setActiveStatus(status); // Set the active status
-  };
-
-  // Function to toggle dropdown visibility
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
+    return (
+      !customer.archived && // Exclude archived customers
+      (fullName.includes(searchQueryLower) || `CID-${customer.id}`.toLowerCase().includes(searchQueryLower)) &&
+      (activeStatus === 'All' || customer.status === activeStatus)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
@@ -79,13 +73,13 @@ const CustomerLanding = () => {
           <h1 className="text-3xl font-bold">CUSTOMER</h1>
           <div className="flex items-center">
             <div className="flex items-center border-b border-gray-600">
-              <CiSearch className="text-gray-600 text-xl mr-2" /> {/* Icon before the input */}
+              <CiSearch className="text-gray-600 text-xl mr-2" />
               <input
                 type="text"
                 placeholder="Search customer"
                 className="bg-transparent text-gray-600 px-4 py-2 focus:outline-none"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)} // Track input changes
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <button
@@ -102,7 +96,7 @@ const CustomerLanding = () => {
             <div className="mb-6">
               <h2 className="text-sm font-bold text-white mb-2">FILTER BY</h2>
               <button
-                onClick={toggleDropdown}
+                onClick={() => setIsOpen(!isOpen)}
                 className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
               >
                 CUSTOMER TYPE
@@ -124,7 +118,7 @@ const CustomerLanding = () => {
                 {['All', 'Active', 'Inactive'].map((status) => (
                   <button
                     key={status}
-                    onClick={() => handleStatusClick(status)}
+                    onClick={() => setActiveStatus(status)}
                     className={`text-sm px-6 py-2 rounded-lg ${
                       activeStatus === status
                         ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
@@ -153,9 +147,11 @@ const CustomerLanding = () => {
                       {`CID-${customer.id}`}
                     </div>
                     <div className="ml-6">
-                      <h2 className="text-xl font-semibold">{customer.name}</h2>
+                      <h2 className="text-xl font-semibold">
+                        {`${customer.first_name || 'N/A'} ${customer.last_name || 'N/A'}`}
+                      </h2>
                       <p className="text-gray-400 text-sm mt-2">
-                        {customer.orderID} | {customer.phone} | {customer.email} | {customer.status}
+                        {customer.email} | {customer.phone} | {customer.status}
                       </p>
                     </div>
                   </div>
@@ -183,8 +179,10 @@ const CustomerLanding = () => {
                     {`CID-${selectedCustomer.id}`}
                   </div>
                   <div className="ml-4">
-                    <h2 className="text-2xl font-bold">{selectedCustomer.name}</h2>
-                    <p className="text-gray-400">Manually Added</p>
+                    <h2 className="text-2xl font-bold">
+                      {`${selectedCustomer.first_name || 'N/A'} ${selectedCustomer.last_name || 'N/A'}`}
+                    </h2>
+                    <p className="text-gray-400">Customer Type: {selectedCustomer.type || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -203,41 +201,6 @@ const CustomerLanding = () => {
                 </button>
               </div>
             </div>
-            <div className="flex space-x-4 mb-6">
-              <button
-                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
-                  activeTab === 'general'
-                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
-                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
-                }`}
-                onClick={() => setActiveTab('general')}
-              >
-                <IoIosInformationCircle className="mr-2 text-xl" />
-                General Information
-              </button>
-              <button
-                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
-                  activeTab === 'delivery'
-                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
-                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
-                }`}
-                onClick={() => setActiveTab('delivery')}
-              >
-                <GiStorkDelivery className="mr-2 text-xl" />
-                Delivery Details
-              </button>
-              <button
-                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
-                  activeTab === 'orders'
-                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
-                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
-                }`}
-                onClick={() => setActiveTab('orders')}
-              >
-                <FaOpencart className="mr-2 text-xl" />
-                Order Lists
-              </button>
-            </div>
 
             <div className="flex-1 overflow-y-auto">
               {activeTab === 'general' && (
@@ -245,36 +208,25 @@ const CustomerLanding = () => {
                   <div>
                     <h3 className="text-white text-md font-semibold mb-2">Customer Details</h3>
                     <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">CUSTOMER NAME:</span>
-                      <span className="text-xs">{selectedCustomer.name}</span>
+                      <span className="text-xs text-gray-400 w-40">First Name:</span>
+                      <span className="text-xs">{selectedCustomer.first_name || 'N/A'}</span>
                     </div>
-                  </div>
-                </div>
-              )}
-              {activeTab === 'delivery' && (
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <h3 className="text-white text-md font-semibold mb-2">Current Address</h3>
                     <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">STREET:</span>
-                      <span className="text-xs">{selectedCustomer?.currentAddress?.street || 'N/A'}</span>
+                      <span className="text-xs text-gray-400 w-40">Last Name:</span>
+                      <span className="text-xs">{selectedCustomer.last_name || 'N/A'}</span>
                     </div>
-                  </div>
-                </div>
-              )}
-              {activeTab === 'orders' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-white font-semibold mb-2">Orders</h3>
-                    {selectedCustomer.orders.length > 0 ? (
-                      selectedCustomer.orders.map((order) => (
-                        <div key={order.id} className="mb-4">
-                          <p><strong>Order ID:</strong> {order.id}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <p>No orders available.</p>
-                    )}
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">Email:</span>
+                      <span className="text-xs">{selectedCustomer.email || 'N/A'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">Phone:</span>
+                      <span className="text-xs">{selectedCustomer.phone || 'N/A'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">Status:</span>
+                      <span className="text-xs">{selectedCustomer.status || 'N/A'}</span>
+                    </div>
                   </div>
                 </div>
               )}

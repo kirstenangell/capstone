@@ -65,8 +65,8 @@ const OrderDetails = () => {
       if (matchingCustomer) {
         setFormData((prevData) => ({
           ...prevData,
-          firstName: matchingCustomer.name.split(' ')[0] || '',
-          lastName: matchingCustomer.name.split(' ')[1] || '',
+          firstName: matchingCustomer.firstName || '',
+          lastName: matchingCustomer.lastName || '',
           email: matchingCustomer.email || '',
           contactNumber: matchingCustomer.phone || '',
           houseNumber: matchingCustomer.currentAddress?.houseNumber || '',
@@ -123,21 +123,21 @@ const OrderDetails = () => {
     navigate('/order');
   };
 
-  const handleSaveClick = (e) => {
-    e.preventDefault();
-
-    // Calculate subtotal dynamically (optional enhancement)
-    const calculateSubtotal = () => {
-      const pricePerProduct = 1000; // Example: PHP1,000 per product
-      return formData.products.length * pricePerProduct;
-    };
-
-    const subtotal = calculateSubtotal();
-
-    // Prepare the order data without OID, let OrderContext handle it
+  const handleSaveClick = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+  
+    // Add a loading state to prevent duplicate submissions
+    const [isSaving, setIsSaving] = useState(false);
+  
+    if (isSaving) return; // Block duplicate submissions
+  
+    setIsSaving(true); // Set saving state to true
+  
+    const subtotal = formData.products.length * 1000; // Example calculation for subtotal
+  
     const orderData = {
-      id: formData.id || Date.now(), // Use existing ID or generate a new one
-      cid: formData.cid || 'N/A', // Include CID
+      id: formData.id || Date.now(),
+      cid: formData.cid || 'N/A',
       firstName: formData.firstName || 'N/A',
       lastName: formData.lastName || 'N/A',
       email: formData.email || 'N/A',
@@ -149,30 +149,44 @@ const OrderDetails = () => {
       region: formData.region || 'N/A',
       zipCode: formData.zipCode || 'N/A',
       deliveryOption: formData.deliveryOption || 'N/A',
-      courier: formData.courier || 'N/A',
+      courier: formData.courier || null,
       paymentOption: formData.paymentOption || 'N/A',
-      pickUpTime: formData.pickUpTime || 'N/A',
-      pickUpDate: formData.pickUpDate || 'N/A',
-      products: formData.products.map((product) => product || 'N/A'),
-      price: `PHP${subtotal.toLocaleString()}`, // Dynamic subtotal
-      status: existingOrder?.status || 'PENDING', // Default status
-      date: existingOrder?.date || new Date().toLocaleDateString(),
+      pickUpTime: formData.pickUpTime || null,
+      pickUpDate: formData.pickUpDate || null,
+      products: formData.products,
+      price: subtotal,
+      status: 'PENDING',
+      date: new Date().toISOString().split('T')[0],
     };
-
-    if (isEdit) {
-      // Update the existing order
-      updateOrder(orderData);
-      alert(`Order has been updated.`);
-    } else {
-      // Add the new order, OID will be assigned in OrderContext
-      addOrder(orderData);
-      alert(`Order has been added.`);
+  
+    try {
+      const response = await fetch('http://localhost:5000/add-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save order.');
+      }
+  
+      const result = await response.json();
+      addOrder({ ...orderData, id: result.id }); // Add the order to the context
+      alert('Order saved successfully.');
+  
+      // Navigate after the save is successful
+      navigate('/order');
+    } catch (error) {
+      console.error('Error saving order:', error);
+      alert('Failed to save order. Please try again.');
+    } finally {
+      setIsSaving(false); // Reset saving state
     }
-
-    // Navigate back to the order list
-    navigate('/order');
-  };
-
+  };  
+  
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       {/* Header */}

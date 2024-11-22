@@ -7,7 +7,8 @@ export const CustomerContext = createContext();
 const defaultCustomers = [
   {
     id: 1,
-    name: "Juan Dela Cruz",
+    first_name: "Juan",
+    last_name: "Dela Cruz",
     type: "Individual",
     source: "Manual Add",
     phone: "+63 000 000 0000",
@@ -28,7 +29,8 @@ const defaultCustomers = [
   },
   {
     id: 2,
-    name: "Maria Santos",
+    first_name: "Maria",
+    last_name: "Santos",
     type: "Individual",
     source: "Online Registration",
     phone: "+63 987 654 3210",
@@ -57,7 +59,7 @@ export const CustomerProvider = ({ children }) => {
   // Fetch non-archived customers from the backend
   const fetchCustomers = () => {
     setLoading(true);
-    fetch('http://localhost:5000/customers')  // Endpoint for fetching non-archived customers
+    fetch('http://localhost:5000/customers') // Endpoint for fetching non-archived customers
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -65,12 +67,13 @@ export const CustomerProvider = ({ children }) => {
         return response.json();
       })
       .then(data => {
-        // Ensure all fields, including address details, are stored in the state
+        console.log('Fetched customers from the backend:', data); // Debug log to ensure correct data
         const formattedCustomers = data
           .filter(customer => !customer.archived) // Exclude archived customers
           .map(customer => ({
             id: customer.id,
-            name: customer.name,
+            first_name: customer.first_name,
+            last_name: customer.last_name,
             type: customer.type,
             email: customer.email,
             phone: customer.phone,
@@ -95,8 +98,8 @@ export const CustomerProvider = ({ children }) => {
             },
             orders: customer.orders || [], // Include orders if they're fetched
           }));
-        
-        setCustomers(formattedCustomers);  // Update customers with formatted data
+
+        setCustomers(formattedCustomers); // Update customers with formatted data
         setLoading(false);
       })
       .catch(error => {
@@ -112,60 +115,104 @@ export const CustomerProvider = ({ children }) => {
 
   // Add new customer
   const addCustomer = (customerData) => {
-    return fetch('http://localhost:5000/add-customer', {  // Endpoint for adding customers
+    const payload = {
+      first_name: customerData.first_name || '',
+      last_name: customerData.last_name || '',
+      type: customerData.type || '',
+      email: customerData.email || '',
+      phone: customerData.phone || '',
+      payment_status: customerData.paymentStatus || '',
+      payment_reference: customerData.paymentReference || '',
+      current_street: customerData.currentAddress?.street || '',
+      current_barangay: customerData.currentAddress?.barangay || '',
+      current_city: customerData.currentAddress?.city || '',
+      current_province: customerData.currentAddress?.province || '',
+      current_zip: customerData.currentAddress?.zipCode || '',
+      current_landmark: customerData.currentAddress?.landmark || '',
+      new_street: customerData.newAddress?.street || '',
+      new_barangay: customerData.newAddress?.barangay || '',
+      new_city: customerData.newAddress?.city || '',
+      new_province: customerData.newAddress?.province || '',
+      new_zip: customerData.newAddress?.zipCode || '',
+      new_landmark: customerData.newAddress?.landmark || '',
+    };
+
+    console.log("Payload being sent to the server:", payload); // Debug log to verify payload
+
+    return fetch('http://localhost:5000/add-customer', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(customerData)
+      body: JSON.stringify(payload),
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to add customer');
         }
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         if (data.message === 'Customer added successfully') {
-          setCustomers(prevCustomers => [...prevCustomers, { ...customerData, id: data.id }]);
+          setCustomers((prevCustomers) => [
+            ...prevCustomers,
+            { ...payload, id: data.id },
+          ]);
+          console.log("Customer added successfully:", data);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error adding customer:', error);
       });
   };
 
   // Update existing customer
   const updateCustomer = (updatedCustomer) => {
+    const payload = {
+      first_name: updatedCustomer.first_name,
+      last_name: updatedCustomer.last_name,
+      type: updatedCustomer.type,
+      email: updatedCustomer.email,
+      phone: updatedCustomer.phone,
+      payment_status: updatedCustomer.paymentStatus || '',
+      payment_reference: updatedCustomer.paymentReference || '',
+      current_street: updatedCustomer.currentAddress?.street || '',
+      current_barangay: updatedCustomer.currentAddress?.barangay || '',
+      current_city: updatedCustomer.currentAddress?.city || '',
+      current_province: updatedCustomer.currentAddress?.province || '',
+      current_zip: updatedCustomer.currentAddress?.zipCode || '',
+      current_landmark: updatedCustomer.currentAddress?.landmark || '',
+    };
+
     return fetch(`http://localhost:5000/update-customer/${updatedCustomer.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedCustomer),
+      body: JSON.stringify(payload),
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Failed to update customer with status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.message === 'Customer updated successfully') {
-        setCustomers(prevCustomers =>
-          prevCustomers.map(customer =>
-            customer.id === updatedCustomer.id ? updatedCustomer : customer
-          )
-        );
-      }
-    })
-    .catch(error => {
-      console.error('Error updating customer:', error);
-    });
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to update customer with status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.message === 'Customer updated successfully') {
+          setCustomers(prevCustomers =>
+            prevCustomers.map(customer =>
+              customer.id === updatedCustomer.id ? { ...payload, id: updatedCustomer.id } : customer
+            )
+          );
+        }
+      })
+      .catch(error => {
+        console.error('Error updating customer:', error);
+      });
   };
-  
+
   // Archive customer
   const archiveCustomer = (customerId) => {
     fetch(`http://localhost:5000/archive-customer/${customerId}`, {
-      method: 'PUT'
+      method: 'PUT',
     })
       .then(response => {
         if (!response.ok) {
@@ -183,7 +230,7 @@ export const CustomerProvider = ({ children }) => {
         console.error('Error archiving customer:', error);
       });
   };
-  
+
   return (
     <CustomerContext.Provider value={{
       customers,
@@ -192,7 +239,7 @@ export const CustomerProvider = ({ children }) => {
       archiveCustomer,
       fetchCustomers,
       loading,
-      error
+      error,
     }}>
       {children}
     </CustomerContext.Provider>
