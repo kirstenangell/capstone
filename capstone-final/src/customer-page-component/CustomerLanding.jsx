@@ -4,8 +4,8 @@ import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { FaOpencart } from 'react-icons/fa';
 import { CustomerContext } from '../context/CustomerContext';
-import { BsBoxArrowRight } from "react-icons/bs";
-import { CiSearch } from "react-icons/ci"; // Search icon
+import { BsBoxArrowRight } from 'react-icons/bs';
+import { CiSearch } from 'react-icons/ci'; // Search icon
 
 const CustomerLanding = () => {
   const { customers, archiveCustomer, fetchCustomers } = useContext(CustomerContext);
@@ -165,7 +165,7 @@ const CustomerLanding = () => {
       {/* Modal Section */}
       {showModal && selectedCustomer && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-          <div className="bg-[#040405] p-6 rounded-lg shadow-lg max-w-3xl w-full h-[500px] flex flex-col">
+          <div className="bg-[#040405] p-6 rounded-lg shadow-lg max-w-3xl w-full h-[600px] flex flex-col">
             <div className="flex justify-between items-start mb-4">
               <div className="flex flex-col items-start">
                 <button
@@ -179,9 +179,10 @@ const CustomerLanding = () => {
                     {`CID-${selectedCustomer.id}`}
                   </div>
                   <div className="ml-4">
-                    <h2 className="text-2xl font-bold">
+                    <h2 className="text-xl font-semibold">
                       {`${selectedCustomer.first_name || 'N/A'} ${selectedCustomer.last_name || 'N/A'}`}
                     </h2>
+
                     <p className="text-gray-400">Customer Type: {selectedCustomer.type || 'N/A'}</p>
                   </div>
                 </div>
@@ -200,6 +201,42 @@ const CustomerLanding = () => {
                   Archive
                 </button>
               </div>
+            </div>
+
+            <div className="flex space-x-4 mb-6">
+              <button
+                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
+                  activeTab === 'general'
+                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
+                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
+                }`}
+                onClick={() => setActiveTab('general')}
+              >
+                <IoIosInformationCircle className="mr-2 text-xl" />
+                General Information
+              </button>
+              <button
+                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
+                  activeTab === 'delivery'
+                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
+                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
+                }`}
+                onClick={() => setActiveTab('delivery')}
+              >
+                <GiStorkDelivery className="mr-2 text-xl" />
+                Delivery Details
+              </button>
+              <button
+                className={`flex items-center px-4 py-2 rounded-md transition-colors duration-300 ${
+                  activeTab === 'orders'
+                    ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white text-sm'
+                    : 'bg-gradient-to-r from-[#000000] to-[#000000] text-gray-400 text-sm hover:text-white'
+                }`}
+                onClick={() => setActiveTab('orders')}
+              >
+                <FaOpencart className="mr-2 text-xl" />
+                Order Lists
+              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto">
@@ -227,6 +264,57 @@ const CustomerLanding = () => {
                       <span className="text-xs text-gray-400 w-40">Status:</span>
                       <span className="text-xs">{selectedCustomer.status || 'N/A'}</span>
                     </div>
+                  </div>
+                </div>
+              )}
+              {activeTab === 'delivery' && (
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <h3 className="text-white text-md font-semibold mb-2">Current Address</h3>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">Street:</span>
+                      <span className="text-xs">{selectedCustomer?.currentAddress?.street || 'N/A'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">Barangay:</span>
+                      <span className="text-xs">{selectedCustomer?.currentAddress?.barangay || 'N/A'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">City:</span>
+                      <span className="text-xs">{selectedCustomer?.currentAddress?.city || 'N/A'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">Province:</span>
+                      <span className="text-xs">{selectedCustomer?.currentAddress?.province || 'N/A'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-xs text-gray-400 w-40">Zip Code:</span>
+                      <span className="text-xs">{selectedCustomer?.currentAddress?.zipCode || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {activeTab === 'orders' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-white font-semibold mb-2">Orders</h3>
+                    {selectedCustomer.orders.length > 0 ? (
+                      selectedCustomer.orders.map((order) => (
+                        <div key={order.id} className="mb-4">
+                          <p>
+                            <strong>Order ID:</strong> {order.id}
+                          </p>
+                          <p>
+                            <strong>Item:</strong> {order.item}
+                          </p>
+                          <p>
+                            <strong>Status:</strong> {order.status}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No orders available.</p>
+                    )}
                   </div>
                 </div>
               )}
