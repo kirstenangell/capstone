@@ -126,17 +126,8 @@ const OrderDetails = () => {
   const handleSaveClick = async (e) => {
     e.preventDefault(); // Prevent default form submission
   
-    // Add a loading state to prevent duplicate submissions
-    const [isSaving, setIsSaving] = useState(false);
-  
-    if (isSaving) return; // Block duplicate submissions
-  
-    setIsSaving(true); // Set saving state to true
-  
-    const subtotal = formData.products.length * 1000; // Example calculation for subtotal
-  
     const orderData = {
-      id: formData.id || Date.now(),
+      oid: formData.oid || '', // Ensure OID generation in backend
       cid: formData.cid || 'N/A',
       firstName: formData.firstName || 'N/A',
       lastName: formData.lastName || 'N/A',
@@ -149,14 +140,14 @@ const OrderDetails = () => {
       region: formData.region || 'N/A',
       zipCode: formData.zipCode || 'N/A',
       deliveryOption: formData.deliveryOption || 'N/A',
-      courier: formData.courier || null,
-      paymentOption: formData.paymentOption || 'N/A',
-      pickUpTime: formData.pickUpTime || null,
-      pickUpDate: formData.pickUpDate || null,
-      products: formData.products,
-      price: subtotal,
-      status: 'PENDING',
-      date: new Date().toISOString().split('T')[0],
+      courier: formData.courier || '',
+      paymentOption: formData.paymentOption || '',
+      pickUpTime: formData.pickUpTime || '',
+      pickUpDate: formData.pickUpDate || '',
+      products: formData.products, // Ensure this is an array
+      price: 1000 * formData.products.length, // Example price calculation
+      status: 'PENDING', // Default status
+      date: new Date().toISOString().split('T')[0], // Current date
     };
   
     try {
@@ -174,18 +165,15 @@ const OrderDetails = () => {
       }
   
       const result = await response.json();
-      addOrder({ ...orderData, id: result.id }); // Add the order to the context
+      addOrder({ ...orderData, id: result.id }); // Add the order to context
       alert('Order saved successfully.');
-  
-      // Navigate after the save is successful
-      navigate('/order');
+      navigate('/order'); // Redirect after save
     } catch (error) {
       console.error('Error saving order:', error);
       alert('Failed to save order. Please try again.');
-    } finally {
-      setIsSaving(false); // Reset saving state
     }
-  };  
+  };
+  
   
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
