@@ -30,24 +30,37 @@ db.connect((err) => {
   }
 });
 
-// Contact form submission API
-app.post('/submit-contact', (req, res) => {
+// Contact Form Submission with Email Validation and Verified Check
+app.post('/submit-contact', async (req, res) => {
   const { name, email, message } = req.body;
 
+  // Validate input
   if (!name || !email || !message) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  const query = 'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)';
-  db.query(query, [name, email, message], (err, result) => {
-    if (err) {
-      console.error('Error inserting contact submission:', err);
-      return res.status(500).json({ message: 'Server error' });
+  try {
+    // Check if the email exists in the database and is verified
+    const emailCheckQuery = 'SELECT email, verified FROM users WHERE email = ?';
+    const [results] = await db.promise().query(emailCheckQuery, [email]);
+
+    if (results.length === 0 || results[0].verified !== 1) {
+      // Return error if email does not exist or is not verified
+      return res.status(404).json({ message: 'The email is not verified. Please create an account.' });
     }
 
+    // Insert contact submission into the database
+    const insertQuery = 'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)';
+    await db.promise().query(insertQuery, [name, email, message]);
+
+    // Respond with success message
     res.status(200).json({ message: 'Contact form submitted successfully' });
-  });
+  } catch (err) {
+    console.error('Error handling contact submission:', err);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 });
+
 
 // Nodemailer Setup for Sending Emails
 const transporter = nodemailer.createTransport({
@@ -598,47 +611,8 @@ app.get('/products/:productId', (req, res) => {
 });
 
   // Add supplier with associated products
-app.post('/add-supplier', (req, res) => {
-  const {
-    name,
-    contactName,
-    type,
-    email,
-    phone,
-    status,
-    additionalNotes,
-    currentAddressType,
-    currentStreet,
-    currentCity,
-    currentProvince,
-    currentZipCode,
-    currentLandmark,
-    newAddressType,
-    newStreet,
-    newCity,
-    newProvince,
-    newZipCode,
-    newLandmark,
-    productLists // Step 3 products
-  } = req.body;
-
-  const supplierQuery = `
-    INSERT INTO suppliers 
-    (name, contact_name, type, email, phone, status, additional_notes, 
-    current_address_type, current_address_street, current_address_city, 
-    current_address_province, current_address_zip, current_address_landmark, 
-    new_address_type, new_address_street, new_address_city, 
-    new_address_province, new_address_zip, new_address_landmark, supply_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  const supplyId = `SID-${Date.now()}`;
-
-  db.beginTransaction((err) => {
-    if (err) throw err;
-
-    // Insert into suppliers table
-    db.query(supplierQuery, [
+  app.post('/add-supplier', (req, res) => {
+    const {
       name,
       contactName,
       type,
@@ -658,55 +632,121 @@ app.post('/add-supplier', (req, res) => {
       newProvince,
       newZipCode,
       newLandmark,
-      supplyId
-    ], (err, result) => {
+      productLists, // Step 3 products
+    } = req.body;
+  
+    const supplierQuery = `
+      INSERT INTO suppliers 
+      (name, contact_name, type, email, phone, status, additional_notes, 
+      current_address_type, current_address_street, current_address_city, 
+      current_address_province, current_address_zip, current_address_landmark, 
+      new_address_type, new_address_street, new_address_city, 
+      new_address_province, new_address_zip, new_address_landmark, supply_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+  
+    const supplyId = `SID-${Date.now()}`;
+  
+    db.beginTransaction((err) => {
       if (err) {
-        return db.rollback(() => {
-          console.error('Error adding supplier:', err);
-          res.status(500).json({ message: 'Error adding supplier', error: err.message });
-        });
+        console.error('Error starting transaction:', err);
+        return res.status(500).json({ message: 'Error starting transaction' });
       }
-
-      const supplierId = result.insertId;
-
-      if (productLists && Array.isArray(productLists) && productLists.length > 0) {
-        console.log("Inserting products for supplier ID:", supplierId, "Products:", productLists);
-
-        const productQuery = `
-          INSERT INTO supplier_products 
-          (supplier_id, product_name, category, product_description, quantity_available, unit_price)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `;
-
-        // Insert each product related to the supplier
-        productLists.forEach(product => {
-          const { product_name, category, product_description, quantity_available, unit_price } = product;
-          db.query(productQuery, [supplierId, product_name, category, product_description, quantity_available, unit_price], (err) => {
-            if (err) {
-              return db.rollback(() => {
-                console.error('Error adding product:', err);
-                res.status(500).json({ message: 'Error adding product', error: err.message });
-              });
-            }
-          });
-        });
-      } else {
-        console.warn('No products provided in step 3, skipping product insertion.');
-      }
-
-      // Commit transaction if everything is successful
-      db.commit((err) => {
-        if (err) {
-          return db.rollback(() => {
-            console.error('Error committing transaction:', err);
-            res.status(500).json({ message: 'Transaction commit failed' });
-          });
+  
+      db.query(
+        supplierQuery,
+        [
+          name,
+          contactName,
+          type,
+          email,
+          phone,
+          status,
+          additionalNotes,
+          currentAddressType,
+          currentStreet,
+          currentCity,
+          currentProvince,
+          currentZipCode,
+          currentLandmark,
+          newAddressType,
+          newStreet,
+          newCity,
+          newProvince,
+          newZipCode,
+          newLandmark,
+          supplyId,
+        ],
+        (err, result) => {
+          if (err) {
+            console.error('Error adding supplier:', err);
+            return db.rollback(() => {
+              res.status(500).json({ message: 'Error adding supplier', error: err.message });
+            });
+          }
+  
+          const supplierId = result.insertId;
+  
+          // Insert Products
+          if (productLists && productLists.length > 0) {
+            const productQuery = `
+              INSERT INTO supplier_products 
+              (supplier_id, product_name, category, product_description, quantity_available, unit_price)
+              VALUES (?, ?, ?, ?, ?, ?)
+            `;
+  
+            let completed = 0;
+            let hasError = false;
+  
+            productLists.forEach((product) => {
+              const { productName, category, productDescription, quantityAvailable, unitPrice } = product;
+  
+              db.query(
+                productQuery,
+                [supplierId, productName, category, productDescription, quantityAvailable, unitPrice],
+                (err) => {
+                  if (err) {
+                    hasError = true;
+                    console.error('Error adding product:', err);
+                    return db.rollback(() => {
+                      res.status(500).json({ message: 'Error adding product', error: err.message });
+                    });
+                  }
+  
+                  completed += 1;
+  
+                  // Commit if all products are inserted
+                  if (completed === productLists.length && !hasError) {
+                    db.commit((err) => {
+                      if (err) {
+                        return db.rollback(() => {
+                          console.error('Error committing transaction:', err);
+                          res.status(500).json({ message: 'Transaction commit failed' });
+                        });
+                      }
+                      res.status(200).json({ message: 'Supplier and products added successfully' });
+                    });
+                  }
+                }
+              );
+            });
+          } else {
+            // No products to insert
+            db.commit((err) => {
+              if (err) {
+                return db.rollback(() => {
+                  console.error('Error committing transaction:', err);
+                  res.status(500).json({ message: 'Transaction commit failed' });
+                });
+              }
+              res.status(200).json({ message: 'Supplier added successfully (no products)' });
+            });
+          }
         }
-        res.status(200).json({ message: 'Supplier and products added successfully' });
-      });
+      );
     });
   });
-});
+  
 
 // Get suppliers and associated products
 app.get('/suppliers', (req, res) => {

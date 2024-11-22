@@ -9,9 +9,11 @@ import { LiaOpencart } from "react-icons/lia";
 const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
   const [quantities, setQuantities] = useState(cartItems.map(item => item.quantity || 1));
   const [showModal, setShowModal] = useState(false);
+  const [showSelectedModal, setShowSelectedModal] = useState(false); // Modal for selected items
   const [removeIndex, setRemoveIndex] = useState(null);
-  const [showSelectors, setShowSelectors] = useState(false); // For showing selectors
-  const [selectedItems, setSelectedItems] = useState([]); // Track selected items
+  const [showSelectors, setShowSelectors] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
 
   useEffect(() => {
     quantities.forEach((quantity, index) => {
@@ -64,10 +66,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
 
   const handleSelectToggle = () => {
     setShowSelectors((prev) => !prev);
-    if (showSelectors) {
-      // If "Deselect" is clicked, remove all selected items
-      handleRemoveSelectedItems();
-    }
+    setShowDeleteButton((prev) => !prev);
   };
 
   const handleCheckboxChange = (index, checked) => {
@@ -78,11 +77,28 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
     }
   };
 
-  const handleRemoveSelectedItems = () => {
-    const remainingItems = cartItems.filter((_, index) => !selectedItems.includes(index));
-    setQuantities(remainingItems.map(item => item.quantity || 1));
+  const handleDeleteSelectedClick = () => {
+    setShowSelectedModal(true); // Show modal for selected items
+  };
+
+  const handleConfirmSelectedRemove = () => {
+    const sortedSelectedItems = [...selectedItems].sort((a, b) => b - a);
+
+    const updatedCartItems = cartItems.filter((_, index) => !sortedSelectedItems.includes(index));
+    setQuantities(updatedCartItems.map((item) => item.quantity || 1));
+
+    sortedSelectedItems.forEach((index) => {
+      onRemoveFromCart(index);
+    });
+
     setSelectedItems([]);
-    onRemoveFromCart(selectedItems); // Adjust your onRemoveFromCart function to handle multiple deletions
+    setShowSelectors(false);
+    setShowDeleteButton(false);
+    setShowSelectedModal(false);
+  };
+
+  const handleCancelSelectedRemove = () => {
+    setShowSelectedModal(false);
   };
 
   const subtotal = calculateSubtotal();
@@ -90,24 +106,51 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-black text-white py-10 relative">
-      {showModal && (
+    {showModal && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
+        <div className="bg-black hover:shadow-blue-500/40 text-black p-6 rounded-lg shadow-md max-w-sm">
+          <p className="mb-2 text-md font-semibold text-center text-white">
+            Do you want to remove this product from the cart?
+          </p>
+          <p className="mb-6 text-xs text-center text-gray-600">
+            You cannot undo this action.
+          </p>
+          <div className="flex justify-around border-t pt-2">
+            <button
+              onClick={handleCancelRemove}
+              className="py-2 px-4 text-blue-600 font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmRemove}
+              className="py-2 px-4 text-red-600 font-medium"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+{showSelectedModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
           <div className="bg-black hover:shadow-blue-500/40 text-black p-6 rounded-lg shadow-md max-w-sm">
             <p className="mb-2 text-md font-semibold text-center text-white">
-              Do you want to remove this product from the cart?
+              Do you want to remove the selected items from the cart?
             </p>
             <p className="mb-6 text-xs text-center text-gray-600">
-              You cannot undo this action
+              You cannot undo this action.
             </p>
             <div className="flex justify-around border-t pt-2">
               <button
-                onClick={handleCancelRemove}
+                onClick={handleCancelSelectedRemove}
                 className="py-2 px-4 text-blue-600 font-medium"
               >
                 Cancel
               </button>
               <button
-                onClick={handleConfirmRemove}
+                onClick={handleConfirmSelectedRemove}
                 className="py-2 px-4 text-red-600 font-medium"
               >
                 Delete
@@ -117,7 +160,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
         </div>
       )}
 
-      <div className="flex w-full max-w-6xl mx-auto">
+<div className="flex w-full max-w-6xl mx-auto">
         <div
           className="w-full max-w-xl p-8 rounded-lg flex flex-col justify-between"
           style={{
@@ -143,12 +186,27 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
             <>
               <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-semibold text-left">Shopping Cart</h1>
-                <button
-                  onClick={handleSelectToggle}
-                  className="text-blue-400 font-medium text-sm"
-                >
-                  {showSelectors ? "Deselect" : "Select"}
-                </button>
+                <div className="flex items-center space-x-4">
+                  {showDeleteButton && (
+                    <button
+                      onClick={selectedItems.length > 0 ? handleDeleteSelectedClick : null}
+                      className={`text-sm font-medium ${
+                        selectedItems.length > 0
+                          ? "text-red-500 cursor-pointer"
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
+                      disabled={selectedItems.length === 0}
+                    >
+                      Delete Selected
+                    </button>
+                  )}
+                  <button
+                    onClick={handleSelectToggle}
+                    className="text-blue-400 font-medium text-sm"
+                  >
+                    {showSelectors ? "Deselect" : "Select"}
+                  </button>
+                </div>
               </div>
               <div className="space-y-4">
                 {cartItems.map((item, index) => (
@@ -161,9 +219,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                         <input
                           type="checkbox"
                           className="mr-2"
-                          onChange={(e) =>
-                            handleCheckboxChange(index, e.target.checked)
-                          }
+                          onChange={(e) => handleCheckboxChange(index, e.target.checked)}
                         />
                       )}
                       <img
@@ -199,11 +255,13 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                       <div className="font-semibold text-blue-400 text-sm mr-4">
                         PHP {item.price.toLocaleString()}
                       </div>
-                      <RiDeleteBin2Line
-                        size={20}
-                        className="text-red-600 cursor-pointer"
-                        onClick={() => handleDeleteClick(index)}
-                      />
+                      {!showSelectors && (
+                        <RiDeleteBin2Line
+                          size={20}
+                          className="text-red-600 cursor-pointer"
+                          onClick={() => handleDeleteClick(index)}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}

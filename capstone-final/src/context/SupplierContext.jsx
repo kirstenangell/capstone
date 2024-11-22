@@ -11,20 +11,30 @@ export const SupplierProvider = ({ children }) => {
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
-        const response = await fetch('http://localhost:5000/suppliers'); // API endpoint for fetching suppliers
+        const response = await fetch('http://localhost:5000/suppliers');
         const data = await response.json();
-
         if (response.ok) {
-          // Filter out archived suppliers before updating state
-          const activeSuppliers = data.filter((supplier) => !supplier.archived);
-          setSuppliers(activeSuppliers); // Update state with active suppliers only
+          const groupedData = data.reduce((acc, row) => {
+            const supplierIndex = acc.findIndex((s) => s.id === row.id);
+            if (supplierIndex === -1) {
+              acc.push({
+                ...row,
+                productLists: row.product_name ? [{ ...row }] : [],
+              });
+            } else {
+              acc[supplierIndex].productLists.push({ ...row });
+            }
+            return acc;
+          }, []);
+          setSuppliers(groupedData);
         } else {
-          console.error('Error fetching suppliers:', data.message); // Log server error message
+          console.error('Error fetching suppliers:', data.message);
         }
       } catch (error) {
-        console.error('Error fetching suppliers:', error); // Log client-side error
+        console.error('Error fetching suppliers:', error);
       }
     };
+    
 
     fetchSuppliers(); // Call the fetch function when the component mounts
   }, []); // Empty dependency array ensures this runs only once
@@ -37,19 +47,21 @@ export const SupplierProvider = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(supplier), // Convert supplier object to JSON
+        body: JSON.stringify(supplier),
       });
-
+  
       if (response.ok) {
         const savedSupplier = await response.json();
-        setSuppliers([...suppliers, savedSupplier]); // Add new supplier to the list
+        // Update the suppliers state with the new supplier
+        setSuppliers((prevSuppliers) => [...prevSuppliers, savedSupplier]);
       } else {
-        console.error('Failed to add supplier:', response.statusText); // Log if request fails
+        console.error('Failed to add supplier:', response.statusText);
       }
     } catch (error) {
-      console.error('Error adding supplier:', error); // Log client-side error
+      console.error('Error adding supplier:', error);
     }
   };
+  
 
   // Function to update an existing supplier and sync with the backend
   const updateSupplier = async (updatedSupplier) => {
