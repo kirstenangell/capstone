@@ -96,67 +96,67 @@ const OrderDetails = () => {
 
   // Save the order
   const handleSaveClick = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-
+    e.preventDefault();
+  
     if (isSaving) return; // Prevent duplicate save requests
-    setIsSaving(true); // Set saving state to true
-
+    setIsSaving(true);
+  
+    // Validate required fields
+    const requiredFields = [
+      'firstName',
+      'lastName',
+      'email',
+      'contactNumber',
+      'streetName',
+      'barangay',
+      'city',
+      'region',
+      'province',
+      'zipCode',
+    ];
+  
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        alert(`Please fill in the required field: ${field}`);
+        setIsSaving(false);
+        return;
+      }
+    }
+  
     const orderData = {
-      id: formData.id || null,
-      firstName: formData.firstName || 'N/A',
-      lastName: formData.lastName || 'N/A',
-      email: formData.email || 'N/A',
-      contactNumber: formData.contactNumber || 'N/A',
-      streetName: formData.streetName || 'N/A',
-      barangay: formData.barangay || 'N/A',
-      city: formData.city || 'N/A',
-      region: formData.region || 'N/A',
-      province: formData.province || 'N/A',
-      zipCode: formData.zipCode || 'N/A',
-      newStreet: formData.newStreet || '',
-      newBarangay: formData.newBarangay || '',
-      newCity: formData.newCity || '',
-      newRegion: formData.newRegion || '',
-      newProvince: formData.newProvince || '',
-      newZipCode: formData.newZipCode || '',
-      deliveryOption: formData.deliveryOption || 'N/A',
-      courier: formData.courier || '',
-      paymentOption: formData.paymentOption || '',
-      pickUpTime: formData.pickUpTime || '',
-      pickUpDate: formData.pickUpDate || '',
-      products: formData.products.filter(Boolean), // Ensure no empty values
+      ...formData,
+      products: formData.products.filter(Boolean),
       price: 1000 * formData.products.filter(Boolean).length,
       status: 'PENDING',
       date: new Date().toISOString().split('T')[0],
-      archived: false, // New default field
+      archived: false,
     };
-
+  
+    console.log('Order data being sent:', orderData);
+  
     try {
       let response;
       if (isEdit && formData.id) {
-        // Update existing order
         response = await fetch(`http://localhost:5000/update-order/${formData.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderData),
         });
       } else {
-        // Add new order
         response = await fetch('http://localhost:5000/add-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderData),
         });
       }
-
+  
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Server error:', errorData);
+        console.error('Backend response:', errorData);
         throw new Error(errorData.message || 'Failed to save order.');
       }
-
+  
       const result = await response.json();
-
       if (isEdit) {
         updateOrder({ ...orderData, id: formData.id });
         alert('Order updated successfully.');
@@ -164,15 +164,16 @@ const OrderDetails = () => {
         addOrder({ ...orderData, id: result.id });
         alert('Order added successfully.');
       }
-
-      navigate('/order'); // Redirect after saving
+  
+      navigate('/order');
     } catch (error) {
-      console.error('Error saving order:', error);
-      alert('Failed to save order. Please try again.');
+      console.error('Error saving order:', error.message || error);
+      alert(`Failed to save order: ${error.message || 'Please try again.'}`);
     } finally {
-      setIsSaving(false); // Reset saving state
+      setIsSaving(false);
     }
   };
+  
 
   
   return (
@@ -268,179 +269,179 @@ const OrderDetails = () => {
 
           {currentStep === 2 && (
             <div>
-              {/* Current Address */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Current Address</label>
-                <div className="flex space-x-4">
-                  <div className="w-1/2">
-                    <input
-                      type="text"
-                      name="currentStreet"
-                      value={formData.streetNameeet}
-                      onChange={handleChange}
-                      placeholder="Street Number/Street Name"
-                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  <div className="w-1/2">
-                    <input
-                      type="text"
-                      name="currentBarangay"
-                      value={formData.barangay}
-                      onChange={handleChange}
-                      placeholder="Barangay"
-                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentCity"
-                    value={formData.city}
-                    onChange={handleChange}
-                    placeholder="City"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentRegion"
-                    value={formData.region}
-                    onChange={handleChange}
-                    placeholder="Region"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentProvince"
-                    value={formData.province}
-                    onChange={handleChange}
-                    placeholder="Province"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentZipCode"
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    placeholder="Zip Code"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
+            <label className="block text-sm font-medium mb-1">Current Address</label>
+            <div className="flex space-x-4">
+              <div className="w-1/2">
                 <input
                   type="text"
-                  name="currentLandmark"
-                  value={formData.landmark}
+                  name="streetName"
+                  value={formData.streetName}
                   onChange={handleChange}
-                  placeholder="Landmark (Optional)"
+                  placeholder="Street Number/Street Name"
                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
                 />
               </div>
+              <div className="w-1/2">
+                <input
+                  type="text"
+                  name="barangay"
+                  value={formData.barangay}
+                  onChange={handleChange}
+                  placeholder="Barangay"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+            </div>
+          
+            <div className="flex space-x-4 mt-4">
+              <div className="w-1/2">
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  placeholder="City"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div className="w-1/2">
+                <input
+                  type="text"
+                  name="region"
+                  value={formData.region}
+                  onChange={handleChange}
+                  placeholder="Region"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+            </div>
+          
+            <div className="flex space-x-4 mt-4">
+              <div className="w-1/2">
+                <input
+                  type="text"
+                  name="province"
+                  value={formData.province}
+                  onChange={handleChange}
+                  placeholder="Province"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div className="w-1/2">
+                <input
+                  type="text"
+                  name="zipCode"
+                  value={formData.zipCode}
+                  onChange={handleChange}
+                  placeholder="Zip Code"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+            </div>
+          
+            <div className="mt-4">
+              <input
+                type="text"
+                name="landmark"
+                value={formData.landmark}
+                onChange={handleChange}
+                placeholder="Landmark (Optional)"
+                className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          
+          
 
               {/* New Address */}
               <div className="mt-6">
-                <label className="block text-sm font-medium mb-1">New Address</label>
-                <div className="flex space-x-4">
-                  <div className="w-1/2">
-                    <input
-                      type="text"
-                      name="newStreet"
-                      value={formData.newStreet}
-                      onChange={handleChange}
-                      placeholder="Street Number/Street Name"
-                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="w-1/2">
-                    <input
-                      type="text"
-                      name="newBarangay"
-                      value={formData.newBarangay}
-                      onChange={handleChange}
-                      placeholder="Barangay"
-                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
+  <label className="block text-sm font-medium mb-1">New Address</label>
+  <div className="flex space-x-4">
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="newStreet"
+        value={formData.newStreet}
+        onChange={handleChange}
+        placeholder="Street Number/Street Name"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+      />
+    </div>
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="newBarangay"
+        value={formData.newBarangay}
+        onChange={handleChange}
+        placeholder="Barangay"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+      />
+    </div>
+  </div>
 
-              <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="newCity"
-                    value={formData.newCity}
-                    onChange={handleChange}
-                    placeholder="City"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="newRegion"
-                    value={formData.newRegion}
-                    onChange={handleChange}
-                    placeholder="Region"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
+  <div className="flex space-x-4 mt-4">
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="newCity"
+        value={formData.newCity}
+        onChange={handleChange}
+        placeholder="City"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+      />
+    </div>
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="newRegion"
+        value={formData.newRegion}
+        onChange={handleChange}
+        placeholder="Region"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+      />
+    </div>
+  </div>
 
-              <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="newProvince"
-                    value={formData.newProvince}
-                    onChange={handleChange}
-                    placeholder="Province"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="newZipCode"
-                    value={formData.newZipCode}
-                    onChange={handleChange}
-                    placeholder="Zip Code"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
+  <div className="flex space-x-4 mt-4">
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="newProvince"
+        value={formData.newProvince}
+        onChange={handleChange}
+        placeholder="Province"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+      />
+    </div>
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="newZipCode"
+        value={formData.newZipCode}
+        onChange={handleChange}
+        placeholder="Zip Code"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+      />
+    </div>
+  </div>
 
-              <div className="mt-4">
-                <input
-                  type="text"
-                  name="newLandmark"
-                  value={formData.newLandmark}
-                  onChange={handleChange}
-                  placeholder="Landmark (Optional)"
-                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                />
-              </div>
+  <div className="mt-4">
+    <input
+      type="text"
+      name="newLandmark"
+      value={formData.newLandmark}
+      onChange={handleChange}
+      placeholder="Landmark (Optional)"
+      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+    />
+  </div>
+</div>
+
             </div>
           )}
             {/* Step 3: Delivery Details */}
