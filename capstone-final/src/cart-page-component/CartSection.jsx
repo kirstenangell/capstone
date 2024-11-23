@@ -9,16 +9,28 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
   const [quantities, setQuantities] = useState(cartItems.map(item => item.quantity || 1));
   const [showModal, setShowModal] = useState(false); 
   const [removeIndex, setRemoveIndex] = useState(null);
-  
 
-  // Prevent infinite loop by making sure `useEffect` only runs when quantities change
+
+  // Fetch cart items from the backend when the component mounts
   useEffect(() => {
-    quantities.forEach((quantity, index) => {
-      if (quantity !== cartItems[index].quantity) {
-        onUpdateQuantity(index, quantity);
-      }
-    });
-  }, [quantities, onUpdateQuantity, cartItems]);
+    const fetchCartItems = async () => {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/cart/${userId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch cart items');
+            }
+            const items = await response.json();
+            setQuantities(items.map(item => item.quantity));
+        } catch (error) {
+            console.error('Error fetching cart items:', error);
+        }
+    };
+
+    fetchCartItems();
+}, []);
 
   const calculateSubtotal = () => {
     return quantities.reduce((total, quantity, index) => {
@@ -172,21 +184,20 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
               </div>
 
               <NavLink 
-                to="checkout-landing" // Relative path
+                to="checkout-landing"
                 state={{ cartItems, total }}
                 className="w-full mt-8"
               >
                 <button
-                className="w-full py-2 rounded-full font-semibold flex items-center justify-center"
-                style={{
-                  background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
-                  boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
-                }}
-              >
-                Proceed to Checkout
-                <IoArrowForwardCircle className="ml-2" />
-              </button>
-
+                  className="w-full py-2 rounded-full font-semibold flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
+                  }}
+                >
+                  Proceed to Checkout
+                  <IoArrowForwardCircle className="ml-2" />
+                </button>
               </NavLink>
             </>
           )}

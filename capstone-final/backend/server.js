@@ -644,10 +644,45 @@ WHERE email = ?;
   });
 });
 
+// Define routes
+app.get('/api/products', (req, res) => {
+  db.query('SELECT * FROM products WHERE status = 1', (error, results) => {
+    if (error) throw error;
+    res.json(results);
+  });
+});
 
+app.post('/api/cart/add', (req, res) => {
+  const { userId, productId, quantity } = req.body;
+  const sql = `INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)`;
+  db.query(sql, [userId, productId, quantity], (error, results) => {
+    if (error) return res.status(500).send('Error adding to cart');
+    res.send('Product added to cart successfully');
+  });
+});
 
+// This assumes you have session middleware set up, like express-session
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body;
+  const sql = 'SELECT * FROM users WHERE email = ? AND password = ?';
+  db.query(sql, [email, password], (error, results) => {
+    if (error) throw error;
+    if (results.length > 0) {
+      req.session.user = results[0]; // Store user info in session
+      res.json({ message: 'Logged in successfully' });
+    } else {
+      res.status(401).json({ message: 'Authentication failed' });
+    }
+  });
+});
 
-
+app.get('/api/current-user', (req, res) => {
+  if (req.session.user) {
+    res.json({ userId: req.session.user.id, name: req.session.user.name });
+  } else {
+    res.status(401).json({ error: 'Not authenticated' });
+  }
+});
 
 // Start the server
 const port = 5000;

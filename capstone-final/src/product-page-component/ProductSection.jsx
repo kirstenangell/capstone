@@ -7,6 +7,7 @@ import Wheel3 from "../assets/wheel3.png";
 import Wheel5 from "../assets/wheel5.png";
 import dashboardImage from '../assets/dashboard.png';
 import { ProductContext } from '../context/ProductContext';
+import { useUser } from '../context/UserContext';
 
 const ProductSection = ({ onAddToCart, isLoggedIn }) => {
   const { products } = useContext(ProductContext);
@@ -28,13 +29,29 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     setSelectedProduct(null);
   };
 
-  const handleAddToCartClick = (product) => {
-    if (isLoggedIn) {
-      onAddToCart(product);
-    } else {
-      setShowLoginWarning(true); // Show login warning
+  const handleAddToCartClick = async (productId, quantity) => {
+    const { user } = useUser(); // Extract user from the context
+    if (!user) {
+        console.error('User not logged in');
+        return;
     }
-  };
+
+    try {
+      const response = await fetch('/api/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, productId, quantity })
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to add item to cart');
+      }
+  
+      console.log('Product added to cart successfully');
+    } catch (error) {
+      console.error('Error adding item to cart:', error.message);
+    }
+};
 
   const handleBuyNow = (product) => {
     if (isLoggedIn) {

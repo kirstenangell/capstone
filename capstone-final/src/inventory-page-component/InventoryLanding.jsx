@@ -142,7 +142,7 @@ const InventoryLanding = () => {
           <div className="col-span-3">
             <div className="space-y-4">
               {products.length === 0 ? (
-                <div className="text-center text-gray-400">
+                <div className="overflow-auto max-h-[600px] text-center text-gray-400">
                   No products found
                 </div>
               ) : (
