@@ -699,6 +699,7 @@ app.get('/orders', (req, res) => {
       barangay, 
       city, 
       region, 
+      province,
       zipCode, 
       deliveryOption, 
       courier, 
@@ -734,6 +735,7 @@ app.post('/add-order', (req, res) => {
     streetName,
     barangay,
     city,
+    province,
     region,
     zipCode,
     deliveryOption,
@@ -754,7 +756,7 @@ app.post('/add-order', (req, res) => {
 
   const query = `
     INSERT INTO orders 
-    (firstName, lastName, email, contactNumber, streetName, barangay, city, region, zipCode, 
+    (firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode, 
     deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
@@ -771,6 +773,7 @@ app.post('/add-order', (req, res) => {
       barangay,
       city,
       region,
+      province,
       zipCode,
       deliveryOption,
       courier,
@@ -806,6 +809,7 @@ app.get('/orders', (req, res) => {
       barangay, 
       city, 
       region, 
+      province,
       zipCode, 
       deliveryOption, 
       courier, 
@@ -871,6 +875,7 @@ app.put('/update-order/:id', (req, res) => {
       barangay = ?, 
       city = ?, 
       region = ?, 
+      province = ?,
       zipCode = ?, 
       deliveryOption = ?, 
       courier = ?, 
@@ -895,6 +900,7 @@ app.put('/update-order/:id', (req, res) => {
       updatedOrder.barangay,
       updatedOrder.city,
       updatedOrder.region,
+      updatedOrder.province,
       updatedOrder.zipCode,
       updatedOrder.deliveryOption,
       updatedOrder.courier,

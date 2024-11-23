@@ -292,6 +292,17 @@ const OrderDetails = () => {
                   />
                 </div>
                 <div className="mb-6">
+                  <label className="block text-sm font-medium mb-1">Province</label>
+                  <input
+                    type="text"
+                    name="province"
+                    placeholder="Province"
+                    value={formData.province}
+                    onChange={handleChange}
+                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">Zip Code</label>
                   <input
                     type="text"
