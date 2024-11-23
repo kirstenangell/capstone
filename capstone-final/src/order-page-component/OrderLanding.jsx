@@ -153,21 +153,21 @@ const OrderLanding = () => {
               ) : (
                 filteredOrders.map((order) => (
                   <div
-                    key={order.id}
-                    className="bg-gradient-to-r from-[#040405] to-[#335C6E] p-6 rounded-lg shadow-md flex items-center cursor-pointer"
-                    onClick={() => handleOrderClick(order)}
-                  >
-                    <div className="w-16 h-16 flex items-center justify-center text-white text-lg font-bold">
-                      {`OID-${order.id}`}
-                    </div>
-                    <div className="ml-6">
-                      <h2 className="text-xl font-semibold">
-                        {`${order.first_name || 'N/A'} ${order.last_name || 'N/A'}`}
-                      </h2>
-                      <p className="text-gray-400 text-sm mt-2">
-                        {order.email} | {order.phone} | {order.status}
-                      </p>
-                    </div>
+                  key={order.id}
+                  className="bg-gradient-to-r from-[#040405] to-[#335C6E] p-6 rounded-lg shadow-md flex items-center cursor-pointer"
+                  onClick={() => handleOrderClick(order)}
+                >
+                  <div className="w-16 h-16 flex items-center justify-center text-white text-lg font-bold">
+                    {`OID-${order.id}`}
+                  </div>
+                  <div className="ml-6">
+                    <h2 className="text-xl font-semibold">
+                      {`${order.firstName || 'N/A'} ${order.lastName || 'N/A'}`} {/* Corrected field names */}
+                    </h2>
+                    <p className="text-gray-400 text-sm mt-2">
+                      {order.email || 'N/A'} | {order.contactNumber || 'N/A'} | {order.status || 'N/A'}
+                    </p>
+                  </div>
                   </div>
                 ))
               )}
@@ -188,17 +188,20 @@ const OrderLanding = () => {
                 >
                   <BsBoxArrowRight className="text-white text-md" />
                 </button>
+
                 <div className="flex items-center">
                   <div className="w-24 h-24 flex justify-center items-center text-white text-lg font-bold">
-                    {`OID-${selectedOrder.id}`}
+                      {`OID-${selectedOrder.id}`}
                   </div>
                   <div className="ml-4">
-                    <h2 className="text-xl font-semibold">
-                      {`${selectedOrder.first_name || 'N/A'} ${selectedOrder.last_name || 'N/A'}`}
-                    </h2>
-                    <p className="text-gray-400">Customer Type: {selectedOrder.type || 'N/A'}</p>
+                      <h2 className="text-xl font-semibold">
+                          {`${selectedOrder.firstName || 'N/A'} ${selectedOrder.lastName || 'N/A'}`}
+                      </h2>
+                      <p className="text-gray-400">Customer Type: {selectedOrder.customerType || 'N/A'}</p>
                   </div>
-                </div>
+              </div>
+
+
               </div>
               <div className="space-x-4">
                 <button onClick={handleEditOrder} className="text-sm text-white hover:underline">
@@ -251,30 +254,31 @@ const OrderLanding = () => {
             <div className="flex-1 overflow-y-auto">
               {activeTab === 'general' && (
                 <div className="grid grid-cols-1 gap-4">
-                   <div>
-                    <h3 className="text-white text-md font-semibold mb-2">Customer Details</h3>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">First Name:</span>
-                      <span className="text-xs">{selectedOrder.first_name || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Last Name:</span>
-                      <span className="text-xs">{selectedOrder.last_name || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Email:</span>
-                      <span className="text-xs">{selectedOrder.email || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Phone:</span>
-                      <span className="text-xs">{selectedOrder.phone || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Status:</span>
-                      <span className="text-xs">{selectedOrder.status || 'N/A'}</span>
-                    </div>
-                    </div>
+                <div>
+                  <h3 className="text-white text-md font-semibold mb-2">Customer Details</h3>
+                  <div className="flex">
+                    <span className="text-xs text-gray-400 w-40">First Name:</span>
+                    <span className="text-xs">{selectedOrder.firstName || 'N/A'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-xs text-gray-400 w-40">Last Name:</span>
+                    <span className="text-xs">{selectedOrder.lastName || 'N/A'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-xs text-gray-400 w-40">Email:</span>
+                    <span className="text-xs">{selectedOrder.email || 'N/A'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-xs text-gray-400 w-40">Contact Number:</span>
+                    <span className="text-xs">{selectedOrder.contactNumber || 'N/A'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-xs text-gray-400 w-40">Status:</span>
+                    <span className="text-xs">{selectedOrder.status || 'N/A'}</span>
+                  </div>
                 </div>
+              </div>
+              
               )}
               {activeTab === 'delivery' && (
                 <div className="grid grid-cols-1 gap-4">

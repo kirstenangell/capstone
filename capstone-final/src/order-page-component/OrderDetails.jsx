@@ -98,10 +98,10 @@ const OrderDetails = () => {
   const handleSaveClick = async (e) => {
     e.preventDefault();
   
-    if (isSaving) return; // Prevent duplicate save requests
+    if (isSaving) return;
     setIsSaving(true);
   
-    // Validate required fields
+    // Explicitly list the required fields
     const requiredFields = [
       'firstName',
       'lastName',
@@ -128,15 +128,12 @@ const OrderDetails = () => {
       products: formData.products.filter(Boolean),
       price: 1000 * formData.products.filter(Boolean).length,
       status: 'PENDING',
-      date: new Date().toISOString().split('T')[0],
       archived: false,
     };
   
-    console.log('Order data being sent:', orderData);
-  
     try {
       let response;
-      if (isEdit && formData.id) {
+      if (isEdit) {
         response = await fetch(`http://localhost:5000/update-order/${formData.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -150,29 +147,24 @@ const OrderDetails = () => {
         });
       }
   
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Backend response:', errorData);
-        throw new Error(errorData.message || 'Failed to save order.');
-      }
-  
       const result = await response.json();
       if (isEdit) {
-        updateOrder({ ...orderData, id: formData.id });
-        alert('Order updated successfully.');
+        updateOrder(orderData);
       } else {
         addOrder({ ...orderData, id: result.id });
-        alert('Order added successfully.');
       }
   
+      alert(isEdit ? 'Order updated successfully.' : 'Order added successfully.');
       navigate('/order');
     } catch (error) {
-      console.error('Error saving order:', error.message || error);
-      alert(`Failed to save order: ${error.message || 'Please try again.'}`);
+      console.error('Error saving order:', error);
+      alert('Failed to save the order.');
     } finally {
       setIsSaving(false);
     }
   };
+  
+  
   
 
   
