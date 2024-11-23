@@ -98,23 +98,10 @@ const OrderDetails = () => {
   const handleSaveClick = async (e) => {
     e.preventDefault();
   
-    if (isSaving) return;
+    if (isSaving) return; // Prevent duplicate save requests
     setIsSaving(true);
   
-    // Explicitly list the required fields
-    const requiredFields = [
-      'firstName',
-      'lastName',
-      'email',
-      'contactNumber',
-      'streetName',
-      'barangay',
-      'city',
-      'region',
-      'province',
-      'zipCode',
-    ];
-  
+    const requiredFields = ['firstName', 'lastName', 'email', 'contactNumber'];
     for (const field of requiredFields) {
       if (!formData[field]) {
         alert(`Please fill in the required field: ${field}`);
@@ -133,7 +120,7 @@ const OrderDetails = () => {
   
     try {
       let response;
-      if (isEdit) {
+      if (isEdit && formData.id) {
         response = await fetch(`http://localhost:5000/update-order/${formData.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -145,6 +132,11 @@ const OrderDetails = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderData),
         });
+      }
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save order.');
       }
   
       const result = await response.json();
@@ -163,6 +155,7 @@ const OrderDetails = () => {
       setIsSaving(false);
     }
   };
+  
   
   
   
