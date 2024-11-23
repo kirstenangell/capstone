@@ -900,7 +900,7 @@ app.post('/api/cart/add', (req, res) => {
   });
 });
 
-// Add Order API
+// Add New Order with Duplicate Check
 app.post('/add-order', (req, res) => {
   const {
     firstName,
@@ -910,8 +910,8 @@ app.post('/add-order', (req, res) => {
     streetName,
     barangay,
     city,
-    province,
     region,
+    province,
     zipCode,
     deliveryOption,
     courier,
@@ -922,56 +922,141 @@ app.post('/add-order', (req, res) => {
     price,
     status,
     date,
+    archived,
+    newStreet,
+    newBarangay,
+    newCity,
+    newRegion,
+    newProvince,
+    newZipCode,
+    newLandmark,
   } = req.body;
-
-  // Validate required fields
-  if (!firstName || !lastName || !email || !contactNumber || !products || !price) {
-    return res.status(400).json({ message: 'Missing required fields' });
-  }
-
-  const query = `
-    INSERT INTO orders 
-    (firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode, 
-    deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  // Check for duplicate order
+  const duplicateCheckQuery = `
+    SELECT COUNT(*) AS count FROM orders
+    WHERE firstName = ? AND lastName = ? AND email = ? AND contactNumber = ?
+      AND streetName = ? AND barangay = ? AND city = ? AND region = ? AND province = ? AND zipCode = ?
+      AND deliveryOption = ? AND courier = ? AND paymentOption = ? AND pickUpTime = ? AND pickUpDate = ?
+      AND JSON_LENGTH(products) = ? AND archived = 0
   `;
 
-  // Insert order into database
-  db.query(
-    query,
-    [
-      firstName,
-      lastName,
-      email,
-      contactNumber,
-      streetName,
-      barangay,
-      city,
-      region,
-      province,
-      zipCode,
-      deliveryOption,
-      courier,
-      paymentOption,
-      pickUpTime,
-      pickUpDate,
-      JSON.stringify(products), // Ensure products array is stored as JSON
-      price,
-      status,
-      date,
-    ],
-    (err, result) => {
-      if (err) {
-        console.error('Error adding order:', err.message || err); // Log detailed error
-        return res.status(500).json({ message: 'Error adding order', error: err.message });
-      }
-
-      res.status(200).json({ id: result.insertId, message: 'Order added successfully' });
+  const checkValues = [
+    firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
+    deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products.length,
+  ];
+  db.query(duplicateCheckQuery, checkValues, (err, results) => {
+    if (err) {
+      console.error('Error checking for duplicate order:', err);
+      res.status(500).json({ message: 'Failed to check for duplicate order.' });
+      return;
     }
-  );
+    if (results[0].count > 0) {
+      res.status(400).json({ message: 'Duplicate order detected. Please review your order details.' });
+      return;
+    }
+    // Insert new order if no duplicate is found
+    const query = `
+      INSERT INTO orders (
+        firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
+        deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date, archived,
+        newStreet, newBarangay, newCity, newRegion, newProvince, newZipCode, newLandmark
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+      firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
+      deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, JSON.stringify(products), price,
+      status, date, archived, newStreet, newBarangay, newCity, newRegion, newProvince, newZipCode, newLandmark,
+    ];
+    db.query(query, values, (err, result) => {
+      if (err) {
+        console.error('Error adding order:', err);
+        res.status(500).json({ message: 'Failed to add order.' });
+      } else {
+        res.status(201).json({ id: result.insertId, message: 'Order added successfully.' });
+      }
+    });
+  });
 });
 
-// Fetch Orders API
+// Update Existing Order with Duplicate Check
+app.put('/update-order/:id', (req, res) => {
+  const orderId = req.params.id;
+  const {
+    firstName,
+    lastName,
+    email,
+    contactNumber,
+    streetName,
+    barangay,
+    city,
+    region,
+    province,
+    zipCode,
+    deliveryOption,
+    courier,
+    paymentOption,
+    pickUpTime,
+    pickUpDate,
+    products,
+    price,
+    status,
+    archived,
+    newStreet,
+    newBarangay,
+    newCity,
+    newRegion,
+    newProvince,
+    newZipCode,
+    newLandmark,
+  } = req.body;
+  // Check for duplicate order
+  const duplicateCheckQuery = `
+    SELECT COUNT(*) AS count FROM orders
+    WHERE firstName = ? AND lastName = ? AND email = ? AND contactNumber = ?
+      AND streetName = ? AND barangay = ? AND city = ? AND region = ? AND province = ? AND zipCode = ?
+      AND deliveryOption = ? AND courier = ? AND paymentOption = ? AND pickUpTime = ? AND pickUpDate = ?
+      AND JSON_LENGTH(products) = ? AND archived = 0 AND id != ?
+  `;
+  const checkValues = [
+    firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
+    deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products.length, orderId,
+  ];
+  db.query(duplicateCheckQuery, checkValues, (err, results) => {
+    if (err) {
+      console.error('Error checking for duplicate order:', err);
+      res.status(500).json({ message: 'Failed to check for duplicate order.' });
+      return;
+    }
+    if (results[0].count > 0) {
+      res.status(400).json({ message: 'Duplicate order detected. Please review your order details.' });
+      return;
+    }
+    // Update the order if no duplicate is found
+    const query = `
+      UPDATE orders SET
+        firstName = ?, lastName = ?, email = ?, contactNumber = ?, streetName = ?, barangay = ?, city = ?, 
+        region = ?, province = ?, zipCode = ?, deliveryOption = ?, courier = ?, paymentOption = ?, 
+        pickUpTime = ?, pickUpDate = ?, products = ?, price = ?, status = ?, archived = ?, 
+        newStreet = ?, newBarangay = ?, newCity = ?, newRegion = ?, newProvince = ?, newZipCode = ?, newLandmark = ?
+      WHERE id = ?
+    `;
+    const values = [
+      firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
+      deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, JSON.stringify(products), price,
+      status, archived, newStreet, newBarangay, newCity, newRegion, newProvince, newZipCode, newLandmark, orderId,
+    ];
+    db.query(query, values, (err, result) => {
+      if (err) {
+        console.error('Error updating order:', err);
+        res.status(500).json({ message: 'Failed to update order.' });
+      } else {
+        res.status(200).json({ message: 'Order updated successfully.' });
+      }
+    });
+  });
+});
+
+// Fetch All Orders API
 app.get('/orders', (req, res) => {
   const query = `
     SELECT 
@@ -1009,7 +1094,7 @@ app.get('/orders', (req, res) => {
   });
 });
 
-// Archive (soft delete) Order API
+// Archive Order API
 app.put('/archive-order/:id', (req, res) => {
   const orderId = req.params.id;
 
@@ -1029,79 +1114,6 @@ app.put('/archive-order/:id', (req, res) => {
   });
 });
 
-// Update Order API
-app.put('/update-order/:id', (req, res) => {
-  const orderId = req.params.id;
-  const updatedOrder = req.body;
-
-  // Validate required fields
-  if (!updatedOrder.firstName || !updatedOrder.lastName || !updatedOrder.email) {
-    return res.status(400).json({ message: 'Missing required fields' });
-  }
-
-  const query = `
-    UPDATE orders 
-    SET 
-      firstName = ?, 
-      lastName = ?, 
-      email = ?, 
-      contactNumber = ?, 
-      streetName = ?, 
-      barangay = ?, 
-      city = ?, 
-      region = ?, 
-      province = ?,
-      zipCode = ?, 
-      deliveryOption = ?, 
-      courier = ?, 
-      paymentOption = ?, 
-      pickUpTime = ?, 
-      pickUpDate = ?, 
-      products = ?, 
-      price = ?, 
-      status = ?, 
-      date = ?
-    WHERE id = ?
-  `;
-
-  db.query(
-    query,
-    [
-      updatedOrder.firstName,
-      updatedOrder.lastName,
-      updatedOrder.email,
-      updatedOrder.contactNumber,
-      updatedOrder.streetName,
-      updatedOrder.barangay,
-      updatedOrder.city,
-      updatedOrder.region,
-      updatedOrder.province,
-      updatedOrder.zipCode,
-      updatedOrder.deliveryOption,
-      updatedOrder.courier,
-      updatedOrder.paymentOption,
-      updatedOrder.pickUpTime,
-      updatedOrder.pickUpDate,
-      JSON.stringify(updatedOrder.products), // Ensure products are stored as JSON
-      updatedOrder.price,
-      updatedOrder.status,
-      updatedOrder.date,
-      orderId, // WHERE clause ID
-    ],
-    (err, result) => {
-      if (err) {
-        console.error('Error updating order:', err.message);
-        return res.status(500).json({ message: 'Error updating order' });
-      }
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-
-      res.status(200).json({ message: 'Order updated successfully' });
-    }
-  );
-});
 
 // Start the server
 const port = 5000;
