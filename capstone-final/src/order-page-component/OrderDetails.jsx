@@ -14,6 +14,7 @@ const OrderDetails = () => {
   const { order: existingOrder, isEdit } = location.state || {};
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSaving, setIsSaving] = useState(false); // Prevent duplicate save requests
   const [formData, setFormData] = useState({
     id: existingOrder?.id || null,
     firstName: existingOrder?.firstName || '',
@@ -24,7 +25,14 @@ const OrderDetails = () => {
     barangay: existingOrder?.barangay || '',
     city: existingOrder?.city || '',
     region: existingOrder?.region || '',
+    province: existingOrder?.province || '',
     zipCode: existingOrder?.zipCode || '',
+    newStreet: existingOrder?.newStreet || '',
+    newBarangay: existingOrder?.newBarangay || '',
+    newCity: existingOrder?.newCity || '',
+    newRegion: existingOrder?.newRegion || '',
+    newProvince: existingOrder?.newProvince || '',
+    newZipCode: existingOrder?.newZipCode || '',
     deliveryOption: existingOrder?.deliveryOption || '',
     courier: existingOrder?.courier || '',
     paymentOption: existingOrder?.paymentOption || '',
@@ -90,8 +98,11 @@ const OrderDetails = () => {
   const handleSaveClick = async (e) => {
     e.preventDefault(); // Prevent default form submission
 
+    if (isSaving) return; // Prevent duplicate save requests
+    setIsSaving(true); // Set saving state to true
+
     const orderData = {
-      id: formData.id || null, // Include ID for updates
+      id: formData.id || null,
       firstName: formData.firstName || 'N/A',
       lastName: formData.lastName || 'N/A',
       email: formData.email || 'N/A',
@@ -100,16 +111,24 @@ const OrderDetails = () => {
       barangay: formData.barangay || 'N/A',
       city: formData.city || 'N/A',
       region: formData.region || 'N/A',
+      province: formData.province || 'N/A',
       zipCode: formData.zipCode || 'N/A',
+      newStreet: formData.newStreet || '',
+      newBarangay: formData.newBarangay || '',
+      newCity: formData.newCity || '',
+      newRegion: formData.newRegion || '',
+      newProvince: formData.newProvince || '',
+      newZipCode: formData.newZipCode || '',
       deliveryOption: formData.deliveryOption || 'N/A',
       courier: formData.courier || '',
       paymentOption: formData.paymentOption || '',
       pickUpTime: formData.pickUpTime || '',
       pickUpDate: formData.pickUpDate || '',
-      products: formData.products.filter(Boolean), // Remove empty products
-      price: 1000 * formData.products.filter(Boolean).length, // Example price calculation
-      status: 'PENDING', // Default status
-      date: new Date().toISOString().split('T')[0], // Current date
+      products: formData.products.filter(Boolean), // Ensure no empty values
+      price: 1000 * formData.products.filter(Boolean).length,
+      status: 'PENDING',
+      date: new Date().toISOString().split('T')[0],
+      archived: false, // New default field
     };
 
     try {
@@ -150,8 +169,11 @@ const OrderDetails = () => {
     } catch (error) {
       console.error('Error saving order:', error);
       alert('Failed to save order. Please try again.');
+    } finally {
+      setIsSaving(false); // Reset saving state
     }
   };
+
   
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
@@ -244,78 +266,183 @@ const OrderDetails = () => {
               </div>
             )}
 
-            {/* Step 2: Address Details */}
-            {currentStep === 2 && (
+          {currentStep === 2 && (
+            <div>
+              {/* Current Address */}
               <div>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-1">Street Name</label>
-                  <input
-                    type="text"
-                    name="streetName"
-                    placeholder="Street name"
-                    value={formData.streetName}
-                    onChange={handleChange}
-                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
+                <label className="block text-sm font-medium mb-1">Current Address</label>
+                <div className="flex space-x-4">
+                  <div className="w-1/2">
+                    <input
+                      type="text"
+                      name="currentStreet"
+                      value={formData.streetNameeet}
+                      onChange={handleChange}
+                      placeholder="Street Number/Street Name"
+                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                  <div className="w-1/2">
+                    <input
+                      type="text"
+                      name="currentBarangay"
+                      value={formData.barangay}
+                      onChange={handleChange}
+                      placeholder="Barangay"
+                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-1">Barangay</label>
+              </div>
+
+              <div className="flex space-x-4 mt-4">
+                <div className="w-1/2">
                   <input
                     type="text"
-                    name="barangay"
-                    placeholder="Barangay"
-                    value={formData.barangay}
-                    onChange={handleChange}
-                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-1">City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    placeholder="City"
+                    name="currentCity"
                     value={formData.city}
                     onChange={handleChange}
-                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="City"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    required
                   />
                 </div>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-1">Region</label>
+                <div className="w-1/2">
                   <input
                     type="text"
-                    name="region"
-                    placeholder="Region"
+                    name="currentRegion"
                     value={formData.region}
                     onChange={handleChange}
-                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-1">Province</label>
-                  <input
-                    type="text"
-                    name="province"
-                    placeholder="Province"
-                    value={formData.province}
-                    onChange={handleChange}
-                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-1">Zip Code</label>
-                  <input
-                    type="text"
-                    name="zipCode"
-                    placeholder="Zip Code"
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Region"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    required
                   />
                 </div>
               </div>
-            )}
 
+              <div className="flex space-x-4 mt-4">
+                <div className="w-1/2">
+                  <input
+                    type="text"
+                    name="currentProvince"
+                    value={formData.province}
+                    onChange={handleChange}
+                    placeholder="Province"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div className="w-1/2">
+                  <input
+                    type="text"
+                    name="currentZipCode"
+                    value={formData.zipCode}
+                    onChange={handleChange}
+                    placeholder="Zip Code"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <input
+                  type="text"
+                  name="currentLandmark"
+                  value={formData.landmark}
+                  onChange={handleChange}
+                  placeholder="Landmark (Optional)"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* New Address */}
+              <div className="mt-6">
+                <label className="block text-sm font-medium mb-1">New Address</label>
+                <div className="flex space-x-4">
+                  <div className="w-1/2">
+                    <input
+                      type="text"
+                      name="newStreet"
+                      value={formData.newStreet}
+                      onChange={handleChange}
+                      placeholder="Street Number/Street Name"
+                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="w-1/2">
+                    <input
+                      type="text"
+                      name="newBarangay"
+                      value={formData.newBarangay}
+                      onChange={handleChange}
+                      placeholder="Barangay"
+                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-4 mt-4">
+                <div className="w-1/2">
+                  <input
+                    type="text"
+                    name="newCity"
+                    value={formData.newCity}
+                    onChange={handleChange}
+                    placeholder="City"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="w-1/2">
+                  <input
+                    type="text"
+                    name="newRegion"
+                    value={formData.newRegion}
+                    onChange={handleChange}
+                    placeholder="Region"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-4 mt-4">
+                <div className="w-1/2">
+                  <input
+                    type="text"
+                    name="newProvince"
+                    value={formData.newProvince}
+                    onChange={handleChange}
+                    placeholder="Province"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="w-1/2">
+                  <input
+                    type="text"
+                    name="newZipCode"
+                    value={formData.newZipCode}
+                    onChange={handleChange}
+                    placeholder="Zip Code"
+                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <input
+                  type="text"
+                  name="newLandmark"
+                  value={formData.newLandmark}
+                  onChange={handleChange}
+                  placeholder="Landmark (Optional)"
+                  className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+          )}
             {/* Step 3: Delivery Details */}
             {currentStep === 3 && (
               <div>
