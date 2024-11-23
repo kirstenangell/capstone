@@ -446,6 +446,4 @@ const InventoryLanding = () => {
   );
 };
 
-
-
 export default InventoryLanding;
