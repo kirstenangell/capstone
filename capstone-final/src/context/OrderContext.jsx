@@ -1,26 +1,28 @@
 import React, { createContext, useState, useEffect } from 'react';
 
+// Create the OrderContext
 export const OrderContext = createContext();
 
 export const OrderProvider = ({ children }) => {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState([]); // State to hold all orders
 
   // Fetch orders from the database
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/orders');
-        if (response.ok) {
-          const fetchedOrders = await response.json();
-          setOrders(fetchedOrders);
-        } else {
-          console.error('Failed to fetch orders:', await response.text());
-        }
-      } catch (error) {
-        console.error('Error fetching orders:', error);
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/orders'); // Fetch from the /orders endpoint
+      if (response.ok) {
+        const fetchedOrders = await response.json(); // Parse JSON response
+        setOrders(fetchedOrders); // Set orders in state
+      } else {
+        console.error('Failed to fetch orders:', await response.text());
       }
-    };
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
 
+  // Fetch orders when the component mounts
+  useEffect(() => {
     fetchOrders();
   }, []);
 
@@ -29,15 +31,13 @@ export const OrderProvider = ({ children }) => {
     try {
       const response = await fetch('http://localhost:5000/add-order', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(order),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order), // Send the new order data
       });
 
       if (response.ok) {
-        const savedOrder = await response.json();
-        setOrders((prevOrders) => [...prevOrders, savedOrder]);
+        const savedOrder = await response.json(); // Get the saved order
+        setOrders((prevOrders) => [...prevOrders, savedOrder]); // Add the new order to the list
       } else {
         console.error('Failed to save order:', await response.text());
       }
@@ -51,10 +51,8 @@ export const OrderProvider = ({ children }) => {
     try {
       const response = await fetch(`http://localhost:5000/update-order/${updatedOrder.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedOrder),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedOrder), // Send the updated order data
       });
 
       if (response.ok) {
@@ -71,8 +69,37 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
+  // Archive order in the database and update local state
+  const archiveOrder = async (orderId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/archive-order/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        setOrders((prevOrders) =>
+          prevOrders.filter((order) => order.id !== orderId) // Remove the archived order from the list
+        );
+      } else {
+        console.error('Failed to archive order:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error archiving order:', error);
+    }
+  };
+
+  // Return the context provider
   return (
-    <OrderContext.Provider value={{ orders, addOrder, updateOrder }}>
+    <OrderContext.Provider
+      value={{
+        orders, // Orders fetched from the database
+        fetchOrders, // Function to fetch orders
+        addOrder, // Function to add a new order
+        updateOrder, // Function to update an existing order
+        archiveOrder, // Function to archive an order
+      }}
+    >
       {children}
     </OrderContext.Provider>
   );

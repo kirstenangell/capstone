@@ -413,7 +413,7 @@ app.get('/customers', (req, res) => {
   `;
   db.query(query, (err, results) => {
     if (err) {
-      console.error('Error fetching customers:', err);
+      console.error('Error fetching customers:', err); // Log the exact error
       return res.status(500).json({ message: 'Error fetching customers' });
     }
     res.status(200).json(results);
@@ -686,17 +686,51 @@ WHERE email = ?;
   });
 });
 
+// Fetch all orders from the database
+app.get('/orders', (req, res) => {
+  const query = `
+    SELECT 
+      id, 
+      firstName, 
+      lastName, 
+      email, 
+      contactNumber, 
+      streetName, 
+      barangay, 
+      city, 
+      region, 
+      zipCode, 
+      deliveryOption, 
+      courier, 
+      paymentOption, 
+      pickUpTime, 
+      pickUpDate, 
+      JSON_EXTRACT(products, '$') AS products, 
+      price, 
+      status, 
+      date 
+    FROM orders 
+    WHERE archived = 0
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching orders:', err);
+      return res.status(500).json({ message: 'Error fetching orders' });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
 
 // Add Order API
 app.post('/add-order', (req, res) => {
   const {
-    oid,
-    cid,
     firstName,
     lastName,
     email,
     contactNumber,
-    houseNumber,
     streetName,
     barangay,
     city,
@@ -713,22 +747,26 @@ app.post('/add-order', (req, res) => {
     date,
   } = req.body;
 
+  // Validate required fields
+  if (!firstName || !lastName || !email || !contactNumber || !products || !price) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
   const query = `
     INSERT INTO orders 
-    (oid, cid, firstName, lastName, email, contactNumber, houseNumber, streetName, barangay, city, region, zipCode, deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (firstName, lastName, email, contactNumber, streetName, barangay, city, region, zipCode, 
+    deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
+  // Insert order into database
   db.query(
     query,
     [
-      oid,
-      cid,
       firstName,
       lastName,
       email,
       contactNumber,
-      houseNumber,
       streetName,
       barangay,
       city,
@@ -739,21 +777,150 @@ app.post('/add-order', (req, res) => {
       paymentOption,
       pickUpTime,
       pickUpDate,
-      JSON.stringify(products), // Ensure products are saved as JSON string
+      JSON.stringify(products), // Ensure products array is stored as JSON
       price,
       status,
       date,
     ],
     (err, result) => {
       if (err) {
-        console.error('Error adding order:', err);
-        return res.status(500).json({ message: 'Error adding order' });
+        console.error('Error adding order:', err.message || err); // Log detailed error
+        return res.status(500).json({ message: 'Error adding order', error: err.message });
       }
-      res.status(200).json({ id: result.insertId, ...req.body });
+
+      res.status(200).json({ id: result.insertId, message: 'Order added successfully' });
     }
   );
 });
 
+// Fetch Orders API
+app.get('/orders', (req, res) => {
+  const query = `
+    SELECT 
+      id, 
+      firstName, 
+      lastName, 
+      email, 
+      contactNumber, 
+      streetName, 
+      barangay, 
+      city, 
+      region, 
+      zipCode, 
+      deliveryOption, 
+      courier, 
+      paymentOption, 
+      pickUpTime, 
+      pickUpDate, 
+      JSON_EXTRACT(products, '$') AS products, 
+      price, 
+      status, 
+      date 
+    FROM orders 
+    WHERE archived = 0
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching orders:', err);
+      return res.status(500).json({ message: 'Error fetching orders' });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
+// Archive (soft delete) Order API
+app.put('/archive-order/:id', (req, res) => {
+  const orderId = req.params.id;
+
+  const query = `UPDATE orders SET archived = true WHERE id = ?`;
+
+  db.query(query, [orderId], (err, result) => {
+    if (err) {
+      console.error('Error archiving order:', err);
+      return res.status(500).json({ message: 'Error archiving order' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.status(200).json({ message: 'Order archived successfully' });
+  });
+});
+
+// Update Order API
+app.put('/update-order/:id', (req, res) => {
+  const orderId = req.params.id;
+  const updatedOrder = req.body;
+
+  // Validate required fields
+  if (!updatedOrder.firstName || !updatedOrder.lastName || !updatedOrder.email) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  const query = `
+    UPDATE orders 
+    SET 
+      firstName = ?, 
+      lastName = ?, 
+      email = ?, 
+      contactNumber = ?, 
+      streetName = ?, 
+      barangay = ?, 
+      city = ?, 
+      region = ?, 
+      zipCode = ?, 
+      deliveryOption = ?, 
+      courier = ?, 
+      paymentOption = ?, 
+      pickUpTime = ?, 
+      pickUpDate = ?, 
+      products = ?, 
+      price = ?, 
+      status = ?, 
+      date = ?
+    WHERE id = ?
+  `;
+
+  db.query(
+    query,
+    [
+      updatedOrder.firstName,
+      updatedOrder.lastName,
+      updatedOrder.email,
+      updatedOrder.contactNumber,
+      updatedOrder.streetName,
+      updatedOrder.barangay,
+      updatedOrder.city,
+      updatedOrder.region,
+      updatedOrder.zipCode,
+      updatedOrder.deliveryOption,
+      updatedOrder.courier,
+      updatedOrder.paymentOption,
+      updatedOrder.pickUpTime,
+      updatedOrder.pickUpDate,
+      JSON.stringify(updatedOrder.products), // Ensure products are stored as JSON
+      updatedOrder.price,
+      updatedOrder.status,
+      updatedOrder.date,
+      orderId, // WHERE clause ID
+    ],
+    (err, result) => {
+      if (err) {
+        console.error('Error updating order:', err.message);
+        return res.status(500).json({ message: 'Error updating order' });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
+      res.status(200).json({ message: 'Order updated successfully' });
+    }
+  );
+});
 
 // Start the server
 const port = 5000;
