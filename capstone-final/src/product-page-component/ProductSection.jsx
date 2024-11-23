@@ -29,27 +29,30 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     setSelectedProduct(null);
   };
 
-  const handleAddToCartClick = async (productId, quantity) => {
-    const { user } = useUser(); // Extract user from the context
-    if (!user) {
-        console.error('User not logged in');
-        return;
-    }
-
-    try {
-      const response = await fetch('/api/cart/add', {
+  const handleAddToCart = async (productId, quantity) => {
+    if (isLoggedIn) {
+      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
+      const userId = localStorage.getItem('userId');
+  
+      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, productId, quantity })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          quantity: selectedProduct.quantity || 1,
+        }),
       });
   
-      if (!response.ok) {
-        throw new Error('Failed to add item to cart');
+      if (response.ok) {
+        console.log('Product added to cart successfully');
+        // Optionally, if you need to do something on success, you can do it here.
+      } else {
+        console.error('Error with Add to Cart:', response.statusText);
       }
-  
-      console.log('Product added to cart successfully');
-    } catch (error) {
-      console.error('Error adding item to cart:', error.message);
+    } else {
+      setShowLoginWarning(true);
     }
 };
 
@@ -187,7 +190,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
               <div className="flex mt-6 space-x-4">
                 <button 
                   className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
-                  onClick={() => handleAddToCartClick(selectedProduct)}
+                  onClick={() => handleAddToCart(selectedProduct)}
                 >
                   ADD TO CART
                 </button>
@@ -273,7 +276,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
                     className="mt-4 bg-gradient-to-r from-[#4B88A3]/[0.3] via-[#040405] to-[#4B88A3]/[0.3] text-white py-2 px-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 w-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleAddToCartClick({ ...product, quantity: 1 });
+                      handleAddToCart({ ...product, quantity: 1 });
                     }}
                   >
                     Add to Cart

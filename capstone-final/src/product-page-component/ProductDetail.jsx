@@ -19,29 +19,30 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
     }
   }, [location.state]);
 
-  const handleAddToCart = async (productId, quantity, setShowLoginWarning) => {
-    const { user } = useUser(); // Extract user from the context
-
-    if (!user) {
-        console.error('User not logged in');
-        setShowLoginWarning(true); // Show login warning if user is not logged in
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/cart/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, productId, quantity })
-        });
+  const handleAddToCart = async (productId, quantity) => {
+    if (isLoggedIn) {
+      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
+      const userId = localStorage.getItem('userId');
   
-        if (!response.ok) {
-            throw new Error('Failed to add item to cart');
-        }
+      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          quantity: selectedProduct.quantity || 1,
+        }),
+      });
   
+      if (response.ok) {
         console.log('Product added to cart successfully');
-    } catch (error) {
-        console.error('Error adding item to cart:', error.message);
+        // Optionally, if you need to do something on success, you can do it here.
+      } else {
+        console.error('Error with Add to Cart:', response.statusText);
+      }
+    } else {
+      setShowLoginWarning(true);
     }
 };
 
