@@ -3,6 +3,7 @@ import { IoIosCart } from 'react-icons/io';
 import { FaUser } from 'react-icons/fa'; // Import User icon from react-icons/fa
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+
 import Category from '../product-page-component/Category'; // Corrected import
 import FlackoLogo from '../assets/FlackoLogo.png';
 
@@ -126,30 +127,30 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
           </div>
 
           <div className="flex items-center space-x-2 ml-10">
-            <NavLink
-              to="/cart"
-              className={({ isActive }) =>
-                `flex items-center justify-center text-white px-4 py-2 relative group transition-all duration-300 transform ${
-                  isActive ? 'rounded-full' : ''
-                }`
+      <NavLink
+        to="/cart"
+        className={({ isActive }) =>
+          `flex items-center justify-center text-white px-4 py-2 relative group transition-all duration-300 transform ${
+            isActive ? 'rounded-full' : ''
+          }`
+        }
+        style={({ isActive }) =>
+          isActive
+            ? {
+                background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+                boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
               }
-              style={({ isActive }) =>
-                isActive
-                  ? {
-                      background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
-                      boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
-                    }
-                  : {}
-              }
-            >
-              <IoIosCart className="text-white w-5 h-5" />
-              {cartItemCount > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {cartItemCount}
-                </span>
-              )}
-            </NavLink>
-
+            : {}
+        }
+      >
+        <IoIosCart className="text-white w-5 h-5" />
+        {cartItemCount > 0 && (
+          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+            {cartItemCount}
+          </span>
+        )}
+      </NavLink>
+      
             {!isLoggedIn ? (
               <NavLink
                 to="/signup"

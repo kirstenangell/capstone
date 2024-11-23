@@ -16,12 +16,24 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
   const [showDeleteButton, setShowDeleteButton] = useState(false);
 
   useEffect(() => {
-    quantities.forEach((quantity, index) => {
-      if (quantity !== cartItems[index].quantity) {
-        onUpdateQuantity(index, quantity);
-      }
-    });
-  }, [quantities, onUpdateQuantity, cartItems]);
+    const fetchCartItems = async () => {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/cart/${userId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch cart items');
+            }
+            const items = await response.json();
+            setQuantities(items.map(item => item.quantity));
+        } catch (error) {
+            console.error('Error fetching cart items:', error);
+        }
+    };
+
+    fetchCartItems();
+}, []);
 
   const calculateSubtotal = () => {
     return quantities.reduce((total, quantity, index) => {

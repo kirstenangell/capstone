@@ -1,36 +1,78 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductContext } from '../context/ProductContext';
+import { useUser } from '../context/UserContext';
 
-const ProductDetail = ({ onAddToCart, isLoggedIn }) => {
+const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   const { products } = useContext(ProductContext);
   const location = useLocation();
   const navigate = useNavigate();
-  const [selectedProduct, setSelectedProduct] = useState(location.state?.product || products[0]);
+  const [selectedProduct, setSelectedProduct] = useState({
+    ...location.state?.product || products[0],
+    quantity: 0,
+  });
   const [showLoginWarning, setShowLoginWarning] = useState(false);
 
   useEffect(() => {
     if (location.state?.product) {
-      setSelectedProduct(location.state.product);
+      setSelectedProduct({ ...location.state.product, quantity: 0 });
     }
   }, [location.state]);
 
-  const handleAddToCartClick = () => {
+  const handleAddToCart = async (productId, quantity) => {
     if (isLoggedIn) {
       onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
+      const userId = localStorage.getItem('userId');
+  
+      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          quantity: selectedProduct.quantity || 1,
+        }),
+      });
+  
+      if (response.ok) {
+        console.log('Product added to cart successfully');
+        // Optionally, if you need to do something on success, you can do it here.
+      } else {
+        console.error('Error with Add to Cart:', response.statusText);
+      }
     } else {
       setShowLoginWarning(true);
     }
-  };
+};
 
-  const handleBuyNowClick = () => {
+
+  const handleBuyNowClick = async () => {
     if (isLoggedIn) {
       onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
-      navigate('/cart');
+            navigate('/cart');
+      const userId = localStorage.getItem('userId');
+  
+      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          quantity: selectedProduct.quantity || 1,
+        }),
+      });
+  
+      if (response.ok) {
+        navigate('/checkout-landing'); // Redirect to checkout
+      } else {
+        console.error('Error with Buy Now:', response.statusText);
+      }
     } else {
       setShowLoginWarning(true);
     }
-  };
+  };  
 
   const handleLoginRedirect = () => {
     navigate('/login');
@@ -76,7 +118,7 @@ const ProductDetail = ({ onAddToCart, isLoggedIn }) => {
               />
             ))}
           </div>
-          
+
           <div className="w-full bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-8 shadow-lg flex items-center justify-center">
             <img src={selectedProduct.image} alt={selectedProduct.name} className="w-96 h-96 object-contain" />
           </div>
@@ -105,16 +147,24 @@ const ProductDetail = ({ onAddToCart, isLoggedIn }) => {
           {/* Quantity Selector */}
           <div className="flex items-center mt-4">
             <button
-              onClick={() => setSelectedProduct({ ...selectedProduct, quantity: selectedProduct.quantity > 0 ? selectedProduct.quantity - 1 : 0 })}
+              onClick={() =>
+                setSelectedProduct({
+                  ...selectedProduct,
+                  quantity: selectedProduct.quantity > 0 ? selectedProduct.quantity - 1 : 0,
+                })
+              }
               className="px-4 py-2 bg-gray-800 text-white rounded-l-md focus:outline-none hover:bg-gray-700"
             >
               -
             </button>
-            <div className="px-4 py-2 bg-gray-900 text-white">
-              {selectedProduct.quantity || 0}
-            </div>
+            <div className="px-4 py-2 bg-gray-900 text-white">{selectedProduct.quantity || 0}</div>
             <button
-              onClick={() => setSelectedProduct({ ...selectedProduct, quantity: (selectedProduct.quantity || 0) + 1 })}
+              onClick={() =>
+                setSelectedProduct({
+                  ...selectedProduct,
+                  quantity: (selectedProduct.quantity || 0) + 1,
+                })
+              }
               className="px-4 py-2 bg-gray-800 text-white rounded-r-md focus:outline-none hover:bg-gray-700"
             >
               +
@@ -135,14 +185,14 @@ const ProductDetail = ({ onAddToCart, isLoggedIn }) => {
           {/* Action Buttons */}
           <div className="flex mt-6 space-x-4">
             <button
-              onClick={handleAddToCartClick}
-              className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
+              onClick={handleAddToCart}
+              className="px-6 py-2 text-white bg-black rounded-md focus:outline-none border border-[#62B1D1] hover:bg-gray-800 transition-colors"
             >
               ADD TO CART
             </button>
             <button
               onClick={handleBuyNowClick}
-              className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
+              className="px-6 py-2 text-white bg-black rounded-md focus:outline-none border border-[#62B1D1] hover:bg-gray-800 transition-colors"
             >
               BUY NOW
             </button>
@@ -159,7 +209,7 @@ const ProductDetail = ({ onAddToCart, isLoggedIn }) => {
               key={product.id}
               className="text-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer"
               style={{ backgroundColor: 'rgba(217, 217, 217, 0.04)' }}
-              onClick={() => setSelectedProduct(product)}
+              onClick={() => setSelectedProduct({ ...product, quantity: 0 })}
             >
               <img src={product.image} alt={product.name} className="w-full h-64 object-contain rounded-md" />
               <div className="mt-4">
