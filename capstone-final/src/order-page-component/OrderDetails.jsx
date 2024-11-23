@@ -1,14 +1,11 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { IoIosInformationCircle, IoMdMail } from 'react-icons/io';
 import { GiStorkDelivery, GiCardboardBoxClosed } from 'react-icons/gi';
 import { FaProductHunt } from 'react-icons/fa';
-import { IoMdClose } from "react-icons/io";
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CustomerContext } from '../context/CustomerContext'; // Import CustomerContext
-import { OrderContext } from '../context/OrderContext'; // Import OrderContext
+import { OrderContext } from '../context/OrderContext';
 
 const OrderDetails = () => {
-  const { customers } = useContext(CustomerContext); // Access customer data from context
   const { addOrder, updateOrder } = useContext(OrderContext); // Access order functions from context
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,12 +16,10 @@ const OrderDetails = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     id: existingOrder?.id || null,
-    cid: '', // Add CID field
     firstName: existingOrder?.firstName || '',
     lastName: existingOrder?.lastName || '',
     email: existingOrder?.email || '',
     contactNumber: existingOrder?.contactNumber || '',
-    houseNumber: existingOrder?.houseNumber || '',
     streetName: existingOrder?.streetName || '',
     barangay: existingOrder?.barangay || '',
     city: existingOrder?.city || '',
@@ -38,63 +33,28 @@ const OrderDetails = () => {
     products: existingOrder?.products ? [...existingOrder.products] : [''],
   });
 
-  // Define the missing handleAddProduct function
+  // Add a new product field
   const handleAddProduct = () => {
     setFormData((prevFormData) => ({
       ...prevFormData,
-      products: [...prevFormData.products, ''], // Add an empty string for the new product
+      products: [...prevFormData.products, ''],
     }));
   };
 
+  // Handle product changes
   const handleProductChange = (index, value) => {
     const updatedProducts = [...formData.products];
     updatedProducts[index] = value;
     setFormData({ ...formData, products: updatedProducts });
   };
 
+  // Remove a product field
   const handleRemoveProduct = (index) => {
     const updatedProducts = formData.products.filter((_, i) => i !== index);
     setFormData({ ...formData, products: updatedProducts });
   };
 
-  // Auto-populate fields when CID is entered
-  useEffect(() => {
-    if (formData.cid) {
-      const matchingCustomer = customers.find((customer) => `CID-${customer.id}` === formData.cid);
-      
-      if (matchingCustomer) {
-        setFormData((prevData) => ({
-          ...prevData,
-          firstName: matchingCustomer.name.split(' ')[0] || '',
-          lastName: matchingCustomer.name.split(' ')[1] || '',
-          email: matchingCustomer.email || '',
-          contactNumber: matchingCustomer.phone || '',
-          houseNumber: matchingCustomer.currentAddress?.houseNumber || '',
-          streetName: matchingCustomer.currentAddress?.street || '',
-          barangay: matchingCustomer.currentAddress?.barangay || '',
-          city: matchingCustomer.currentAddress?.city || '',
-          region: matchingCustomer.currentAddress?.province || '',
-          zipCode: matchingCustomer.currentAddress?.zipCode || '',
-        }));
-      } else {
-        // Clear the fields if no match is found
-        setFormData({
-          ...formData,
-          firstName: '',
-          lastName: '',
-          email: '',
-          contactNumber: '',
-          houseNumber: '',
-          streetName: '',
-          barangay: '',
-          city: '',
-          region: '',
-          zipCode: '',
-        });
-      }
-    }
-  }, [formData.cid, customers]); // Watch for changes in the CID or customers list
-
+  // Handle changes in the form fields
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -103,6 +63,7 @@ const OrderDetails = () => {
     }));
   };
 
+  // Go to the next step
   const handleNextClick = (e) => {
     e.preventDefault();
     if (currentStep < 5) {
@@ -111,6 +72,7 @@ const OrderDetails = () => {
     }
   };
 
+  // Go to the previous step
   const handleBackClick = (e) => {
     e.preventDefault();
     if (currentStep > 1) {
@@ -119,60 +81,78 @@ const OrderDetails = () => {
     }
   };
 
+  // Cancel and return to the orders page
   const handleCancelClick = () => {
     navigate('/order');
   };
 
-  const handleSaveClick = (e) => {
-    e.preventDefault();
+  // Save the order
+  const handleSaveClick = async (e) => {
+    e.preventDefault(); // Prevent default form submission
 
-    // Calculate subtotal dynamically (optional enhancement)
-    const calculateSubtotal = () => {
-      const pricePerProduct = 1000; // Example: PHP1,000 per product
-      return formData.products.length * pricePerProduct;
-    };
-
-    const subtotal = calculateSubtotal();
-
-    // Prepare the order data without OID, let OrderContext handle it
     const orderData = {
-      id: formData.id || Date.now(), // Use existing ID or generate a new one
-      cid: formData.cid || 'N/A', // Include CID
+      id: formData.id || null, // Include ID for updates
       firstName: formData.firstName || 'N/A',
       lastName: formData.lastName || 'N/A',
       email: formData.email || 'N/A',
       contactNumber: formData.contactNumber || 'N/A',
-      houseNumber: formData.houseNumber || 'N/A',
       streetName: formData.streetName || 'N/A',
       barangay: formData.barangay || 'N/A',
       city: formData.city || 'N/A',
       region: formData.region || 'N/A',
       zipCode: formData.zipCode || 'N/A',
       deliveryOption: formData.deliveryOption || 'N/A',
-      courier: formData.courier || 'N/A',
-      paymentOption: formData.paymentOption || 'N/A',
-      pickUpTime: formData.pickUpTime || 'N/A',
-      pickUpDate: formData.pickUpDate || 'N/A',
-      products: formData.products.map((product) => product || 'N/A'),
-      price: `PHP${subtotal.toLocaleString()}`, // Dynamic subtotal
-      status: existingOrder?.status || 'PENDING', // Default status
-      date: existingOrder?.date || new Date().toLocaleDateString(),
+      courier: formData.courier || '',
+      paymentOption: formData.paymentOption || '',
+      pickUpTime: formData.pickUpTime || '',
+      pickUpDate: formData.pickUpDate || '',
+      products: formData.products.filter(Boolean), // Remove empty products
+      price: 1000 * formData.products.filter(Boolean).length, // Example price calculation
+      status: 'PENDING', // Default status
+      date: new Date().toISOString().split('T')[0], // Current date
     };
 
-    if (isEdit) {
-      // Update the existing order
-      updateOrder(orderData);
-      alert(`Order has been updated.`);
-    } else {
-      // Add the new order, OID will be assigned in OrderContext
-      addOrder(orderData);
-      alert(`Order has been added.`);
+    try {
+      let response;
+      if (isEdit && formData.id) {
+        // Update existing order
+        response = await fetch(`http://localhost:5000/update-order/${formData.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData),
+        });
+      } else {
+        // Add new order
+        response = await fetch('http://localhost:5000/add-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData),
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Server error:', errorData);
+        throw new Error(errorData.message || 'Failed to save order.');
+      }
+
+      const result = await response.json();
+
+      if (isEdit) {
+        updateOrder({ ...orderData, id: formData.id });
+        alert('Order updated successfully.');
+      } else {
+        addOrder({ ...orderData, id: result.id });
+        alert('Order added successfully.');
+      }
+
+      navigate('/order'); // Redirect after saving
+    } catch (error) {
+      console.error('Error saving order:', error);
+      alert('Failed to save order. Please try again.');
     }
-
-    // Navigate back to the order list
-    navigate('/order');
   };
-
+  
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       {/* Header */}
@@ -209,19 +189,7 @@ const OrderDetails = () => {
           <form onSubmit={handleSaveClick}>
             {currentStep === 1 && (
               <div>
-                {/* CID Field */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-1">CID</label>
-                  <input
-                    type="text"
-                    name="cid"
-                    placeholder="Customer ID"
-                    value={formData.cid}
-                    onChange={handleChange}
-                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-
+                
                 {/* First Name Field */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">First Name</label>
@@ -280,17 +248,6 @@ const OrderDetails = () => {
             {currentStep === 2 && (
               <div>
                 <div className="mb-6">
-                  <label className="block text-sm font-medium mb-1">House Number</label>
-                  <input
-                    type="text"
-                    name="houseNumber"
-                    placeholder="House number"
-                    value={formData.houseNumber}
-                    onChange={handleChange}
-                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="mb-6">
                   <label className="block text-sm font-medium mb-1">Street Name</label>
                   <input
                     type="text"
@@ -330,6 +287,17 @@ const OrderDetails = () => {
                     name="region"
                     placeholder="Region"
                     value={formData.region}
+                    onChange={handleChange}
+                    className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-1">Province</label>
+                  <input
+                    type="text"
+                    name="province"
+                    placeholder="Province"
+                    value={formData.province}
                     onChange={handleChange}
                     className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                   />

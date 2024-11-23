@@ -1,4 +1,3 @@
-// src/components/CustomerInformation.js
 import React, { useState, useContext, useEffect } from 'react';
 import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
@@ -14,9 +13,11 @@ const CustomerInformation = () => {
   const isEdit = location.state?.isEdit || false;
   const existingCustomer = location.state?.customer || {};
 
+  // State to handle general information
   const [generalInfo, setGeneralInfo] = useState({
     id: existingCustomer.id || null,
-    name: existingCustomer.name || '',
+    first_name: existingCustomer.first_name || '',
+    last_name: existingCustomer.last_name || '',
     type: existingCustomer.type || '',
     email: existingCustomer.email || '',
     phone: existingCustomer.phone || '',
@@ -26,9 +27,10 @@ const CustomerInformation = () => {
 
   useEffect(() => {
     // Log existing customer data for debugging
-    console.log("Existing customer data:", existingCustomer);
+    console.log('Existing customer data:', existingCustomer);
   }, [existingCustomer]);
 
+  // Handle Next button click to navigate to the next step
   const handleNextClick = (e) => {
     e.preventDefault();
     window.scrollTo(0, 0); // Scroll to the top of the page
@@ -53,12 +55,13 @@ const CustomerInformation = () => {
     };
 
     // Debugging log to check if addresses are being passed correctly
-    console.log("Navigating to CustomerAddress with:", updatedGeneralInfo);
+    console.log('Navigating to CustomerAddress with:', updatedGeneralInfo);
 
     // Navigate to CustomerAddress with the updated general information
     navigate('/customer/customer-address', { state: { generalInfo: updatedGeneralInfo, isEdit } });
   };
 
+  // Handle input changes for all fields
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setGeneralInfo((prevInfo) => ({
@@ -67,6 +70,7 @@ const CustomerInformation = () => {
     }));
   };
 
+  // Handle Cancel button click
   const handleCancelClick = () => {
     window.scrollTo(0, 0);
     navigate('/customer');
@@ -95,7 +99,7 @@ const CustomerInformation = () => {
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       <div className="mb-10 mt-16 text-center">
         <h1 className="text-xl font-bold text-white mt-2">GENERAL INFORMATION</h1>
-        <h2 className="text-sm font-bold text-white">{isEdit ? "Edit Customer" : "Add New Customer"}</h2>
+        <h2 className="text-sm font-bold text-white">{isEdit ? 'Edit Customer' : 'Add New Customer'}</h2>
       </div>
 
       <div className="absolute left-10 top-1/4">
@@ -117,22 +121,39 @@ const CustomerInformation = () => {
 
       <div className="w-full max-w-2xl p-10 bg-gradient-to-b from-gray-800 to-black text-white rounded-lg shadow-lg">
         <form className="space-y-6">
+          {/* First Name */}
           <div>
-            <label className="block text-sm font-medium mb-1">Customer Name</label>
+            <label className="block text-sm font-medium mb-1">First Name</label>
             <input
               type="text"
-              name="name"
-              value={generalInfo.name}
+              name="first_name"
+              value={generalInfo.first_name}
               onChange={handleInputChange}
-              placeholder="Customer Name"
+              placeholder="First Name"
               className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
               required
             />
           </div>
 
+          {/* Last Name */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Last Name</label>
+            <input
+              type="text"
+              name="last_name"
+              value={generalInfo.last_name}
+              onChange={handleInputChange}
+              placeholder="Last Name"
+              className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+
+          {/* Customer Type */}
           <div>
             <label className="block text-sm font-medium mb-1 text-white">Customer Type</label>
             <button
+              type="button"
               onClick={toggleDropdown}
               className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left"
             >
@@ -155,6 +176,7 @@ const CustomerInformation = () => {
             )}
           </div>
 
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
             <input
@@ -168,6 +190,7 @@ const CustomerInformation = () => {
             />
           </div>
 
+          {/* Phone */}
           <div>
             <label className="block text-sm font-medium mb-1">Phone</label>
             <input
@@ -181,6 +204,7 @@ const CustomerInformation = () => {
             />
           </div>
 
+          {/* Payment Status */}
           <div>
             <label className="block text-sm font-medium mb-1">Payment Status</label>
             <input
@@ -193,6 +217,7 @@ const CustomerInformation = () => {
             />
           </div>
 
+          {/* Payment Reference */}
           <div>
             <label className="block text-sm font-medium mb-1">Payment Reference</label>
             <input
@@ -205,6 +230,7 @@ const CustomerInformation = () => {
             />
           </div>
 
+          {/* Buttons */}
           <div className="flex justify-between mt-6">
             <button
               type="button"

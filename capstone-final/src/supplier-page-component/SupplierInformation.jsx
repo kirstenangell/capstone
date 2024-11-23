@@ -1,4 +1,3 @@
-// src/supplier-page-component/SupplierInformation.jsx
 import React, { useState, useContext, useEffect } from 'react';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { IoIosInformationCircle } from 'react-icons/io';
@@ -7,80 +6,218 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { SupplierContext } from '../context/SupplierContext';
 
 const SupplierInformation = () => {
-  const { addSupplier, updateSupplier } = useContext(SupplierContext);
+  const { addSupplier, updateSupplier, fetchProductDetails } = useContext(SupplierContext);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if we're editing an existing supplier
+  // Determine if we're editing an existing supplier
   const isEdit = location.state?.isEdit || false;
   const existingSupplier = location.state?.supplier || {};
 
   // Manage the current step (1: General Info, 2: Address Details, 3: Product Lists)
   const [currentStep, setCurrentStep] = useState(1);
 
+  // Array of all provinces in the Philippines
+  const provinces = [
+    'Abra',
+    'Agusan del Norte',
+    'Agusan del Sur',
+    'Aklan',
+    'Albay',
+    'Antique',
+    'Apayao',
+    'Aurora',
+    'Basilan',
+    'Bataan',
+    'Batanes',
+    'Batangas',
+    'Benguet',
+    'Biliran',
+    'Bohol',
+    'Bukidnon',
+    'Bulacan',
+    'Cagayan',
+    'Camarines Norte',
+    'Camarines Sur',
+    'Camiguin',
+    'Capiz',
+    'Catanduanes',
+    'Cavite',
+    'Cebu',
+    'Compostela Valley',
+    'Cotabato',
+    'Davao del Norte',
+    'Davao del Sur',
+    'Davao Occidental',
+    'Davao Oriental',
+    'Dinagat Islands',
+    'Eastern Samar',
+    'Guimaras',
+    'Ifugao',
+    'Ilocos Norte',
+    'Ilocos Sur',
+    'Iloilo',
+    'Isabela',
+    'Kalinga',
+    'La Union',
+    'Laguna',
+    'Lanao del Norte',
+    'Lanao del Sur',
+    'Leyte',
+    'Maguindanao',
+    'Marinduque',
+    'Masbate',
+    'Misamis Occidental',
+    'Misamis Oriental',
+    'Mountain Province',
+    'Negros Occidental',
+    'Negros Oriental',
+    'Northern Samar',
+    'Nueva Ecija',
+    'Nueva Vizcaya',
+    'Occidental Mindoro',
+    'Oriental Mindoro',
+    'Palawan',
+    'Pampanga',
+    'Pangasinan',
+    'Quezon',
+    'Quirino',
+    'Rizal',
+    'Romblon',
+    'Samar',
+    'Sarangani',
+    'Siquijor',
+    'Sorsogon',
+    'South Cotabato',
+    'Southern Leyte',
+    'Sultan Kudarat',
+    'Sulu',
+    'Surigao del Norte',
+    'Surigao del Sur',
+    'Tarlac',
+    'Tawi-Tawi',
+    'Zambales',
+    'Zamboanga del Norte',
+    'Zamboanga del Sur',
+    'Zamboanga Sibugay',
+  ];
+
   // Combined state for general info, address details, and product lists
   const [supplierData, setSupplierData] = useState({
-    // General Information
     id: existingSupplier.id || null,
     name: existingSupplier.name || '',
+    contactName: existingSupplier.contactName || '',
     type: existingSupplier.type || '',
     email: existingSupplier.email || '',
     phone: existingSupplier.phone || '',
-    status: existingSupplier.status || '', // Renamed from paymentStatus
-    additionalNotes: existingSupplier.additionalNotes || '', // Replaced paymentReference
-    // Address Details
-    currentAddressType: existingSupplier.currentAddress?.addressType || '', // Added Address Type for Current Address
+    status: existingSupplier.status || '',
+    additionalNotes: existingSupplier.additionalNotes || '',
+    currentAddressType: existingSupplier.currentAddress?.addressType || '',
     currentStreet: existingSupplier.currentAddress?.street || '',
     currentCity: existingSupplier.currentAddress?.city || '',
     currentProvince: existingSupplier.currentAddress?.province || '',
     currentZipCode: existingSupplier.currentAddress?.zipCode || '',
     currentLandmark: existingSupplier.currentAddress?.landmark || '',
-    newAddressType: existingSupplier.newAddress?.addressType || '', // Added Address Type for New Address
+    newAddressType: existingSupplier.newAddress?.addressType || '',
     newStreet: existingSupplier.newAddress?.street || '',
     newCity: existingSupplier.newAddress?.city || '',
     newProvince: existingSupplier.newAddress?.province || '',
     newZipCode: existingSupplier.newAddress?.zipCode || '',
     newLandmark: existingSupplier.newAddress?.landmark || '',
-    // Product Lists
     productLists: existingSupplier.productLists || [],
   });
 
-  // Handle input changes for general information form
+  // Handle input changes for all form fields
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setGeneralInfo((prevInfo) => ({
-      ...prevInfo,
+    setSupplierData((prevData) => ({
+      ...prevData,
       [name]: value,
     }));
   };
 
-  // Handle form submission to navigate to Address Details
+  // Handle product list input changes, including clearing auto-populated fields when `productId` is erased
+  const handleProductInputChange = async (index, e) => {
+    const { name, value } = e.target;
+    const updatedProductLists = [...supplierData.productLists];
+
+    if (name === 'productId') {
+      if (value) {
+        // Fetch product details if productId is updated
+        const productData = await fetchProductDetails(value);
+        if (productData) {
+          updatedProductLists[index] = {
+            ...updatedProductLists[index],
+            ...productData,
+            productId: value,
+          };
+        } else {
+          updatedProductLists[index][name] = value;
+        }
+      } else {
+        // Clear the fields if productId is erased
+        updatedProductLists[index] = {
+          productId: '',
+          productName: '',
+          category: '',
+          productDescription: '',
+          quantityAvailable: '',
+          unitPrice: '',
+        };
+      }
+    } else {
+      updatedProductLists[index][name] = value;
+    }
+
+    setSupplierData((prevData) => ({
+      ...prevData,
+      productLists: updatedProductLists,
+    }));
+  };
+
+  // Handle selection of supplier type from dropdown
+  const handleSelect = (field, value) => {
+    setSupplierData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+
+    if (field === 'type') setIsSupplierTypeDropdownOpen(false);
+    if (field === 'status') setIsStatusDropdownOpen(false);
+    if (field === 'currentAddressType') setIsCurrentAddressTypeDropdownOpen(false);
+    if (field === 'newAddressType') setIsNewAddressTypeDropdownOpen(false);
+    if (field === 'currentProvince') setIsCurrentProvinceDropdownOpen(false);
+    if (field === 'newProvince') setIsNewProvinceDropdownOpen(false);
+  };
+
+  // Dropdown state for supplier type, status, and provinces
+  const [isSupplierTypeDropdownOpen, setIsSupplierTypeDropdownOpen] = useState(false);
+  const supplierTypes = ['Wholesale', 'Retail', 'Distributor'];
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const statusOptions = ['Active', 'Not Active'];
+  const [isCurrentAddressTypeDropdownOpen, setIsCurrentAddressTypeDropdownOpen] = useState(false);
+  const addressTypeOptions = ['Headquarters', 'Billing', 'Shipping'];
+  const [isNewAddressTypeDropdownOpen, setIsNewAddressTypeDropdownOpen] = useState(false);
+  const [isCurrentProvinceDropdownOpen, setIsCurrentProvinceDropdownOpen] = useState(false);
+  const [isNewProvinceDropdownOpen, setIsNewProvinceDropdownOpen] = useState(false);
+
+  // Toggle dropdowns
+  const toggleSupplierTypeDropdown = () => setIsSupplierTypeDropdownOpen(!isSupplierTypeDropdownOpen);
+  const toggleStatusDropdown = () => setIsStatusDropdownOpen(!isStatusDropdownOpen);
+  const toggleCurrentAddressTypeDropdown = () => setIsCurrentAddressTypeDropdownOpen(!isCurrentAddressTypeDropdownOpen);
+  const toggleNewAddressTypeDropdown = () => setIsNewAddressTypeDropdownOpen(!isNewAddressTypeDropdownOpen);
+
+  // Handle navigation to the next step
   const handleNextClick = (e) => {
     e.preventDefault();
     if (currentStep === 1) {
-      // Basic validation for required fields in General Information
-      if (
-        !supplierData.name ||
-        !supplierData.type ||
-        !supplierData.email ||
-        !supplierData.phone ||
-        !supplierData.contactName || // Ensure Contact Name is filled
-        !supplierData.status // Ensure Status is selected
-      ) {
+      if (!supplierData.name || !supplierData.type || !supplierData.email || !supplierData.phone || !supplierData.contactName || !supplierData.status) {
         alert('Please fill in all required fields.');
         return;
       }
       setCurrentStep(2);
     } else if (currentStep === 2) {
-      // Basic validation for required fields in Address Details
-      const requiredAddressFields = [
-        'currentAddressType',
-        'currentStreet',
-        'currentCity',
-        'currentProvince',
-        'currentZipCode',
-      ];
-
+      const requiredAddressFields = ['currentAddressType', 'currentStreet', 'currentCity', 'currentProvince', 'currentZipCode'];
       for (let field of requiredAddressFields) {
         if (!supplierData[field]) {
           alert('Please fill in all required address fields.');
@@ -89,81 +226,66 @@ const SupplierInformation = () => {
       }
       setCurrentStep(3);
     }
-    window.scrollTo(0, 0); // Scroll to the top of the page
+    window.scrollTo(0, 0);
   };
 
   // Handle navigation to the previous step
   const handleBackClick = () => {
     setCurrentStep(currentStep - 1);
-    window.scrollTo(0, 0); // Scroll to the top of the page
+    window.scrollTo(0, 0);
   };
 
   // Handle form submission to save the supplier
-  const handleSaveClick = (e) => {
+  const handleSaveClick = async (e) => {
     e.preventDefault();
-
-    // Prepare supplier data object
+    
     const preparedSupplierData = {
-      id: supplierData.id || `SUP${Date.now()}`, // Generate a unique ID if not editing
       name: supplierData.name,
-      contactName: supplierData.contactName, // Added Contact Name
+      contactName: supplierData.contactName,
       type: supplierData.type,
       email: supplierData.email,
       phone: supplierData.phone,
-      status: supplierData.status, // Renamed from paymentStatus
-      additionalNotes: supplierData.additionalNotes, // Replaced paymentReference
-      currentAddress: {
-        addressType: supplierData.currentAddressType, // Added Address Type
-        street: supplierData.currentStreet,
-        city: supplierData.currentCity,
-        province: supplierData.currentProvince,
-        zipCode: supplierData.currentZipCode,
-        landmark: supplierData.currentLandmark,
-      },
-      newAddress: {
-        addressType: supplierData.newAddressType, // Added Address Type
-        street: supplierData.newStreet,
-        city: supplierData.newCity,
-        province: supplierData.newProvince,
-        zipCode: supplierData.newZipCode,
-        landmark: supplierData.newLandmark,
-      },
-      productLists: supplierData.productLists,
+      status: supplierData.status,
+      additionalNotes: supplierData.additionalNotes,
+      currentAddressType: supplierData.currentAddressType,
+      currentStreet: supplierData.currentStreet,
+      currentCity: supplierData.currentCity,
+      currentProvince: supplierData.currentProvince,
+      currentZipCode: supplierData.currentZipCode,
+      currentLandmark: supplierData.currentLandmark,
+      newAddressType: supplierData.newAddressType,
+      newStreet: supplierData.newStreet,
+      newCity: supplierData.newCity,
+      newProvince: supplierData.newProvince,
+      newZipCode: supplierData.newZipCode,
+      newLandmark: supplierData.newLandmark,
+      productLists: supplierData.productLists
     };
+  
+    console.log("Prepared Supplier Data:", preparedSupplierData);
 
-    if (isEdit) {
-      // Update existing supplier
-      updateSupplier(preparedSupplierData);
-    } else {
-      // Add new supplier
-      addSupplier(preparedSupplierData);
+    try {
+      const response = await fetch('http://localhost:5000/add-supplier', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preparedSupplierData)
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);
+        navigate('/supplier');
+      } else {
+        alert(`Error: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Error saving supplier:', error);
+      alert('Failed to add supplier.');
     }
-
-    // Scroll to the top after saving
-    window.scrollTo(0, 0);
-
-    // Navigate back to the Supplier Landing page
-    navigate('/supplier');
   };
 
-  // Handle cancel button click
   const handleCancelClick = () => {
-    window.scrollTo(0, 0);
     navigate('/supplier');
-  };
-
-  // Handle product list input changes
-  const handleProductInputChange = (index, e) => {
-    const { name, value } = e.target;
-    const updatedProductLists = [...supplierData.productLists];
-    updatedProductLists[index] = {
-      ...updatedProductLists[index],
-      [name]: value,
-    };
-    setSupplierData((prevData) => ({
-      ...prevData,
-      productLists: updatedProductLists,
-    }));
   };
 
   // Add new product to the product list
@@ -184,49 +306,31 @@ const SupplierInformation = () => {
     }));
   };
 
-  const [isOpen, setIsOpen] = useState(false);
-  const supplierTypes = ['Wholesale', 'Retail', 'Distributor'];
-
-  // Toggle the dropdown visibility
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-
-  // Handle selection of supplier type
-  const handleSelect = (type) => {
-    handleInputChange({
-      target: {
-        name: 'type',
-        value: type,
-      },
+ // Pre-fill form if editing
+ useEffect(() => {
+  if (isEdit && existingSupplier) {
+    setSupplierData({
+      ...existingSupplier,
+      currentAddressType: existingSupplier.currentAddress?.addressType || '',
+      currentStreet: existingSupplier.currentAddress?.street || '',
+      currentCity: existingSupplier.currentAddress?.city || '',
+      currentProvince: existingSupplier.currentAddress?.province || '',
+      currentZipCode: existingSupplier.currentAddress?.zipCode || '',
+      currentLandmark: existingSupplier.currentAddress?.landmark || '',
+      newAddressType: existingSupplier.newAddress?.addressType || '',
+      newStreet: existingSupplier.newAddress?.street || '',
+      newCity: existingSupplier.newAddress?.city || '',
+      newProvince: existingSupplier.newAddress?.province || '',
+      newZipCode: existingSupplier.newAddress?.zipCode || '',
+      newLandmark: existingSupplier.newAddress?.landmark || '',
+      productLists: existingSupplier.productLists || [],
     });
-    setIsOpen(false); // Close the dropdown after selection
-  };
+  }
+}, [isEdit, existingSupplier]);
 
-  useEffect(() => {
-    // If editing, pre-fill the form with existing supplier data
-    if (isEdit && existingSupplier) {
-      setSupplierData({
-        ...existingSupplier,
-        currentAddressType: existingSupplier.currentAddress?.addressType || '',
-        currentStreet: existingSupplier.currentAddress?.street || '',
-        currentCity: existingSupplier.currentAddress?.city || '',
-        currentProvince: existingSupplier.currentAddress?.province || '',
-        currentZipCode: existingSupplier.currentAddress?.zipCode || '',
-        currentLandmark: existingSupplier.currentAddress?.landmark || '',
-        newAddressType: existingSupplier.newAddress?.addressType || '',
-        newStreet: existingSupplier.newAddress?.street || '',
-        newCity: existingSupplier.newAddress?.city || '',
-        newProvince: existingSupplier.newAddress?.province || '',
-        newZipCode: existingSupplier.newAddress?.zipCode || '',
-        newLandmark: existingSupplier.newAddress?.landmark || '',
-        productLists: existingSupplier.productLists || [],
-      });
-    }
-  }, [isEdit, existingSupplier]);
-
-  return (
+return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
+      {/* Header */}
       <div className="mb-10 mt-16 text-center">
         <h1 className="text-xl font-bold text-white mt-2">
           {currentStep === 1
@@ -238,45 +342,59 @@ const SupplierInformation = () => {
         <h2 className="text-sm font-bold text-white">Add New Supplier</h2>
       </div>
 
+      {/* Step Indicators */}
       <div className="absolute left-10 top-1/4">
-        <div className="mb-4 flex items-center space-x-2 p-4 rounded-lg">
-          <IoIosInformationCircle className="text-gray-400 text-2xl" />
-          <div>
-            <h3 className="text-gray-400 text-sm">STEP 1</h3>
-            <h2 className="text-gray-400 text-sm">General Information</h2>
-          </div>
-        </div>
-        <div className="mb-4 flex items-center space-x-2 p-4 bg-gray-800 rounded-lg">
-          <GiStorkDelivery className="text-white text-2xl" />
-          <div>
-            <h3 className="text-white text-sm">STEP 2</h3>
-            <h2 className="text-white text-sm">Address Details</h2>
-          </div>
-        </div>
         <div
           className={`mb-4 flex items-center space-x-2 p-4 rounded-lg ${
-            currentStep === 3 ? 'bg-gray-800' : 'bg-transparent'
+            currentStep === 1 ? 'bg-gray-800' : 'bg-transparent'
           }`}
         >
-          <FaOpencart
+          <IoIosInformationCircle
             className={`text-2xl ${
-              currentStep === 3 ? 'text-white' : 'text-gray-400'
+              currentStep === 1 ? 'text-white' : 'text-gray-400'
             }`}
           />
           <div>
             <h3
               className={`text-sm ${
-                currentStep === 3 ? 'text-white' : 'text-gray-400'
+                currentStep === 1 ? 'text-white' : 'text-gray-400'
               }`}
             >
-              STEP 3
+              STEP 1
             </h3>
             <h2
               className={`text-sm ${
-                currentStep === 3 ? 'text-white' : 'text-gray-400'
+                currentStep === 1 ? 'text-white' : 'text-gray-400'
               }`}
             >
-              Product Lists
+              General Information
+            </h2>
+          </div>
+        </div>
+        <div
+          className={`mb-4 flex items-center space-x-2 p-4 rounded-lg ${
+            currentStep === 2 ? 'bg-gray-800' : 'bg-transparent'
+          }`}
+        >
+          <GiStorkDelivery
+            className={`text-2xl ${
+              currentStep === 2 ? 'text-white' : 'text-gray-400'
+            }`}
+          />
+          <div>
+            <h3
+              className={`text-sm ${
+                currentStep === 2 ? 'text-white' : 'text-gray-400'
+              }`}
+            >
+              STEP 2
+            </h3>
+            <h2
+              className={`text-sm ${
+                currentStep === 2 ? 'text-white' : 'text-gray-400'
+              }`}
+            >
+              Address Details
             </h2>
           </div>
         </div>
@@ -309,92 +427,162 @@ const SupplierInformation = () => {
         </div>
       </div>
 
+      {/* Form Container */}
       <div className="w-full max-w-2xl p-10 bg-gradient-to-b from-gray-800 to-black text-white rounded-lg shadow-lg">
-        <form className="space-y-6">
-          {/* Supplier Name */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Supplier Name</label>
-            <input
-              type="text"
-              name="name"
-              value={generalInfo.name}
-              onChange={handleInputChange}
-              placeholder="Supplier Name"
-              className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-              required
-            />
-          </div>
+        {currentStep === 1 ? (
+          // General Information Form
+          <form className="space-y-6" onSubmit={handleNextClick}>
+            {/* Company Name */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Company Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={supplierData.name}
+                onChange={handleInputChange}
+                placeholder="Company Name"
+                className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                required
+              />
+            </div>
 
-          {/* Supplier Type Dropdown */}
-          <div>
-            <label className="block text-sm font-medium mb-1 text-white">Supplier Type</label>
+            {/* Contact Name */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Contact Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="contactName"
+                value={supplierData.contactName}
+                onChange={handleInputChange}
+                placeholder="Contact Name"
+                className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                required
+              />
+            </div>
 
-            {/* Dropdown Button */}
-            <button
-              onClick={toggleDropdown}
-              className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left"
-            >
-              {generalInfo.type || 'Select Supplier Type'}
-            </button>
+            {/* Supplier Type Dropdown */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Supplier Type <span className="text-red-500">*</span>
+              </label>
 
-            {/* Dropdown Menu */}
-            {isOpen && (
-              <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
-                <ul className="text-sm text-white">
-                  {supplierTypes.map((type) => (
-                    <li
-                      key={type}
-                      onClick={() => handleSelect(type)}
-                      className="p-2 hover:bg-[#122127] cursor-pointer"
-                    >
-                      {type}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+              {/* Dropdown Button */}
+              <button
+                type="button"
+                onClick={toggleSupplierTypeDropdown}
+                className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left flex justify-between items-center"
+              >
+                <span>{supplierData.type || 'Select Supplier Type'}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isSupplierTypeDropdownOpen ? 'transform rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={generalInfo.email}
-              onChange={handleInputChange}
-              placeholder="supplier@example.com"
-              className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-              required
-            />
-          </div>
+              {/* Dropdown Menu */}
+              {isSupplierTypeDropdownOpen && (
+                <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
+                  <ul className="text-sm text-white">
+                    {supplierTypes.map((type) => (
+                      <li
+                        key={type}
+                        onClick={() => handleSelect('type', type)}
+                        className="p-2 hover:bg-[#122127] cursor-pointer"
+                      >
+                        {type}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
 
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone</label>
-            <input
-              type="tel"
-              name="phone"
-              value={generalInfo.phone}
-              onChange={handleInputChange}
-              placeholder="+63 000 000 0000"
-              className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-              required
-            />
-          </div>
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={supplierData.email}
+                onChange={handleInputChange}
+                placeholder="supplier@example.com"
+                className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                required
+              />
+            </div>
 
-          {/* Payment Status */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Payment Status</label>
-            <input
-              type="text"
-              name="paymentStatus"
-              value={generalInfo.paymentStatus}
-              onChange={handleInputChange}
-              placeholder="Paid / Pending / Cancelled"
-              className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-            />
-          </div>
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Phone <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={supplierData.phone}
+                onChange={handleInputChange}
+                placeholder="+63 000 000 0000"
+                className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                required
+              />
+            </div>
+
+            {/* Status Dropdown */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Status <span className="text-red-500">*</span>
+              </label>
+
+              {/* Dropdown Button */}
+              <button
+                type="button"
+                onClick={toggleStatusDropdown}
+                className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left flex justify-between items-center"
+              >
+                <span>{supplierData.status || 'Select Status'}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isStatusDropdownOpen ? 'transform rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+
+              {/* Dropdown Menu */}
+              {isStatusDropdownOpen && (
+                <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
+                  <ul className="text-sm text-white">
+                    {statusOptions.map((status) => (
+                      <li
+                        key={status}
+                        onClick={() => handleSelect('status', status)}
+                        className="p-2 hover:bg-[#122127] cursor-pointer"
+                      >
+                        {status}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
 
             {/* Additional Notes */}
             <div>
@@ -507,16 +695,42 @@ const SupplierInformation = () => {
               </div>
 
               <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentProvince"
-                    value={supplierData.currentProvince}
-                    onChange={handleInputChange}
-                    placeholder="Province"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
+              <div className="w-1/2">
+                  {/* Dropdown Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsCurrentProvinceDropdownOpen(!isCurrentProvinceDropdownOpen)}
+                    className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left flex justify-between items-center"
+                  >
+                    <span>{supplierData.currentProvince || 'Select Province'}</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isCurrentProvinceDropdownOpen ? 'transform rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+                  {/* Dropdown Menu */}
+                  {isCurrentProvinceDropdownOpen && (
+                    <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <ul className="text-sm text-white">
+                        {provinces.map((province) => (
+                          <li
+                            key={province}
+                            onClick={() => handleSelect('currentProvince', province)}
+                            className="p-2 hover:bg-[#122127] cursor-pointer"
+                          >
+                            {province}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <div className="w-1/2">
                   <input
@@ -615,15 +829,42 @@ const SupplierInformation = () => {
               </div>
 
               <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="newProvince"
-                    value={supplierData.newProvince}
-                    onChange={handleInputChange}
-                    placeholder="Province"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
+              <div className="w-1/2">
+                  {/* Dropdown Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsNewProvinceDropdownOpen(!isNewProvinceDropdownOpen)}
+                    className="w-full p-3 text-sm bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-left flex justify-between items-center"
+                  >
+                    <span>{supplierData.newProvince || 'Select Province'}</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isNewProvinceDropdownOpen ? 'transform rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+                  {/* Dropdown Menu */}
+                  {isNewProvinceDropdownOpen && (
+                    <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <ul className="text-sm text-white">
+                        {provinces.map((province) => (
+                          <li
+                            key={province}
+                            onClick={() => handleSelect('newProvince', province)}
+                            className="p-2 hover:bg-[#122127] cursor-pointer"
+                          >
+                            {province}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <div className="w-1/2">
                   <input
@@ -665,123 +906,110 @@ const SupplierInformation = () => {
             </div>
           </form>
         ) : (
-          // Product Lists Form
-          <form className="space-y-6" onSubmit={handleSaveClick}>
-            {/* Product List Fields */}
-            {supplierData.productLists.map((product, index) => (
-              <div key={index} className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <h3 className="text-white text-md font-semibold mb-2">{`Product #${index + 1}`}</h3>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Product ID
-                  </label>
-                  <input
-                    type="text"
-                    name="productId"
-                    value={product.productId}
-                    onChange={(e) => handleProductInputChange(index, e)}
-                    placeholder="Product ID"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Product Name
-                  </label>
-                  <input
-                    type="text"
-                    name="productName"
-                    value={product.productName}
-                    onChange={(e) => handleProductInputChange(index, e)}
-                    placeholder="Product Name"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={product.category}
-                    onChange={(e) => handleProductInputChange(index, e)}
-                    placeholder="Category"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Product Description
-                  </label>
-                  <input
-                    type="text"
-                    name="productDescription"
-                    value={product.productDescription}
-                    onChange={(e) => handleProductInputChange(index, e)}
-                    placeholder="Product Description"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Quantity Available
-                  </label>
-                  <input
-                    type="text"
-                    name="quantityAvailable"
-                    value={product.quantityAvailable}
-                    onChange={(e) => handleProductInputChange(index, e)}
-                    placeholder="Quantity Available"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Unit Price
-                  </label>
-                  <input
-                    type="text"
-                    name="unitPrice"
-                    value={product.unitPrice}
-                    onChange={(e) => handleProductInputChange(index, e)}
-                    placeholder="Unit Price"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="w-full py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500 mt-4"
-              onClick={handleAddProduct}
-            >
-              Add Product
-            </button>
+           // Product Lists Form
+           <form className="space-y-6" onSubmit={handleSaveClick}>
+           {supplierData.productLists.map((product, index) => (
+             <div key={index} className="grid grid-cols-2 gap-4">
+               <div className="col-span-2">
+                 <h3 className="text-white text-md font-semibold mb-2">{`Product #${index + 1}`}</h3>
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-1">Product ID</label>
+                 <input
+                   type="text"
+                   name="productId"
+                   value={product.productId}
+                   onChange={(e) => handleProductInputChange(index, e)}
+                   placeholder="Product ID"
+                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-1">Product Name</label>
+                 <input
+                   type="text"
+                   name="productName"
+                   value={product.productName}
+                   onChange={(e) => handleProductInputChange(index, e)}
+                   placeholder="Product Name"
+                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-1">Category</label>
+                 <input
+                   type="text"
+                   name="category"
+                   value={product.category}
+                   onChange={(e) => handleProductInputChange(index, e)}
+                   placeholder="Category"
+                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-1">Product Description</label>
+                 <input
+                   type="text"
+                   name="productDescription"
+                   value={product.productDescription}
+                   onChange={(e) => handleProductInputChange(index, e)}
+                   placeholder="Product Description"
+                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-1">Quantity Available</label>
+                 <input
+                   type="text"
+                   name="quantityAvailable"
+                   value={product.quantityAvailable}
+                   onChange={(e) => handleProductInputChange(index, e)}
+                   placeholder="Quantity Available"
+                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-1">Unit Price</label>
+                 <input
+                   type="text"
+                   name="unitPrice"
+                   value={product.unitPrice}
+                   onChange={(e) => handleProductInputChange(index, e)}
+                   placeholder="Unit Price"
+                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+                 />
+               </div>
+             </div>
+           ))}
+           <button
+             type="button"
+             className="w-full py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500 mt-4"
+             onClick={handleAddProduct}
+           >
+             Add Product
+           </button>
 
-            {/* Buttons */}
-            <div className="flex justify-between mt-6">
-              <button
-                type="button"
-                className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
-                onClick={handleBackClick}
-              >
-                BACK
-              </button>
-              <button
-                type="submit"
-                className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
-              >
-                SAVE
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
-  );
+           {/* Buttons */}
+           <div className="flex justify-between mt-6">
+             <button
+               type="button"
+               className="w-32 py-2 text-sm bg-transparent border border-gray-500 text-white rounded-lg hover:bg-gray-600"
+               onClick={handleBackClick}
+             >
+               BACK
+             </button>
+             <button
+               type="submit"
+               className="w-32 py-2 text-sm bg-gradient-to-r from-gray-700 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-500"
+             >
+               SAVE
+             </button>
+           </div>
+         </form>
+       )}
+     </div>
+   </div>
+ );
 };
 
 export default SupplierInformation;

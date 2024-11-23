@@ -1,10 +1,16 @@
+// src/order-page-component/InventoryLanding.jsx
 import React, { useState, useContext } from 'react';
 import { IoMdClose } from 'react-icons/io'; // Close Icon
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Password Visibility Icons
 import { useNavigate } from 'react-router-dom';
 import { CiSearch } from "react-icons/ci"; // Search icon
 import { BsBoxArrowRight } from "react-icons/bs";
+import { IoIosInformationCircle } from 'react-icons/io';
+import { GiStorkDelivery } from 'react-icons/gi';
+import { FaOpencart } from 'react-icons/fa';
+import { OrderContext } from '../context/OrderContext'; // Import OrderContext
 import { ProductContext } from '../context/ProductContext'; // Import ProductContext
+import LabelValue from '../global/LabelValue';
 
 const InventoryLanding = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -13,11 +19,37 @@ const InventoryLanding = () => {
   const [password, setPassword] = useState('');
   const [actionType, setActionType] = useState(''); // Track action type (add/edit/archive)
   const [uploadedImages, setUploadedImages] = useState([]);
-
+  const [searchQuery, setSearchQuery] = useState(''); // Initialize searchQuery state
   const navigate = useNavigate();
 
   // Use ProductContext to get products and product manipulation functions
   const { products, addProduct, updateProduct, archiveProduct } = useContext(ProductContext);
+
+  // State for FILTER BY dropdown
+  const [isFilterByOpen, setIsFilterByOpen] = useState(false);
+  const [selectedFilterBy, setSelectedFilterBy] = useState('');
+
+  // State for STATUS buttons
+  const [activeStatus, setActiveStatus] = useState('All'); // Default is 'All'
+
+  // Sample Filter By options (customize based on your requirements)
+  const filterByOptions = ['All Types', 'Online', 'Offline', 'Express Delivery', 'Standard Delivery'];
+
+  // Function to toggle FILTER BY dropdown
+  const toggleFilterByDropdown = () => {
+    setIsFilterByOpen(!isFilterByOpen);
+  };
+
+  // Function to handle selecting a FILTER BY option
+  const handleFilterBySelect = (option) => {
+    setSelectedFilterBy(option === 'All Types' ? '' : option);
+    setIsFilterByOpen(false);
+  };
+
+  // Function to handle STATUS button click
+  const handleStatusClick = (status) => {
+    setActiveStatus(status);
+  };
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -95,6 +127,24 @@ const InventoryLanding = () => {
     setSelectedProduct(null); // Deselect the product after update
   };
 
+  // Filter products based on search query, FILTER BY, and STATUS
+  const filteredProducts = products.filter((product) => {
+    const productName = (product.name || '').toLowerCase();
+    const productId = (`PID-${product.id}` || '').toLowerCase();
+    const searchLower = searchQuery.toLowerCase(); // Access the state here
+
+    // Search filter
+    const matchesSearch = productName.includes(searchLower) || productId.includes(searchLower);
+
+    // FILTER BY filter
+    const matchesFilterBy = selectedFilterBy === '' || (product.category && product.category === selectedFilterBy);
+
+    // STATUS filter (assuming 'All', 'Active', 'Inactive' statuses exist)
+    const matchesStatus = activeStatus === 'All' || (product.status && product.status.toLowerCase() === activeStatus.toLowerCase());
+
+    return matchesSearch && matchesFilterBy && matchesStatus;
+  });
+
   return (
     <div className="min-h-screen bg-black text-white py-10">
       <div className="max-w-7xl mx-auto px-6">
@@ -110,6 +160,8 @@ const InventoryLanding = () => {
                 type="text"
                 placeholder="Search product"
                 className="bg-transparent text-gray-600 px-4 py-2 focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)} // Track input changes
               />
             </div>
 
@@ -123,33 +175,75 @@ const InventoryLanding = () => {
           </div>
         </div>
 
-        {/* Sidebar Filters */}
+        {/* Filters and Sidebar */}
         <div className="grid grid-cols-4 gap-10">
-          <div className="space-y-6 col-span-1">
-            {[ 'Product Status', 'Product Type', 'Stock Alert', 'Category', 'Product Price', 'Product Brand' ].map((label, idx) => (
-              <div key={idx}>
-                <label className="block text-sm font-medium mb-2">{label}</label>
-                <input
-                  type="text"
-                  className="w-full p-2 bg-gradient-to-r from-[#4B88A3] via-[#040405] to-[#4B88A3] border border-gray-700 rounded-md text-sm placeholder-gray-400"
-                  placeholder="Lorem Ipsum Dolor"
-                />
+          <div className="col-span-1">
+            {/* FILTER BY */}
+            <div className="mb-6">
+              <h2 className="text-sm font-bold text-white mb-2">FILTER BY</h2>
+
+              {/* FILTER BY Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={toggleFilterByDropdown}
+                  className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+                >
+                  {selectedFilterBy || 'PRODUCT CATEGORY'}
+                </button>
+
+                {/* Dropdown Menu */}
+                {isFilterByOpen && (
+                  <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                    <ul className="text-sm text-white">
+                      {filterByOptions.map((option) => (
+                        <li
+                          key={option}
+                          className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
+                          onClick={() => handleFilterBySelect(option)}
+                        >
+                          {option}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            ))}
+            </div>
+
+            {/* STATUS Filters */}
+            <div className="mb-6 mt-2">
+              <h2 className="text-sm font-bold text-white mb-2">STATUS</h2>
+              <div className="flex space-x-2">
+                {['All', 'Active', 'Inactive'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleStatusClick(status)}
+                    className={`text-sm px-6 py-2 rounded-lg ${
+                      activeStatus === status
+                        ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                        : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Product List */}
           <div className="col-span-3">
-            <div className="space-y-4">
-              {products.length === 0 ? (
-                <div className="overflow-auto max-h-[600px] text-center text-gray-400">
+          <div className="space-y-4">
+
+              {filteredProducts.length === 0 ? (
+                <div className="text-center text-gray-400">
                   No products found
                 </div>
               ) : (
-                products.map((product) => (
+                filteredProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-4 shadow-lg flex justify-between items-center cursor-pointer"
+                    className="bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-4 shadow-lg flex justify-between items-center cursor-pointer transition transform hover:scale-105 duration-300 ease-in-out"
                     onClick={() => handleProductClick(product)}
                   >
                     <div className="flex items-center">

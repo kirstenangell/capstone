@@ -3,77 +3,104 @@ import React, { createContext, useState, useEffect } from 'react';
 // Create the OrderContext
 export const OrderContext = createContext();
 
-// Utility function to generate the next OID
-const generateNextOID = (orders) => {
-  if (orders.length === 0) return 'OID0000';
-
-  // Extract numeric parts of OIDs and find the maximum
-  const numericOIDs = orders.map(order => {
-    const match = order.oid.match(/^OID(\d{4,})$/);
-    return match ? parseInt(match[1], 10) : 0;
-  });
-
-  const maxOID = Math.max(...numericOIDs);
-  const nextOIDNumber = maxOID + 1;
-  const paddedNumber = String(nextOIDNumber).padStart(4, '0'); // Ensures at least 4 digits
-  return `OID${paddedNumber}`;
-};
-
-// OrderProvider component to wrap around parts of the app that need access to orders
 export const OrderProvider = ({ children }) => {
-  const [orders, setOrders] = useState(() => {
-    const savedOrders = localStorage.getItem('orders');
-    return savedOrders ? JSON.parse(savedOrders) : [
-      // Example initial order
-      {
-        id: 1,
-        oid: 'OID0000', // Starts with '0'
-        title: 'Sample Order Title',
-        customer: 'John Doe',
-        address: '123 Main St, Springfield',
-        price: 'PHP80,000.00',
-        status: 'DELIVERY',
-        date: 'May 21, 2024',
-        deliveryOption: 'Pick Up',
-        pickUpDate: 'May 25, 2024',
-        pickUpTime: '2:00 PM',
-        paymentOption: 'GCASH',
-        products: ['Sample Product 1', 'Sample Product 2'],
+  const [orders, setOrders] = useState([]); // State to hold all orders
+
+  // Fetch orders from the database
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/orders'); // Fetch from the /orders endpoint
+      if (response.ok) {
+        const fetchedOrders = await response.json(); // Parse JSON response
+        setOrders(fetchedOrders); // Set orders in state
+      } else {
+        console.error('Failed to fetch orders:', await response.text());
       }
-    ];
-  });
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
 
-  // Persist orders to localStorage whenever they change
+  // Fetch orders when the component mounts
   useEffect(() => {
-    console.log('Persisting orders to localStorage:', orders);
-    localStorage.setItem('orders', JSON.stringify(orders));
-  }, [orders]);
+    fetchOrders();
+  }, []);
 
-  // Function to add a new order with sequential OID and unique ID
-  const addOrder = (order) => {
-    const newOID = generateNextOID(orders);
-    const newId = Date.now(); // Simple unique identifier; consider using UUID for more robustness
-    const newOrder = { ...order, oid: newOID, id: newId };
-    console.log('New order being added:', newOrder);
-    setOrders([...orders, newOrder]);
+  // Add order to the database and update local state
+  const addOrder = async (order) => {
+    try {
+      const response = await fetch('http://localhost:5000/add-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order), // Send the new order data
+      });
+
+      if (response.ok) {
+        const savedOrder = await response.json(); // Get the saved order
+        setOrders((prevOrders) => [...prevOrders, savedOrder]); // Add the new order to the list
+      } else {
+        console.error('Failed to save order:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error saving order:', error);
+    }
   };
 
-  // Function to update an existing order
-  const updateOrder = (updatedOrder) => {
-    setOrders(
-      orders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order))
-    );
+  // Update order in the database and update local state
+  const updateOrder = async (updatedOrder) => {
+    try {
+      const response = await fetch(`http://localhost:5000/update-order/${updatedOrder.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedOrder), // Send the updated order data
+      });
+
+      if (response.ok) {
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === updatedOrder.id ? updatedOrder : order
+          )
+        );
+      } else {
+        console.error('Failed to update order:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+    }
   };
 
-  // Function to archive an order based on its ID
-  const archiveOrder = (orderId) => {
-    setOrders(orders.filter((order) => order.id !== orderId));
+  // Archive order in the database and update local state
+  const archiveOrder = async (orderId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/archive-order/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        setOrders((prevOrders) =>
+          prevOrders.filter((order) => order.id !== orderId) // Remove the archived order from the list
+        );
+      } else {
+        console.error('Failed to archive order:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error archiving order:', error);
+    }
   };
 
+  // Return the context provider
   return (
-    <OrderContext.Provider value={{ orders, addOrder, updateOrder, archiveOrder }}>
+    <OrderContext.Provider
+      value={{
+        orders, // Orders fetched from the database
+        fetchOrders, // Function to fetch orders
+        addOrder, // Function to add a new order
+        updateOrder, // Function to update an existing order
+        archiveOrder, // Function to archive an order
+      }}
+    >
       {children}
     </OrderContext.Provider>
   );
 };
-

@@ -1,4 +1,3 @@
-// src/context/SupplierContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 
 // Create the context
@@ -6,95 +5,142 @@ export const SupplierContext = createContext();
 
 // Create the provider component
 export const SupplierProvider = ({ children }) => {
-  // Initialize suppliers from localStorage or start with default data
-  const [suppliers, setSuppliers] = useState(() => {
-    const savedSuppliers = localStorage.getItem('suppliers');
-    if (savedSuppliers) {
-      return JSON.parse(savedSuppliers);
-    } else {
-      // Default suppliers (optional)
-      return [
-        {
-          id: 1,
-          oid: 'OID0000', // Starts with '0'
-          name: 'ABC Electronics',
-          type: 'Wholesale',
-          source: 'Manual Add',
-          phone: '+63 123 456 7890',
-          email: 'contact@abcelectronics.com',
-          status: 'Active',
-          currentAddress: {
-            street: '5678 Oak Avenue',
-            city: 'Makati City',
-            province: 'Metro Manila',
-            zipCode: '1200',
-            landmark: 'Near Ayala Center',
-          },
-          newAddress: {},
-          supplyID: 'SID-0000',
-          supplyDetails: 'Electronics Components',
-          supplyPrice: '₱50,000.00',
-          supplies: [
-            { id: 'SID-0000', item: 'Resistors', price: '₱500.00', status: 'Delivered' },
-            { id: 'SID-0001', item: 'Capacitors', price: '₱1,500.00', status: 'Pending' },
-          ],
-        },
-        // Add more initial suppliers as needed
-      ];
-    }
-  });
+  const [suppliers, setSuppliers] = useState([]);
 
-  // Persist suppliers to localStorage whenever they change
+  // Fetch suppliers from the server on mount
   useEffect(() => {
-    localStorage.setItem('suppliers', JSON.stringify(suppliers));
-  }, [suppliers]);
+    const fetchSuppliers = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/suppliers');
+        const data = await response.json();
+        if (response.ok) {
+          const groupedData = data.reduce((acc, row) => {
+            const supplierIndex = acc.findIndex((s) => s.id === row.id);
+            if (supplierIndex === -1) {
+              acc.push({
+                ...row,
+                productLists: row.product_name ? [{ ...row }] : [],
+              });
+            } else {
+              acc[supplierIndex].productLists.push({ ...row });
+            }
+            return acc;
+          }, []);
+          setSuppliers(groupedData);
+        } else {
+          console.error('Error fetching suppliers:', data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching suppliers:', error);
+      }
+    };
+    
 
-  // Function to generate a unique Supplier ID
-  const generateSupplierID = () => {
-    const nextId = suppliers.length > 0 ? Math.max(...suppliers.map(s => s.id)) + 1 : 1;
-    return nextId;
-  };
+    fetchSuppliers(); // Call the fetch function when the component mounts
+  }, []); // Empty dependency array ensures this runs only once
 
   // Function to add a new supplier
-  const addSupplier = (supplier) => {
-    const newOID = generateNextOID(suppliers);
-    const newId = Date.now(); // Simple unique identifier; consider using UUID for more robustness
-    const newSupplier = { ...supplier, oid: newOID, id: newId };
-    setSuppliers([...suppliers, newSupplier]);
+  const addSupplier = async (supplier) => {
+    try {
+      const response = await fetch('http://localhost:5000/add-supplier', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(supplier),
+      });
+  
+      if (response.ok) {
+        const savedSupplier = await response.json();
+        // Update the suppliers state with the new supplier
+        setSuppliers((prevSuppliers) => [...prevSuppliers, savedSupplier]);
+      } else {
+        console.error('Failed to add supplier:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error adding supplier:', error);
+    }
+  };
+  
+
+  // Function to update an existing supplier and sync with the backend
+  const updateSupplier = async (updatedSupplier) => {
+    try {
+      const response = await fetch(`http://localhost:5000/update-supplier/${updatedSupplier.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedSupplier), // Send updated supplier data
+      });
+
+      if (response.ok) {
+        setSuppliers(
+          suppliers.map((supplier) =>
+            supplier.id === updatedSupplier.id ? updatedSupplier : supplier
+          )
+        ); // Update the state with the new supplier data
+        console.log('Supplier updated successfully in backend and frontend');
+      } else {
+        console.error('Failed to update supplier:', response.statusText); // Log failure
+      }
+    } catch (error) {
+      console.error('Error updating supplier:', error); // Log client-side error
+    }
   };
 
-  // Function to update an existing supplier
-  const updateSupplier = (updatedSupplier) => {
-    setSuppliers(
-      suppliers.map((supplier) =>
-        supplier.id === updatedSupplier.id ? updatedSupplier : supplier
-      )
-    );
+  // Function to archive a supplier (soft delete) and remove it from the frontend
+  const archiveSupplier = async (supplierId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/archive-supplier/${supplierId}`, {
+        method: 'PUT', // Use PUT method to archive the supplier
+      });
+
+      if (response.ok) {
+        // Remove archived supplier from the current state
+        setSuppliers(suppliers.filter((supplier) => supplier.id !== supplierId));
+        console.log(`Supplier with ID ${supplierId} archived and removed from frontend.`);
+      } else {
+        console.error('Failed to archive supplier:', response.statusText); // Log failure
+      }
+    } catch (error) {
+      console.error('Error archiving supplier:', error); // Log client-side error
+    }
   };
 
-  // Function to archive (remove) a supplier
-  const archiveSupplier = (supplierId) => {
-    setSuppliers(suppliers.filter((supplier) => supplier.id !== supplierId));
-  };
+  // Function to fetch product details from the database by product ID
+  const fetchProductDetails = async (productId) => {
+    if (!productId) {
+      console.warn('fetchProductDetails called with undefined productId');
+      return null; // Return null if no product ID is provided
+    }
 
-  // Utility function to generate the next OID
-  const generateNextOID = (suppliers) => {
-    if (suppliers.length === 0) return 'OID0000';
+    try {
+      const response = await fetch(`http://localhost:5000/products/${productId}`); // Fetch product details
+      const data = await response.json();
 
-    // Extract numeric parts of OIDs and find the maximum
-    const numericOIDs = suppliers.map(supplier => {
-      const match = supplier.oid.match(/^OID(\d{4,})$/);
-      return match ? parseInt(match[1], 10) : 0;
-    });
-
-    const maxOID = Math.max(...numericOIDs);
-    const nextOIDNumber = maxOID + 1;
-    const paddedNumber = String(nextOIDNumber).padStart(4, '0'); // Ensures at least 4 digits
-    return `OID${paddedNumber}`;
+      if (response.ok) {
+        return data; // Return the product details
+      } else {
+        console.error('Error fetching product details:', data.message); // Log server error message
+        return null; // Return null if server responds with an error
+      }
+    } catch (error) {
+      console.error('Error fetching product details:', error); // Log client-side error
+      return null; // Return null on network error
+    }
   };
 
   return (
-    <SupplierContext.Provider value={{ suppliers, addSupplier, updateSupplier, archiveSupplier }}>
+    <SupplierContext.Provider
+      value={{
+        suppliers, // Expose the list of suppliers to the rest of the application
+        addSupplier, // Function to add a supplier
+        updateSupplier, // Function to update supplier details
+        archiveSupplier, // Function to archive a supplier
+        fetchProductDetails, // Function to fetch product details
+      }}
+    >
       {children}
     </SupplierContext.Provider>
   );
