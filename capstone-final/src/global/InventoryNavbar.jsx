@@ -85,26 +85,6 @@ const InventoryNavbar = ({ cartItemCount }) => {
             <span className="relative">ORDER</span>
           </NavLink>
           <NavLink
-            to="/customer"
-            className={({ isActive }) =>
-              `text-white relative py-2 px-6 rounded-full mx-4 transition-all duration-300 transform ${
-                isActive
-                  ? 'active-gradient'
-                  : 'bg-transparent border border-gray-800 hover:glowing-border'
-              }`
-            }
-            style={({ isActive }) =>
-              isActive
-                ? {
-                    background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
-                    boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)' // Active button shadow
-                  }
-                : {}
-            }
-          >
-            <span className="relative">CUSTOMER</span>
-          </NavLink>
-          <NavLink
             to="/supplier"
             className={({ isActive }) =>
               `text-white relative py-2 px-6 rounded-full mx-4 transition-all duration-300 transform ${

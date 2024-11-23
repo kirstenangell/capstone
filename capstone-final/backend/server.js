@@ -75,6 +75,173 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// FORGOT PASSWORD LOGIC
+// ====================
+app.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    console.log('No email provided');
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  try {
+    // Check if the email exists
+    const userQuery = 'SELECT * FROM users WHERE email = ?';
+    const [user] = await db.promise().query(userQuery, [email]);
+
+    if (user.length === 0) {
+      console.log('Email not found in the database');
+      return res.status(404).json({ message: 'Email not found' });
+    }
+
+    // Generate reset token
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Update the reset token in the database
+    const updateTokenQuery = 'UPDATE users SET reset_token = ? WHERE email = ?';
+    await db.promise().query(updateTokenQuery, [token, email]);
+
+    // Send reset email
+    const resetUrl = `http://localhost:5173/set-password?token=${token}`;
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `<p>Click the link below to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`,
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error('Error sending email:', err);
+        return res.status(500).json({ message: 'Error sending email' });
+      }
+
+      console.log('Reset email sent:', info.response);
+      res.status(200).json({ message: 'Password reset link sent to your email.' });
+    });
+  } catch (err) {
+    console.error('Error in forgot password process:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// SET PASSWORD LOGIC
+// ====================
+app.post('/set-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    console.log('Missing token or newPassword');
+    return res.status(400).json({ message: 'Token and new password are required' });
+  }
+
+  try {
+    // Validate the token
+    const tokenQuery = 'SELECT * FROM users WHERE reset_token = ?';
+    const [user] = await db.promise().query(tokenQuery, [token]);
+
+    if (user.length === 0) {
+      console.log('Invalid or expired reset token');
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password and clear the reset token
+    const updatePasswordQuery = 'UPDATE users SET password = ?, reset_token = NULL WHERE reset_token = ?';
+    await db.promise().query(updatePasswordQuery, [hashedPassword, token]);
+
+    console.log('Password updated successfully');
+    res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
+  } catch (err) {
+    console.error('Error in set password process:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Backend - Update Password API after reset
+app.post('/update-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  // Validate input
+  if (!token || !newPassword) {
+    return res.status(400).json({ message: 'Token and new password are required' });
+  }
+
+  // Find the user with the provided reset token
+  const query = 'SELECT * FROM users WHERE reset_token = ?';
+  db.query(query, [token], async (err, result) => {
+    if (err) {
+      console.error('Error querying database for reset token:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.length === 0) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password and clear reset token
+    const updateQuery = 'UPDATE users SET password = ?, reset_token = NULL WHERE reset_token = ?';
+    db.query(updateQuery, [hashedPassword, token], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating password:', updateErr);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      res.status(200).json({ message: 'Password updated successfully. You can now log in with your new password.' });
+    });
+  });
+});
+
+// Update Password API
+// Update Password from Password Tab API
+app.post('/update-password-tab', async (req, res) => {
+  const { email, currentPassword, newPassword } = req.body;
+
+  if (!email || !currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  const query = 'SELECT * FROM users WHERE email = ?';
+  db.query(query, [email], async (err, result) => {
+    if (err) {
+      console.error('Error querying database:', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = result[0];
+
+    // Verify the current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user's password
+    const updateQuery = 'UPDATE users SET password = ? WHERE email = ?';
+    db.query(updateQuery, [hashedPassword, email], (updateErr) => {
+      if (updateErr) {
+        console.error('Error updating password:', updateErr);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      res.status(200).json({ message: 'Password updated successfully' });
+    });
+  });
+});
+
 // Register API with Email Verification
 const { body, validationResult } = require('express-validator');
 
@@ -743,8 +910,8 @@ app.post('/add-order', (req, res) => {
     streetName,
     barangay,
     city,
-    region,
     province,
+    region,
     zipCode,
     deliveryOption,
     courier,
@@ -755,154 +922,56 @@ app.post('/add-order', (req, res) => {
     price,
     status,
     date,
-    archived,
-    newStreet,
-    newBarangay,
-    newCity,
-    newRegion,
-    newProvince,
-    newZipCode,
-    newLandmark,
   } = req.body;
 
-  // Check for duplicate order
-  const duplicateCheckQuery = `
-    SELECT COUNT(*) AS count FROM orders
-    WHERE firstName = ? AND lastName = ? AND email = ? AND contactNumber = ?
-      AND streetName = ? AND barangay = ? AND city = ? AND region = ? AND province = ? AND zipCode = ?
-      AND deliveryOption = ? AND courier = ? AND paymentOption = ? AND pickUpTime = ? AND pickUpDate = ?
-      AND JSON_LENGTH(products) = ? AND archived = 0
+  // Validate required fields
+  if (!firstName || !lastName || !email || !contactNumber || !products || !price) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  const query = `
+    INSERT INTO orders 
+    (firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode, 
+    deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  const checkValues = [
-    firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
-    deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products.length,
-  ];
-
-  db.query(duplicateCheckQuery, checkValues, (err, results) => {
-    if (err) {
-      console.error('Error checking for duplicate order:', err);
-      res.status(500).json({ message: 'Failed to check for duplicate order.' });
-      return;
-    }
-
-    if (results[0].count > 0) {
-      res.status(400).json({ message: 'Duplicate order detected. Please review your order details.' });
-      return;
-    }
-
-    // Insert new order if no duplicate is found
-    const query = `
-      INSERT INTO orders (
-        firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
-        deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date, archived,
-        newStreet, newBarangay, newCity, newRegion, newProvince, newZipCode, newLandmark
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    const values = [
-      firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
-      deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, JSON.stringify(products), price,
-      status, date, archived, newStreet, newBarangay, newCity, newRegion, newProvince, newZipCode, newLandmark,
-    ];
-
-    db.query(query, values, (err, result) => {
+  // Insert order into database
+  db.query(
+    query,
+    [
+      firstName,
+      lastName,
+      email,
+      contactNumber,
+      streetName,
+      barangay,
+      city,
+      region,
+      province,
+      zipCode,
+      deliveryOption,
+      courier,
+      paymentOption,
+      pickUpTime,
+      pickUpDate,
+      JSON.stringify(products), // Ensure products array is stored as JSON
+      price,
+      status,
+      date,
+    ],
+    (err, result) => {
       if (err) {
-        console.error('Error adding order:', err);
-        res.status(500).json({ message: 'Failed to add order.' });
-      } else {
-        res.status(201).json({ id: result.insertId, message: 'Order added successfully.' });
+        console.error('Error adding order:', err.message || err); // Log detailed error
+        return res.status(500).json({ message: 'Error adding order', error: err.message });
       }
-    });
-  });
+
+      res.status(200).json({ id: result.insertId, message: 'Order added successfully' });
+    }
+  );
 });
 
-// Update Existing Order with Duplicate Check
-app.put('/update-order/:id', (req, res) => {
-  const orderId = req.params.id;
-  const {
-    firstName,
-    lastName,
-    email,
-    contactNumber,
-    streetName,
-    barangay,
-    city,
-    region,
-    province,
-    zipCode,
-    deliveryOption,
-    courier,
-    paymentOption,
-    pickUpTime,
-    pickUpDate,
-    products,
-    price,
-    status,
-    archived,
-    newStreet,
-    newBarangay,
-    newCity,
-    newRegion,
-    newProvince,
-    newZipCode,
-    newLandmark,
-  } = req.body;
-
-  // Check for duplicate order
-  const duplicateCheckQuery = `
-    SELECT COUNT(*) AS count FROM orders
-    WHERE firstName = ? AND lastName = ? AND email = ? AND contactNumber = ?
-      AND streetName = ? AND barangay = ? AND city = ? AND region = ? AND province = ? AND zipCode = ?
-      AND deliveryOption = ? AND courier = ? AND paymentOption = ? AND pickUpTime = ? AND pickUpDate = ?
-      AND JSON_LENGTH(products) = ? AND archived = 0 AND id != ?
-  `;
-
-  const checkValues = [
-    firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
-    deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products.length, orderId,
-  ];
-
-  db.query(duplicateCheckQuery, checkValues, (err, results) => {
-    if (err) {
-      console.error('Error checking for duplicate order:', err);
-      res.status(500).json({ message: 'Failed to check for duplicate order.' });
-      return;
-    }
-
-    if (results[0].count > 0) {
-      res.status(400).json({ message: 'Duplicate order detected. Please review your order details.' });
-      return;
-    }
-
-    // Update the order if no duplicate is found
-    const query = `
-      UPDATE orders SET
-        firstName = ?, lastName = ?, email = ?, contactNumber = ?, streetName = ?, barangay = ?, city = ?, 
-        region = ?, province = ?, zipCode = ?, deliveryOption = ?, courier = ?, paymentOption = ?, 
-        pickUpTime = ?, pickUpDate = ?, products = ?, price = ?, status = ?, archived = ?, 
-        newStreet = ?, newBarangay = ?, newCity = ?, newRegion = ?, newProvince = ?, newZipCode = ?, newLandmark = ?
-      WHERE id = ?
-    `;
-
-    const values = [
-      firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
-      deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, JSON.stringify(products), price,
-      status, archived, newStreet, newBarangay, newCity, newRegion, newProvince, newZipCode, newLandmark, orderId,
-    ];
-
-    db.query(query, values, (err, result) => {
-      if (err) {
-        console.error('Error updating order:', err);
-        res.status(500).json({ message: 'Failed to update order.' });
-      } else {
-        res.status(200).json({ message: 'Order updated successfully.' });
-      }
-    });
-  });
-});
-
-// Fetch All Orders API
+// Fetch Orders API
 app.get('/orders', (req, res) => {
   const query = `
     SELECT 
@@ -940,7 +1009,7 @@ app.get('/orders', (req, res) => {
   });
 });
 
-// Archive Order API
+// Archive (soft delete) Order API
 app.put('/archive-order/:id', (req, res) => {
   const orderId = req.params.id;
 
@@ -958,6 +1027,80 @@ app.put('/archive-order/:id', (req, res) => {
 
     res.status(200).json({ message: 'Order archived successfully' });
   });
+});
+
+// Update Order API
+app.put('/update-order/:id', (req, res) => {
+  const orderId = req.params.id;
+  const updatedOrder = req.body;
+
+  // Validate required fields
+  if (!updatedOrder.firstName || !updatedOrder.lastName || !updatedOrder.email) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  const query = `
+    UPDATE orders 
+    SET 
+      firstName = ?, 
+      lastName = ?, 
+      email = ?, 
+      contactNumber = ?, 
+      streetName = ?, 
+      barangay = ?, 
+      city = ?, 
+      region = ?, 
+      province = ?,
+      zipCode = ?, 
+      deliveryOption = ?, 
+      courier = ?, 
+      paymentOption = ?, 
+      pickUpTime = ?, 
+      pickUpDate = ?, 
+      products = ?, 
+      price = ?, 
+      status = ?, 
+      date = ?
+    WHERE id = ?
+  `;
+
+  db.query(
+    query,
+    [
+      updatedOrder.firstName,
+      updatedOrder.lastName,
+      updatedOrder.email,
+      updatedOrder.contactNumber,
+      updatedOrder.streetName,
+      updatedOrder.barangay,
+      updatedOrder.city,
+      updatedOrder.region,
+      updatedOrder.province,
+      updatedOrder.zipCode,
+      updatedOrder.deliveryOption,
+      updatedOrder.courier,
+      updatedOrder.paymentOption,
+      updatedOrder.pickUpTime,
+      updatedOrder.pickUpDate,
+      JSON.stringify(updatedOrder.products), // Ensure products are stored as JSON
+      updatedOrder.price,
+      updatedOrder.status,
+      updatedOrder.date,
+      orderId, // WHERE clause ID
+    ],
+    (err, result) => {
+      if (err) {
+        console.error('Error updating order:', err.message);
+        return res.status(500).json({ message: 'Error updating order' });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
+      res.status(200).json({ message: 'Order updated successfully' });
+    }
+  );
 });
 
 // Start the server
