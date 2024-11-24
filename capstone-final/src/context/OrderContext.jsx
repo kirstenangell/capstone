@@ -32,7 +32,7 @@ export const OrderProvider = ({ children }) => {
       const response = await fetch('http://localhost:5000/add-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(order), // Send the new order data
+        body: JSON.stringify(order), // Send the new order data, including new address fields
       });
 
       if (response.ok) {
@@ -52,7 +52,7 @@ export const OrderProvider = ({ children }) => {
       const response = await fetch(`http://localhost:5000/update-order/${updatedOrder.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedOrder), // Send the updated order data
+        body: JSON.stringify(updatedOrder), // Send the updated order data, including new address fields
       });
 
       if (response.ok) {
