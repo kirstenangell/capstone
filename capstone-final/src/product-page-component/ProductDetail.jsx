@@ -103,33 +103,43 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
       )}
 
       <div className="max-w-7xl mx-auto flex">
-        {/* Left Side - Thumbnails and Main Image */}
-        <div className="flex flex-col justify-center space-y-4 mr-8">
-          <div className="flex flex-col items-center space-y-4">
-            {selectedProduct.relatedImages?.map((image, index) => (
-              <img
-                key={index}
-                src={image}
-                alt={`Related image ${index + 1}`}
-                className={`w-16 h-16 object-contain cursor-pointer ${
-                  selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'
-                }`}
-                onClick={() => setSelectedProduct({ ...selectedProduct, image })}
-              />
-            ))}
-          </div>
+  {/* Left Side - Thumbnails and Main Image */}
+  <div className="flex flex-col items-center space-y-4">
+    {selectedProduct.relatedImages?.slice(0, 3).map((image, index) => (
+      <img
+        key={index}
+        src={image}
+        alt={`Related image ${index + 1}`}
+        className={`w-16 h-16 object-contain cursor-pointer ${
+          selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'
+        }`}
+        onClick={() => setSelectedProduct({ ...selectedProduct, image })}
+      />
+    ))}
 
-          <div className="w-full bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] rounded-lg p-8 shadow-lg flex items-center justify-center">
-            <img src={selectedProduct.image} alt={selectedProduct.name} className="w-96 h-96 object-contain" />
-          </div>
-        </div>
+    <div className="w-full rounded-lg p-8 shadow-lg flex items-center justify-center bg-black">
+      <img src={selectedProduct.image} alt={selectedProduct.name} className="w-96 h-96 object-contain" />
+    </div>
 
-        {/* Right Side - Product Details */}
-        <div className="ml-12 flex-1">
-          <h1 className="text-3xl font-medium">{selectedProduct.name}</h1>
-          <p className="mt-4 text-gray-400">
-            {selectedProduct.description || 'No description provided.'}
-          </p>
+    {selectedProduct.relatedImages?.slice(3).map((image, index) => (
+      <img
+        key={index}
+        src={image}
+        alt={`Related image ${index + 4}`} // Adjust the index to continue from above
+        className={`w-16 h-16 object-contain cursor-pointer ${
+          selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'
+        }`}
+        onClick={() => setSelectedProduct({ ...selectedProduct, image })}
+      />
+    ))}
+  </div>
+
+  {/* Right Side - Product Details */}
+  <div className="ml-12 flex-1">
+    <h1 className="text-3xl font-medium">{selectedProduct.name}</h1>
+    <p className="mt-4 text-gray-400">
+      {selectedProduct.description || 'No description provided.'}
+    </p>
 
           {/* Static Star Rating */}
           <div className="flex items-center mt-4">

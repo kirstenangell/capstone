@@ -50,6 +50,22 @@ import { UserProvider } from './context/UserContext';
 import { useUser } from './context/UserContext';
 
 
+// Subcategory Components
+import Category from './product-page-component/Category'; // Adjust path as necessary
+import Amplifier from './subcategory-pages/Amplifier';
+import CarCooler from './subcategory-pages/CarCooler';
+import CarHorn from './subcategory-pages/CarHorn';
+import CarMultimedia from './subcategory-pages/CarMultimedia';
+import DashCam from './subcategory-pages/DashCam';
+import Halogen from './subcategory-pages/Halogen';
+import LED from './subcategory-pages/LED';
+import ReverseCamera from './subcategory-pages/ReverseCamera';
+import SedanWheel from './subcategory-pages/SedanWheel';
+import Speaker from './subcategory-pages/Speaker';
+import Subwoofer from './subcategory-pages/Subwoofer';
+import SUVWheel from './subcategory-pages/SUVWheel';
+import Tweeter from './subcategory-pages/Tweeter';
+
 function App() {
 
   // Cart State Management
@@ -399,6 +415,21 @@ useEffect(() => {
                     />
                     <Route path="/manage-account" element={<ManageAcc />} />
 
+                    {/* Subcategory routes */}
+        <Route path="/category" element={<Category />} />            
+        <Route path="/products/subwoofer" element={<Subwoofer />} />
+        <Route path="/products/amplifier" element={<Amplifier />} />
+        <Route path="/products/carcooler" element={<CarCooler />} />
+        <Route path="/products/carhorn" element={<CarHorn />} />
+        <Route path="/products/carmultimedia" element={<CarMultimedia />} />
+        <Route path="/products/dashcam" element={<DashCam />} />
+        <Route path="/products/halogen" element={<Halogen />} />
+        <Route path="/products/led" element={<LED />} />
+        <Route path="/products/reversecamera" element={<ReverseCamera />} />
+        <Route path="/products/sedanwheel" element={<SedanWheel />} />
+        <Route path="/products/speaker" element={<Speaker />} />
+        <Route path="/products/suvwheel" element={<SUVWheel />} />
+        <Route path="/products/tweeter" element={<Tweeter />} />
 
 
                   </Routes>
