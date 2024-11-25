@@ -128,23 +128,24 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
             <div className="flex">
               <div className="flex flex-col justify-center space-y-4">
                 {selectedProduct.relatedImages.map((image, index) => (
-                  <img 
-                    key={index}
-                    src={image} 
-                    alt={`Related image ${index + 1}`} 
-                    className={`w-16 h-16 object-contain cursor-pointer ${selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
-                    onClick={() => setSelectedProduct({ ...selectedProduct, image })}
-                  />
+                 <img  
+                 key={index}
+                 src={image.startsWith('http') ? image : `http://localhost:5173/${image}`} 
+                 alt={`Related image ${index + 1}`} 
+                 className={`w-16 h-16 object-contain cursor-pointer ${selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
+                 onClick={() => setSelectedProduct({ ...selectedProduct, image })}
+               />               
                 ))}
               </div>
               
               <div className="ml-4">
                 <div className="bg-gradient-to-b from-[#62B1D4]/[0.2] to-[#000000] rounded-lg p-4 shadow-lg">
-                  <img 
-                    src={selectedProduct.image} 
-                    alt={selectedProduct.name} 
-                    className="w-96 h-96 object-contain rounded-md"
-                  />
+                <img 
+  src={selectedProduct.image.startsWith('http') ? selectedProduct.image : `http://localhost:5173/${selectedProduct.image}`}
+  alt={selectedProduct.name} 
+  className="w-96 h-96 object-contain rounded-md"
+/>
+
                 </div>
               </div>
             </div>
@@ -214,7 +215,12 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
                   onClick={() => handleProductClick(product)}
                 >
                   <div className="w-full h-80 rounded-t-lg flex items-center justify-center">
-                    <img src={product.image} alt="Wheel" className="object-contain h-full rounded-md" />
+                  <img
+  src={product.image.startsWith('http') ? product.image : `http://localhost:5173/${product.image}`}
+  alt="Wheel"
+  className="object-contain h-full rounded-md"
+/>
+
                   </div>
                   <div className="mt-4">
                     <p className="text-lg font-bold text-white mt-1">{product.name}</p>
@@ -266,7 +272,12 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
                 onClick={() => handleProductClick(product)}
               >
                 <div className="w-full h-80 rounded-t-lg flex items-center justify-center">
-                  <img src={product.image} alt={product.name} className="object-contain h-full rounded-md" />
+                <img
+  src={product.image.startsWith('http') ? product.image : `http://localhost:5173/${product.image}`}
+  alt={product.name}
+  className="object-contain h-full rounded-md"
+/>
+
                 </div>
                 <div className="mt-4">
                   <h2 className="text-sm font-light italic text-gray-400">LOREM IPSUM</h2>
