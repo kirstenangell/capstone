@@ -26,28 +26,33 @@ const SignUp = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,20}$/;
+    return regex.test(password);
+  };
+  
+
   const handleSignupSubmit = async (event) => {
     event.preventDefault();
+  
+    if (!validatePassword(password)) {
+      setErrorMessage(
+        'Password must be 8-20 characters long, include uppercase, lowercase, a number, and a special character.'
+      );
+      return;
+    }
   
     if (password !== confirmPassword) {
       setErrorMessage('Passwords do not match');
       return;
     }
   
-    // Log the signup data being sent
-    console.log("Signup Data:", {
-      first_name: firstName,
-      last_name: lastName,
-      email: email,
-      password: password
-    });
-  
     try {
       const response = await axios.post('http://localhost:5000/register', {
-        first_name: firstName,   // First name being sent
-        last_name: lastName,     // Last name being sent
-        email: email,            // Email being sent
-        password: password       // Password being sent
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        password: password,
       });
   
       if (response.status === 200) {
@@ -57,19 +62,15 @@ const SignUp = () => {
         setErrorMessage(response.data.message);
       }
     } catch (error) {
-      // Log the exact error message from the server
-      console.error("Signup error:", error.response?.data || error.message);
-      setErrorMessage('An error occurred during sign up.');
-  
-      // Log the entire error object to inspect the validation errors
+      console.error('Signup error:', error.response?.data || error.message);
       if (error.response?.data?.errors) {
-        console.log("Validation Errors:", error.response.data.errors);
-        setErrorMessage(error.response.data.errors.map(err => err.msg).join(", "));
+        setErrorMessage(error.response.data.errors.map((err) => err.msg).join(', '));
       } else {
-        console.log("Error response data:", error.response.data);
+        setErrorMessage('An error occurred during sign up.');
       }
     }
   };
+  
   
   
   
