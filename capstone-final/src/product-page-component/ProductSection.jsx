@@ -7,7 +7,6 @@ import Wheel3 from "../assets/wheel3.png";
 import Wheel5 from "../assets/wheel5.png";
 import dashboardImage from '../assets/dashboard.png';
 import { ProductContext } from '../context/ProductContext';
-import { useUser } from '../context/UserContext';
 
 const ProductSection = ({ onAddToCart, isLoggedIn }) => {
   const { products } = useContext(ProductContext);
@@ -29,32 +28,13 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     setSelectedProduct(null);
   };
 
-  const handleAddToCart = async (productId, quantity) => {
+  const handleAddToCartClick = (product) => {
     if (isLoggedIn) {
-      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
-      const userId = localStorage.getItem('userId');
-  
-      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          quantity: selectedProduct.quantity || 1,
-        }),
-      });
-  
-      if (response.ok) {
-        console.log('Product added to cart successfully');
-        // Optionally, if you need to do something on success, you can do it here.
-      } else {
-        console.error('Error with Add to Cart:', response.statusText);
-      }
+      onAddToCart(product);
     } else {
-      setShowLoginWarning(true);
+      setShowLoginWarning(true); // Show login warning
     }
-};
+  };
 
   const handleBuyNow = (product) => {
     if (isLoggedIn) {
@@ -191,7 +171,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
               <div className="flex mt-6 space-x-4">
                 <button 
                   className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
-                  onClick={() => handleAddToCart(selectedProduct)}
+                  onClick={() => handleAddToCartClick(selectedProduct)}
                 >
                   ADD TO CART
                 </button>
@@ -287,7 +267,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
                     className="mt-4 bg-gradient-to-r from-[#4B88A3]/[0.3] via-[#040405] to-[#4B88A3]/[0.3] text-white py-2 px-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 w-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleAddToCart({ ...product, quantity: 1 });
+                      handleAddToCartClick({ ...product, quantity: 1 });
                     }}
                   >
                     Add to Cart

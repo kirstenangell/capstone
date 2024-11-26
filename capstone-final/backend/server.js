@@ -932,16 +932,6 @@ app.get('/orders', (req, res) => {
   });
 });
 
-app.post('/api/cart/add', (req, res) => {
-  const { userId, productId, quantity } = req.body;
-  const sql = `INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)`;
-  db.query(sql, [userId, productId, quantity], (error, results) => {
-    if (error) return res.status(500).send('Error adding to cart');
-    res.send('Product added to cart successfully');
-  });
-});
-
-
 // Add New Order with Duplicate Check
 app.post('/add-order', (req, res) => {
   const {
