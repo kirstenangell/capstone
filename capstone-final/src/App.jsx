@@ -76,12 +76,19 @@ function App() {
   });
 
   useEffect(() => {
+    if (!userId) {
+      console.error('User ID is missing. Redirecting to login...');
+      // Redirect to login page or show appropriate message
+    }
+  }, [userId]);
+
+  useEffect(() => {
     const id = localStorage.getItem('userId');
     if (id) {
         console.log(`User ID exists in localStorage: ${id}`);
     } else {
         console.error('User ID is missing in localStorage. Redirecting to login...');
-        navigate('/login'); // Redirect to login
+
     }
 }, []);
 
