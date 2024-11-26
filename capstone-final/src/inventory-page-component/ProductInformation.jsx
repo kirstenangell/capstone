@@ -81,73 +81,59 @@ const ProductInformation = () => {
   // *** NEW FUNCTION ***
   // Handle Save button click (Sending data to the backend)
   const handleSave = async () => {
-    const productData = {
-      name: formData.productName,
-      type: formData.productType,
-      brand: formData.productBrand,
-      category: formData.productCategory,
-      description: formData.productDescription,
-      image: uploadedImages[0] ? (typeof uploadedImages[0] === 'string' ? uploadedImages[0] : URL.createObjectURL(uploadedImages[0])) : Wheel1,
-      price: formData.retailSalePrice,
-      discount: formData.discount,
-      totalPrice: formData.totalPrice,
-      dimensions: `${formData.dimensions.length} x ${formData.dimensions.width} x ${formData.dimensions.height} x ${formData.dimensions.weight}`,
-      color: formData.color,
-      finish: formData.finish.join(', '),
-      material: formData.material,
-      model: formData.model,
-      quantity: formData.quantity,
-      totalQuantity: formData.totalQuantity,
-      status: formData.status,
-    };
-  
-    try {
-      if (isEdit) {
-        // Update existing product
-        const response = await fetch(`http://localhost:5000/update-product/${formData.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(productData), // No id is included in the productData
-        });
-  
-        if (response.ok) {
-          const updatedProduct = await response.json();
-          updateProduct(updatedProduct);  // Update product in context
-          alert('Product updated successfully!');
-        } else {
-          alert('Failed to update product. Please try again.');
-        }
-      } else {
-        // Add new product
-        const response = await fetch('http://localhost:5000/add-product', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(productData),
-        });
-  
-        if (response.ok) {
-          const newProduct = await response.json();
-          addProduct(newProduct);  // Add new product to context
-          alert('Product added successfully!');
-        } else {
-          alert('Failed to add product. Please try again.');
-        }
-      }
-  
-      navigate('/inventory');  // Navigate back to the inventory page
-    } catch (error) {
-      console.error('Error saving product:', error);
-      alert('An error occurred while saving the product.');
-    }
-  };
-  
-  
-  
+    // Initialize FormData object instead of a regular object
+    const productData = new FormData();
 
+    // Append text fields to FormData
+    productData.append('name', formData.productName);
+    productData.append('type', formData.productType);
+    productData.append('brand', formData.productBrand);
+    productData.append('category', formData.productCategory);
+    productData.append('description', formData.productDescription);
+    productData.append('price', formData.retailSalePrice);
+    productData.append('discount', formData.discount);
+    productData.append('totalPrice', formData.totalPrice);
+    productData.append('dimensions', `${formData.dimensions.length} x ${formData.dimensions.width} x ${formData.dimensions.height} x ${formData.dimensions.weight}`);
+    productData.append('color', formData.color);
+    productData.append('finish', formData.finish.join(', '));
+    productData.append('material', formData.material);
+    productData.append('model', formData.model);
+    productData.append('quantity', formData.quantity);
+    productData.append('totalQuantity', formData.totalQuantity);
+    productData.append('status', formData.status);
+
+    // Append image files to FormData
+    uploadedImages.forEach((image, index) => {
+      if (typeof image === 'string') {
+          productData.append('images', image); // Handle string URL for existing images
+      } else {
+          productData.append('images', image, image.name); // Handle file objects for new uploads
+      }
+    });
+
+    try {
+        const response = await fetch(isEdit ? `http://localhost:5000/update-product/${formData.id}` : 'http://localhost:5000/add-product', {
+            method: isEdit ? 'PUT' : 'POST',
+            body: productData,
+            headers: {
+              'Accept': 'application/json', // Optionally add more headers as required by your backend
+            },
+        });
+
+        if (response.ok) {
+            const responseData = await response.json();
+            alert(`Product ${isEdit ? 'updated' : 'added'} successfully!`);
+            navigate('/inventory');
+        } else {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Unknown error');
+        }
+    } catch (error) {
+        console.error('Error saving product:', error);
+        alert(`An error occurred while saving the product: ${error.message}`);
+    }
+};
+  
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       {/* Header */}
@@ -266,19 +252,19 @@ const ProductInformation = () => {
                     </label>
                   )}
 
-                  {/* Uploaded images */}
-                  {uploadedImages.map((image, index) => (
-                    <div key={index} className="relative w-full h-40 bg-gray-900 border border-gray-600 rounded-lg flex flex-col justify-center items-center">
-                      {/* Image preview */}
-                      <div className="w-full h-full rounded-lg overflow-hidden">
-                        <img src={typeof image === 'string' ? image : URL.createObjectURL(image)} alt={`attachment-${index}`} className="object-cover w-full h-full" />
-                      </div>
+                {/* Uploaded images */}
+                {uploadedImages.map((image, index) => (
+                  <div key={index} className="relative w-full h-40 bg-gray-900 border border-gray-600 rounded-lg flex flex-col justify-center items-center">
+                    {/* Image preview */}
+                    <div className="w-full h-full rounded-lg overflow-hidden">
+                      <img src={typeof image === 'string' ? image : URL.createObjectURL(image)} alt={`attachment-${index}`} className="object-cover w-full h-full" />
+                    </div>
 
-                      {/* Display file name */}
-                      <div className="text-center text-white text-xs mt-2">
-                        <p>{typeof image === 'string' ? 'Existing Image' : image.name}</p>
-                      </div>
-
+                {/* Display file name */}
+                <div className="text-center text-white text-xs mt-2">
+                   <p>{typeof image === 'string' ? 'Existing Image' : image.name}</p>
+                </div>
+                
                       {/* Remove icon on hover */}
                       <button
                         onClick={() => handleRemoveImage(index)}

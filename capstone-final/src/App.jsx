@@ -46,8 +46,6 @@ import { ProductProvider } from './context/ProductContext';
 import { OrderProvider } from './context/OrderContext'; 
 import { SupplierProvider } from './context/SupplierContext'; 
 import SetPassword from './login-page-component/SetPassword';
-import { UserProvider } from './context/UserContext';
-import { useUser } from './context/UserContext';
 
 
 // Subcategory Components
@@ -82,60 +80,34 @@ function App() {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('email');
     localStorage.removeItem('firstName');
     localStorage.removeItem('lastName');
 
-    localStorage.removeItem('userId');
     localStorage.clear();
-    setCartItems([]);
   };
 
-  const handleLoginSuccess = (userData) => {
-    if (!userData || !userData.id) {
-        console.error('Login failed: Missing user data');
-        return;
-    }
-    console.log('Setting userId:', userData.id); // Debug log
-    localStorage.setItem('userId', userData.id);
-    localStorage.setItem('isLoggedIn', 'true');
+  const handleLoginSuccess = () => {
     setIsLoggedIn(true);
-};
+  };
 
+  // Cart Functions
+  const handleAddToCartClick = (product) => {
+    setCartItems((prevItems) => {
+      const existingProductIndex = prevItems.findIndex(item => item.id === product.id);
+      if (existingProductIndex !== -1) {
+        const updatedItems = [...prevItems];
+        updatedItems[existingProductIndex].quantity += product.quantity || 1;
+        return updatedItems;
+      } else {
+        return [...prevItems, product];
+      }
+    });
+  };
 
-const userId = localStorage.getItem('userId'); // Ensure userId is stored in localStorage
-
-  // Cart Functions (NEW!!!)
-  const handleAddToCartClick = async (product) => {
-    const userId = localStorage.getItem('userId'); // Ensure this is retrieved correctly
-    const quantity = product.quantity || 1;
-
-    if (!userId) {
-        console.error('User not logged in');
-        return;
-    }
-
-    try {
-        const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: product.id, quantity }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to add item to cart');
-        }
-
-        // Refresh cart items after adding
-        fetchCartItems();
-    } catch (error) {
-        console.error('Error adding item to cart:', error.message);
-    }
-};
-  
   const handleRemoveFromCart = (index) => {
     setCartItems((prevItems) => prevItems.filter((_, i) => i !== index));
   };
@@ -153,49 +125,13 @@ const userId = localStorage.getItem('userId'); // Ensure userId is stored in loc
     { id: 2, name: 'Wheel B', price: 32000, image: 'path_to_image', description: 'Some description' }
   ]);
 
-  const fetchCartItems = async () => {
-    const userId = localStorage.getItem('userId');
-    console.log('Fetching cart items for userId:', userId); // Debug
-    if (!userId) {
-        console.error('User not logged in');
-        return;
-    }
-    // Fetch logic remains the same...
-
-    try {
-        const response = await fetch(`http://localhost:5000/api/cart/${userId}`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch cart items');
-        }
-
-        const cartItems = await response.json();
-        setCartItems(cartItems); // Ensure this updates state properly
-    } catch (error) {
-        console.error('Error fetching cart items:', error.message);
-    }
-};
-
-// Fetch cart items when the user logs in
-useEffect(() => {
-  if (isLoggedIn) {
-      const userId = localStorage.getItem('userId');
-      if (userId) {
-          fetchCartItems();
-      } else {
-          console.error('User ID not found in localStorage');
-      }
-  }
-}, [isLoggedIn]);
-
-
   const addNewProduct = (newProduct) => {
     setProducts([...products, newProduct]); // Add new product to the state
   };
 
   const cartItemCount = cartItems.reduce((count, item) => count + (item.quantity || 1), 0);
 
-  return ( 
-    <UserProvider>
+  return (
     <ProductProvider>
       <Router>
         <div style={{ background: 'black' }}>
@@ -441,7 +377,6 @@ useEffect(() => {
         </div>
       </Router>
     </ProductProvider>
-    </UserProvider>
   );
 }
 

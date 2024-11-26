@@ -7,7 +7,6 @@ import Wheel3 from "../assets/wheel3.png";
 import Wheel5 from "../assets/wheel5.png";
 import dashboardImage from '../assets/dashboard.png';
 import { ProductContext } from '../context/ProductContext';
-import { useUser } from '../context/UserContext';
 
 const ProductSection = ({ onAddToCart, isLoggedIn }) => {
   const { products } = useContext(ProductContext);
@@ -29,32 +28,13 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     setSelectedProduct(null);
   };
 
-  const handleAddToCart = async (productId, quantity) => {
+  const handleAddToCartClick = (product) => {
     if (isLoggedIn) {
-      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
-      const userId = localStorage.getItem('userId');
-  
-      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          quantity: selectedProduct.quantity || 1,
-        }),
-      });
-  
-      if (response.ok) {
-        console.log('Product added to cart successfully');
-        // Optionally, if you need to do something on success, you can do it here.
-      } else {
-        console.error('Error with Add to Cart:', response.statusText);
-      }
+      onAddToCart(product);
     } else {
-      setShowLoginWarning(true);
+      setShowLoginWarning(true); // Show login warning
     }
-};
+  };
 
   const handleBuyNow = (product) => {
     if (isLoggedIn) {
@@ -128,23 +108,24 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
             <div className="flex">
               <div className="flex flex-col justify-center space-y-4">
                 {selectedProduct.relatedImages.map((image, index) => (
-                  <img 
-                    key={index}
-                    src={image} 
-                    alt={`Related image ${index + 1}`} 
-                    className={`w-16 h-16 object-contain cursor-pointer ${selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
-                    onClick={() => setSelectedProduct({ ...selectedProduct, image })}
-                  />
+                 <img  
+                 key={index}
+                 src={image.startsWith('http') ? image : `http://localhost:5173/${image}`} 
+                 alt={`Related image ${index + 1}`} 
+                 className={`w-16 h-16 object-contain cursor-pointer ${selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'}`}
+                 onClick={() => setSelectedProduct({ ...selectedProduct, image })}
+               />               
                 ))}
               </div>
               
               <div className="ml-4">
                 <div className="bg-gradient-to-b from-[#62B1D4]/[0.2] to-[#000000] rounded-lg p-4 shadow-lg">
-                  <img 
-                    src={selectedProduct.image} 
-                    alt={selectedProduct.name} 
-                    className="w-96 h-96 object-contain rounded-md"
-                  />
+                <img 
+  src={selectedProduct.image.startsWith('http') ? selectedProduct.image : `http://localhost:5173/${selectedProduct.image}`}
+  alt={selectedProduct.name} 
+  className="w-96 h-96 object-contain rounded-md"
+/>
+
                 </div>
               </div>
             </div>
@@ -190,7 +171,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
               <div className="flex mt-6 space-x-4">
                 <button 
                   className="px-6 py-2 text-white bg-black rounded-md focus:outline-none hover:bg-black border border-[#62B1D1]"
-                  onClick={() => handleAddToCart(selectedProduct)}
+                  onClick={() => handleAddToCartClick(selectedProduct)}
                 >
                   ADD TO CART
                 </button>
@@ -214,7 +195,12 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
                   onClick={() => handleProductClick(product)}
                 >
                   <div className="w-full h-80 rounded-t-lg flex items-center justify-center">
-                    <img src={product.image} alt="Wheel" className="object-contain h-full rounded-md" />
+                  <img
+  src={product.image.startsWith('http') ? product.image : `http://localhost:5173/${product.image}`}
+  alt="Wheel"
+  className="object-contain h-full rounded-md"
+/>
+
                   </div>
                   <div className="mt-4">
                     <p className="text-lg font-bold text-white mt-1">{product.name}</p>
@@ -266,7 +252,12 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
                 onClick={() => handleProductClick(product)}
               >
                 <div className="w-full h-80 rounded-t-lg flex items-center justify-center">
-                  <img src={product.image} alt={product.name} className="object-contain h-full rounded-md" />
+                <img
+  src={product.image.startsWith('http') ? product.image : `http://localhost:5173/${product.image}`}
+  alt={product.name}
+  className="object-contain h-full rounded-md"
+/>
+
                 </div>
                 <div className="mt-4">
                   <h2 className="text-sm font-light italic text-gray-400">LOREM IPSUM</h2>
@@ -276,7 +267,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
                     className="mt-4 bg-gradient-to-r from-[#4B88A3]/[0.3] via-[#040405] to-[#4B88A3]/[0.3] text-white py-2 px-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 w-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleAddToCart({ ...product, quantity: 1 });
+                      handleAddToCartClick({ ...product, quantity: 1 });
                     }}
                   >
                     Add to Cart

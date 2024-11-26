@@ -248,7 +248,12 @@ const InventoryLanding = () => {
                   >
                     <div className="flex items-center">
                       <div className="w-24 h-24 bg-gray-800 rounded-lg mr-6">
-                        <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
+                      <img 
+  src={typeof product.image === 'string' ? `http://localhost:5173/${product.image}` : URL.createObjectURL(product.image)} 
+  alt={product.name} 
+  className="w-full h-full object-contain" 
+/>
+
                       </div>
                       <div className="text-left">
                         <h3 className="text-lg font-bold text-white">PID-{product.id}</h3> {/* Display the Product ID */}
@@ -325,10 +330,11 @@ const InventoryLanding = () => {
                             onClick={() => setSelectedProduct({ ...selectedProduct, image: image })}
                           >
                             <img
-                              src={typeof image === 'string' ? image : URL.createObjectURL(image)}
-                              alt={`Thumbnail ${index + 1}`}
-                              className="w-full h-20 object-cover"
-                            />
+  src={typeof image === 'string' ? `http://localhost:5173/${image}` : URL.createObjectURL(image)}
+  alt={`Thumbnail ${index + 1}`}
+  className="w-full h-20 object-cover"
+/>
+
                           </div>
                         ))}
                       </div>

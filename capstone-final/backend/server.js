@@ -1,4 +1,7 @@
+const fs = require('fs');
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -13,6 +16,36 @@ app.use(express.json());
 app.use(cors({
   origin: '*',  // Allow all origins (this is not recommended in production)
 }));
+app.use('/public', express.static('public'));
+
+// Ensure the uploads directory exists
+const dir = './public/uploads';
+if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir, { recursive: true });
+}
+
+// Set up storage options for multer
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, './public/uploads/');  // Directory to save files
+  },
+  filename: function(req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));  // Prefix the filename with a timestamp
+  }
+});
+
+// Initialize multer with settings for file upload
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10000000 }, // 10MB limit per file
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only .jpg and .png formats are allowed!"), false);
+    }
+  }
+});
 
 // MySQL Database Connection
 const db = mysql.createConnection({
@@ -540,32 +573,40 @@ app.put('/update-user-details', (req, res) => {
   });
 });
 
-// Add Product API
-app.post('/add-product', (req, res) => {
+app.put('/update-product/:id', upload.array('images', 4), (req, res) => {
+  const productId = req.params.id;
   const {
-    name, type, brand, category, description, image, price,
-    discount, totalPrice, dimensions, color, finish, material,
-    model, quantity, totalQuantity, status
+    name, type, brand, category, description, price, discount,
+    totalPrice, dimensions, color, finish, material, model,
+    quantity, totalQuantity, status
   } = req.body;
 
-  if (!name || !price || !category) {
-    console.error('Validation error: Missing required fields');
-    return res.status(400).json({ message: 'Product name, price, and category are required' });
+  let imagePaths = req.files.map(file => file.path);  // Process new uploaded files
+
+  if (!name || !price || !category || imagePaths.length === 0) {
+    console.error('Validation error: Missing required fields or no images uploaded');
+    return res.status(400).json({ message: 'Product name, price, category, and images are required' });
   }
 
-  const query = `INSERT INTO products 
-    (name, type, brand, category, description, image, price, discount, totalPrice, dimensions, color, finish, material, model, quantity, totalQuantity, status) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const query = `
+    UPDATE products 
+    SET name = ?, type = ?, brand = ?, category = ?, description = ?, 
+        image = ?, price = ?, discount = ?, totalPrice = ?, 
+        dimensions = ?, color = ?, finish = ?, material = ?, 
+        model = ?, quantity = ?, totalQuantity = ?, status = ? 
+    WHERE id = ?
+  `;
 
   db.query(query, [
-    name, type, brand, category, description, image, price, discount, totalPrice, dimensions,
-    color, finish, material, model, quantity, totalQuantity, status
+    name, type, brand, category, description, JSON.stringify(imagePaths), price, discount,
+    totalPrice, dimensions, color, finish, material, model, quantity, totalQuantity,
+    status, productId
   ], (err, result) => {
     if (err) {
-      console.error('Error adding product:', err);
-      return res.status(500).json({ message: 'Error adding product' });
+      console.error('Error updating product:', err);
+      return res.status(500).json({ message: 'Error updating product' });
     }
-    res.status(200).json({ message: 'Product added successfully' });
+    res.status(200).json({ message: 'Product updated successfully' });
   });
 });
 
@@ -990,16 +1031,6 @@ app.get('/orders', (req, res) => {
   });
 });
 
-app.post('/api/cart/add', (req, res) => {
-  const { userId, productId, quantity } = req.body;
-  const sql = `INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)`;
-  db.query(sql, [userId, productId, quantity], (error, results) => {
-    if (error) return res.status(500).send('Error adding to cart');
-    res.send('Product added to cart successfully');
-  });
-});
-
-
 // Add New Order with Duplicate Check
 app.post('/add-order', (req, res) => {
   const {
@@ -1216,7 +1247,7 @@ app.put('/archive-order/:id', (req, res) => {
 
 
 // Start the server
-const port = 5000;
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
