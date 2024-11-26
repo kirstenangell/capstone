@@ -16,24 +16,21 @@ const Login = ({ setIsLoggedIn }) => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        console.log('setIsLoggedIn:', setIsLoggedIn); // Debugging line
-
         try {
             const response = await axios.post('http://localhost:5000/login', { email, password });
             if (response.status === 200) {
-                const { userData, role } = response.data;
+                const { userData, role } = response.data; // Destructure correctly
+                console.log('Login Successful:', userData); // Debugging line
+                localStorage.setItem('userId', userData.id); // Save userId
                 localStorage.setItem('email', userData.email);
-
                 localStorage.setItem('firstName', userData.firstName);
                 localStorage.setItem('lastName', userData.lastName);
-
+    
                 if (typeof setIsLoggedIn === 'function') {
                     setIsLoggedIn(true);
                     localStorage.setItem('isLoggedIn', 'true');
-                } else {
-                    console.error('setIsLoggedIn is not a function');
                 }
-
+    
                 if (role === 'admin') {
                     navigate('/dashboard');
                 } else if (role === 'customer') {
@@ -47,7 +44,8 @@ const Login = ({ setIsLoggedIn }) => {
             console.error('Login error:', error);
         }
     };
-
+    
+    
     return (
         <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]">
             <div className="w-full max-w-sm space-y-6 p-8 rounded-lg">

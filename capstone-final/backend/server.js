@@ -522,11 +522,27 @@ app.post('/login', (req, res) => {
 app.get('/user-details', (req, res) => {
   const email = req.query.email;
 
+  if (!email) {
+    console.error('Email query parameter is missing');
+    return res.status(400).json({ message: 'Email query parameter is required' });
+  }
+
   const query = `
-    SELECT first_name AS firstName, last_name AS lastName, email, contact_number AS contactNumber, street, barangay, city, region, province, zip_code AS zipCode 
-    FROM users 
+    SELECT 
+      first_name AS firstName, 
+      last_name AS lastName, 
+      email, 
+      contact_number AS contactNumber,
+      street,
+      barangay,
+      city,
+      region,
+      province,
+      zip_code AS zipCode
+    FROM users
     WHERE email = ?
   `;
+
   db.query(query, [email], (err, result) => {
     if (err) {
       console.error('Error fetching user details:', err);
@@ -540,6 +556,7 @@ app.get('/user-details', (req, res) => {
     res.status(200).json(result[0]);
   });
 });
+
 
 // Update User Details API
 app.put('/update-user-details', (req, res) => {

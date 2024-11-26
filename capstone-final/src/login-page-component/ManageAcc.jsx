@@ -35,35 +35,57 @@ const ManageAcc = () => {
 
     // Fetch user data when the component loads
     useEffect(() => {
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            console.log(`User ID found in localStorage: ${userId}`);
+        } else {
+            console.warn('User ID not found in localStorage. Redirecting to login...');
+            navigate('/login'); // Redirect to login if not found
+        }
+    
         const fetchUserData = async () => {
             const email = localStorage.getItem('email');
-            if (email) {
-                try {
-                    const response = await axios.get(`http://localhost:5000/user-details?email=${email}`);
-                    if (response.status === 200) {
-                        const userData = response.data;
-                        setFormData({
-                            firstName: userData.firstName,
-                            lastName: userData.lastName,
-                            email: userData.email,
-                            contactNumber: userData.contactNumber || '',
-                            street: userData.street || '',
-                            barangay: userData.barangay || '',
-                            city: userData.city || '',
-                            region: userData.region || '',
-                            province: userData.province || '',
-                            zipCode: userData.zipCode || '',
-                        });
-                        setInitialFormData(userData);
-                    }
-                } catch (error) {
-                    console.error('Error fetching user data:', error);
+            if (!email) {
+                console.error('Email is missing in localStorage. Redirecting to login...');
+                navigate('/login'); // Redirect to login
+                return;
+            }
+    
+            try {
+                const response = await axios.get(`http://localhost:5000/user-details`, {
+                    params: { email }, // Pass email as query parameter
+                });
+    
+                if (response.status === 200) {
+                    const userData = response.data;
+                    console.log('User Data:', userData); // Log user data for debugging
+                    setFormData({
+                        firstName: userData.firstName || '',
+                        lastName: userData.lastName || '',
+                        email: userData.email || '',
+                        contactNumber: userData.contactNumber || '',
+                        street: userData.street || '',
+                        barangay: userData.barangay || '',
+                        city: userData.city || '',
+                        region: userData.region || '',
+                        province: userData.province || '',
+                        zipCode: userData.zipCode || '',
+                    });
+                    setInitialFormData(userData); // Store the initial data
+                } else {
+                    console.error('Unexpected response status:', response.status);
                 }
+            } catch (error) {
+                console.error('Error fetching user data:', error.message);
             }
         };
-
+    
         fetchUserData();
     }, []);
+    
+      
+      
+
 
     useEffect(() => {
         const fetchOrders = () => {
