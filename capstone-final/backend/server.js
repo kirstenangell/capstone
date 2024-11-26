@@ -510,7 +510,17 @@ app.post('/login', (req, res) => {
           email: user.email,
         };
 
-        res.status(200).json({ message: 'Login successful', userData, role: user.email.includes('flacko1990') ? 'admin' : 'customer' });
+        res.status(200).json({
+          message: 'Login successful',
+          userData: {
+              id: user.id, // Ensure id is included
+              firstName: user.first_name,
+              lastName: user.last_name,
+              email: user.email,
+          },
+          role: user.email.includes('flacko1990') ? 'admin' : 'customer',
+      });
+      
       } else {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
@@ -1261,6 +1271,115 @@ app.put('/archive-order/:id', (req, res) => {
     res.status(200).json({ message: 'Order archived successfully' });
   });
 });
+
+app.post('/api/cart', async (req, res) => {
+  const { user_id: userId, product_id: productId, quantity } = req.body;
+
+  if (!userId || !productId || !quantity) {
+    return res.status(400).json({ message: 'All fields (userId, productId, quantity) are required.' });
+  }
+
+  try {
+    // Validate if user ID exists in the database
+    const userQuery = `SELECT id FROM users WHERE id = ?`;
+    const [userRows] = await db.promise().query(userQuery, [userId]);
+
+    if (userRows.length === 0) {
+      return res.status(400).json({ message: 'Invalid user ID.' });
+    }
+
+    // Validate if product ID exists in the database
+    const productQuery = `SELECT id FROM products WHERE id = ?`;
+    const [productRows] = await db.promise().query(productQuery, [productId]);
+
+    if (productRows.length === 0) {
+      return res.status(400).json({ message: 'Invalid product ID.' });
+    }
+
+    // Add item to cart
+    const insertQuery = `
+      INSERT INTO cart (user_id, product_id, quantity)
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE quantity = quantity + ?
+    `;
+    await db.promise().query(insertQuery, [userId, productId, quantity, quantity]);
+
+    res.status(200).json({ message: 'Item added to cart successfully' });
+  } catch (error) {
+    console.error('Error adding item to cart:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+});
+
+
+app.get('/api/cart/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required.' });
+  }
+
+  try {
+    // Validate if user ID exists in the database
+    const userQuery = `SELECT id FROM users WHERE id = ?`;
+    const [userRows] = await db.promise().query(userQuery, [userId]);
+
+    if (userRows.length === 0) {
+      return res.status(400).json({ message: 'Invalid user ID.' });
+    }
+
+    // Fetch cart items
+    const query = `
+      SELECT 
+        c.id AS cartId, p.id AS productId, p.name, p.price, c.quantity, p.image
+      FROM cart c
+      JOIN products p ON c.product_id = p.id
+      WHERE c.user_id = ?
+    `;
+    const [rows] = await db.promise().query(query, [userId]);
+
+    res.status(200).json({
+      success: true,
+      cartItems: rows,
+    });
+  } catch (err) {
+    console.error('Error fetching cart items:', err);
+    res.status(500).json({ message: 'Server error.' });
+  }
+});
+
+
+app.delete('/api/cart/:cartId', async (req, res) => {
+  const { cartId } = req.params;
+
+  if (!cartId) {
+    return res.status(400).json({ message: 'Cart ID is required.' });
+  }
+
+  try {
+    // Check if cart item exists
+    const checkQuery = `SELECT * FROM cart WHERE id = ?`;
+    const [rows] = await db.promise().query(checkQuery, [cartId]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Cart item not found.' });
+    }
+
+    // Delete the cart item
+    const deleteQuery = `DELETE FROM cart WHERE id = ?`;
+    await db.promise().query(deleteQuery, [cartId]);
+
+    res.status(200).json({
+      message: 'Product removed from cart successfully.',
+      deletedItem: rows[0], // Return the deleted item
+    });
+  } catch (err) {
+    console.error('Error removing product from cart:', err);
+    res.status(500).json({ message: 'Server error.' });
+  }
+});
+
+
 
 
 // Start the server

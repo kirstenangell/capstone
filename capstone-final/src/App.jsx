@@ -109,9 +109,13 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    localStorage.clear(); // Clears all localStorage data, including userId
+    localStorage.removeItem('userId'); // Clears only the userId
+    localStorage.removeItem('isLoggedIn'); // Optionally clear isLoggedIn
+    localStorage.removeItem('cartItems'); // Optionally clear the cart
+    // Redirect to the login page
     navigate('/login');
-  };
+};
+
   
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);

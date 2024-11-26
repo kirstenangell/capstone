@@ -26,6 +26,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                 throw new Error('Failed to fetch cart items');
             }
             const items = await response.json();
+            console.log('Fetched Cart Items:', items); // Log fetched cart items
             setQuantities(items.map(item => item.quantity));
         } catch (error) {
             console.error('Error fetching cart items:', error);
@@ -34,6 +35,8 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
 
     fetchCartItems();
 }, []);
+
+
 
   const calculateSubtotal = () => {
     return quantities.reduce((total, quantity, index) => {
@@ -66,11 +69,18 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
     setShowModal(true);
   };
 
-  const handleConfirmRemove = () => {
-    onRemoveFromCart(removeIndex);
-    setQuantities((prevQuantities) => prevQuantities.filter((_, i) => i !== removeIndex));
-    setShowModal(false);
-  };
+  const handleConfirmRemove = async () => {
+    try {
+        const cartId = cartItems[removeIndex].cartId;
+        await fetch(`http://localhost:5000/api/cart/${cartId}`, { method: 'DELETE' });
+        onRemoveFromCart(removeIndex);
+        setQuantities((prevQuantities) => prevQuantities.filter((_, i) => i !== removeIndex));
+        setShowModal(false);
+    } catch (error) {
+        console.error('Error removing product from cart:', error);
+    }
+};
+
 
   const handleCancelRemove = () => {
     setShowModal(false);
