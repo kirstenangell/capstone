@@ -14,12 +14,27 @@ const OrderLanding = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('general'); // Default to 'general'
-  const [isOpen, setIsOpen] = useState(false); // Dropdown for delivery options
   const [activeStatus, setActiveStatus] = useState('All'); // Default status filter
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState('');
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [isDeliveryOptionOpen, setIsDeliveryOptionOpen] = useState(false);
+  const [isPaymentStatusOpen, setIsPaymentStatusOpen] = useState(false);
+  const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false);
+  const [isProvinceOpen, setIsProvinceOpen] = useState(false);
+  const [isCityOpen, setIsCityOpen] = useState(false);
+
+  const provinces = ['Metro Manila', 'Cavite', 'Laguna']; // Example provinces
+  const cities = selectedProvince
+    ? ['Makati', 'Taguig', 'Quezon City'] // Example cities for the selected province
+    : [];
 
   // Fetch orders from the backend on component mount
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(); // Load orders from the context
   }, [fetchOrders]);
 
   // Open modal with order details
@@ -68,15 +83,42 @@ const OrderLanding = () => {
     navigate('/order-details', { state: { order: newOrder, isEdit: false } });
   };
 
-  // Filter orders based on search query and status
+  // Filter orders based on search query and filters
   const filteredOrders = (orders || []).filter((order) => {
     const searchQueryLower = searchQuery.toLowerCase();
 
-    return (
-      !order.archived && // Exclude archived orders
+    const matchesSearchQuery =
       (`OID-${order.id}`.toLowerCase().includes(searchQueryLower) ||
-        (order.title?.toLowerCase() || '').includes(searchQueryLower)) &&
-      (activeStatus === 'All' || order.status === activeStatus)
+        (order.firstName?.toLowerCase() || '').includes(searchQueryLower) ||
+        (order.lastName?.toLowerCase() || '').includes(searchQueryLower));
+
+    const matchesStatus = activeStatus === 'All' || order.status === activeStatus;
+
+    const matchesPaymentStatus =
+      !selectedPaymentStatus || order.paymentStatus === selectedPaymentStatus;
+
+    const matchesPaymentMethod =
+      !selectedPaymentMethod || order.paymentOption === selectedPaymentMethod;
+
+    const matchesDeliveryOption =
+      !selectedDeliveryOption || order.deliveryOption === selectedDeliveryOption;
+
+    const matchesDeliveryDate = !deliveryDate || order.pickUpDate === deliveryDate;
+
+    const matchesProvince = !selectedProvince || order.province === selectedProvince;
+
+    const matchesCity = !selectedCity || order.city === selectedCity;
+
+    return (
+      !order.archived &&
+      matchesSearchQuery &&
+      matchesStatus &&
+      matchesPaymentStatus &&
+      matchesPaymentMethod &&
+      matchesDeliveryOption &&
+      matchesDeliveryDate &&
+      matchesProvince &&
+      matchesCity
     );
   });
 
@@ -105,69 +147,210 @@ const OrderLanding = () => {
           </div>
         </div>
 
+        {/* Filters and Order List */}
         <div className="grid grid-cols-4 gap-6">
+          {/* Sidebar Filters */}
           <div className="col-span-1">
             <div className="mb-6">
-              <h2 className="text-sm font-bold text-white mb-2">FILTER BY</h2>
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
-              >
-                DELIVERY OPTION
-              </button>
+              <h2 className="text-sm font-bold text-white mb-4">FILTERS</h2>
 
-              {isOpen && (
-                <div className="mt-2 w-full bg-[#040405] rounded-lg shadow-lg">
-                  <ul className="text-sm text-white">
-                    <li className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer">Courier</li>
-                    <li className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer">Pick-Up</li>
-                  </ul>
+              {/* Order Status Filter */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold text-white mb-2">ORDER STATUS</h3>
+                <div className="flex space-x-2">
+                  {['All', 'Pending', 'Completed', 'Cancelled'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setActiveStatus(status)}
+                      className={`text-sm px-4 py-2 rounded-lg ${
+                        activeStatus === status
+                          ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                          : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div className="mb-6 mt-2">
-              <h2 className="text-sm font-bold text-white mb-2">STATUS</h2>
-              <div className="flex space-x-2">
-                {['All', 'Pending', 'Completed'].map((status) => (
+              {/* Payment Status and Method Filters */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold text-white mb-2">PAYMENT</h3>
+                <div className="relative mb-4">
                   <button
-                    key={status}
-                    onClick={() => setActiveStatus(status)}
-                    className={`text-sm px-6 py-2 rounded-lg ${
-                      activeStatus === status
-                        ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
-                        : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
-                    }`}
+                    onClick={() => setIsPaymentStatusOpen(!isPaymentStatusOpen)}
+                    className="w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
                   >
-                    {status}
+                    {selectedPaymentStatus || 'PAYMENT STATUS'}
                   </button>
-                ))}
+                  {isPaymentStatusOpen && (
+                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10">
+                      <ul className="text-sm text-white">
+                        {['All', 'Paid', 'Unpaid', 'Partially Paid'].map((status) => (
+                          <li
+                            key={status}
+                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
+                            onClick={() => {
+                              setSelectedPaymentStatus(status);
+                              setIsPaymentStatusOpen(false);
+                            }}
+                          >
+                            {status}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsPaymentMethodOpen(!isPaymentMethodOpen)}
+                    className="w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+                  >
+                    {selectedPaymentMethod || 'PAYMENT METHOD'}
+                  </button>
+                  {isPaymentMethodOpen && (
+                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10">
+                      <ul className="text-sm text-white">
+                        {['Cash', 'GCash', 'Card'].map((method) => (
+                          <li
+                            key={method}
+                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
+                            onClick={() => {
+                              setSelectedPaymentMethod(method);
+                              setIsPaymentMethodOpen(false);
+                            }}
+                          >
+                            {method}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Delivery Details Filter */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold text-white mb-2">DELIVERY</h3>
+                <div className="relative mb-4">
+                  <button
+                    onClick={() => setIsDeliveryOptionOpen(!isDeliveryOptionOpen)}
+                    className="w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+                  >
+                    {selectedDeliveryOption || 'DELIVERY OPTION'}
+                  </button>
+                  {isDeliveryOptionOpen && (
+                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10">
+                      <ul className="text-sm text-white">
+                        {['All', 'Via Courier', 'Pick Up'].map((option) => (
+                          <li
+                            key={option}
+                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
+                            onClick={() => {
+                              setSelectedDeliveryOption(option);
+                              setIsDeliveryOptionOpen(false);
+                            }}
+                          >
+                            {option}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="date"
+                  className="w-full px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg focus:outline-none"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                />
+              </div>
+
+              {/* Address Filters */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold text-white mb-2">ADDRESS</h3>
+                <div className="relative mb-4">
+                  <button
+                    onClick={() => setIsProvinceOpen(!isProvinceOpen)}
+                    className="w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+                  >
+                    {selectedProvince || 'PROVINCE'}
+                  </button>
+                  {isProvinceOpen && (
+                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                      <ul className="text-sm text-white">
+                        {provinces.map((province) => (
+                          <li
+                            key={province}
+                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
+                            onClick={() => {
+                              setSelectedProvince(province);
+                              setIsProvinceOpen(false);
+                            }}
+                          >
+                            {province}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsCityOpen(!isCityOpen)}
+                    className={`w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left ${
+                      !selectedProvince ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    disabled={!selectedProvince}
+                  >
+                    {selectedCity || 'CITY'}
+                  </button>
+                  {isCityOpen && (
+                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                      <ul className="text-sm text-white">
+                        {cities.map((city) => (
+                          <li
+                            key={city}
+                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
+                            onClick={() => {
+                              setSelectedCity(city);
+                              setIsCityOpen(false);
+                            }}
+                          >
+                            {city}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
+          {/* Order List */}
           <div className="col-span-3">
             <div className="space-y-6">
               {filteredOrders.length === 0 ? (
-                <div className="text-center text-gray-400">No customer found</div>
+                <div className="text-center text-gray-400">No orders found</div>
               ) : (
                 filteredOrders.map((order) => (
                   <div
-                  key={order.id}
-                  className="bg-gradient-to-r from-[#040405] to-[#335C6E] p-6 rounded-lg shadow-md flex items-center cursor-pointer"
-                  onClick={() => handleOrderClick(order)}
-                >
-                  <div className="w-16 h-16 flex items-center justify-center text-white text-lg font-bold">
-                    {`OID-${order.id}`}
-                  </div>
-                  <div className="ml-6">
-                    <h2 className="text-xl font-semibold">
-                      {`${order.firstName || 'N/A'} ${order.lastName || 'N/A'}`} {/* Corrected field names */}
-                    </h2>
-                    <p className="text-gray-400 text-sm mt-2">
-                      {order.email || 'N/A'} | {order.contactNumber || 'N/A'} | {order.status || 'N/A'}
-                    </p>
-                  </div>
+                    key={order.id}
+                    className="bg-gradient-to-r from-[#040405] to-[#335C6E] p-6 rounded-lg shadow-md flex items-center cursor-pointer"
+                    onClick={() => handleOrderClick(order)}
+                  >
+                    <div className="w-16 h-16 flex items-center justify-center text-white text-lg font-bold">
+                      {`OID-${order.id}`}
+                    </div>
+                    <div className="ml-6">
+                      <h2 className="text-xl font-semibold">{`${order.firstName} ${order.lastName}`}</h2>
+                      <p className="text-gray-400 text-sm mt-2">
+                        {order.email} | {order.phone} | {order.status} | {order.paymentStatus}
+                      </p>
+                    </div>
                   </div>
                 ))
               )}
@@ -188,20 +371,15 @@ const OrderLanding = () => {
                 >
                   <BsBoxArrowRight className="text-white text-md" />
                 </button>
-
                 <div className="flex items-center">
                   <div className="w-24 h-24 flex justify-center items-center text-white text-lg font-bold">
-                      {`OID-${selectedOrder.id}`}
+                    {`OID-${selectedOrder.id}`}
                   </div>
                   <div className="ml-4">
-                      <h2 className="text-xl font-semibold">
-                          {`${selectedOrder.firstName || 'N/A'} ${selectedOrder.lastName || 'N/A'}`}
-                      </h2>
-                      <p className="text-gray-400">Customer Type: {selectedOrder.customerType || 'N/A'}</p>
+                    <h2 className="text-xl font-semibold">{`${selectedOrder.firstName} ${selectedOrder.lastName}`}</h2>
+                    <p className="text-gray-400">{selectedOrder.email}</p>
                   </div>
-              </div>
-
-
+                </div>
               </div>
               <div className="space-x-4">
                 <button onClick={handleEditOrder} className="text-sm text-white hover:underline">
@@ -253,91 +431,57 @@ const OrderLanding = () => {
 
             <div className="flex-1 overflow-y-auto">
               {activeTab === 'general' && (
-                <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <h3 className="text-white text-md font-semibold mb-2">Customer Details</h3>
-                  <div className="flex">
-                    <span className="text-xs text-gray-400 w-40">First Name:</span>
-                    <span className="text-xs">{selectedOrder.firstName || 'N/A'}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-xs text-gray-400 w-40">Last Name:</span>
-                    <span className="text-xs">{selectedOrder.lastName || 'N/A'}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-xs text-gray-400 w-40">Email:</span>
-                    <span className="text-xs">{selectedOrder.email || 'N/A'}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-xs text-gray-400 w-40">Contact Number:</span>
-                    <span className="text-xs">{selectedOrder.contactNumber || 'N/A'}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-xs text-gray-400 w-40">Status:</span>
-                    <span className="text-xs">{selectedOrder.status || 'N/A'}</span>
-                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-4">General Information</h3>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <strong>Customer Name:</strong> {selectedOrder.firstName} {selectedOrder.lastName}
+                  </p>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <strong>Email:</strong> {selectedOrder.email}
+                  </p>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <strong>Contact Number:</strong> {selectedOrder.phone}
+                  </p>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <strong>Status:</strong> {selectedOrder.status}
+                  </p>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <strong>Payment Status:</strong> {selectedOrder.paymentStatus}
+                  </p>
                 </div>
-              </div>
-              
               )}
               {activeTab === 'delivery' && (
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <h3 className="text-white text-md font-semibold mb-2">Current Address</h3>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Street:</span>
-                      <span className="text-xs">{selectedOrder?.currentAddress?.street || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Barangay:</span>
-                      <span className="text-xs">{selectedOrder?.currentAddress?.barangay || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">City:</span>
-                      <span className="text-xs">{selectedOrder?.currentAddress?.city || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Region:</span>
-                      <span className="text-xs">{selectedOrder?.currentAddress?.region || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Province:</span>
-                      <span className="text-xs">{selectedOrder?.currentAddress?.province || 'N/A'}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-xs text-gray-400 w-40">Zip Code:</span>
-                      <span className="text-xs">{selectedOrder?.currentAddress?.zipCode || 'N/A'}</span>
-                    </div>
-                  </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Delivery Details</h3>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <strong>Delivery Option:</strong> {selectedOrder.deliveryOption}
+                  </p>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <strong>Pick-Up Date:</strong> {selectedOrder.pickUpDate}
+                  </p>
+                  <p className="text-sm text-gray-400 mb-2">
+                    <strong>Address:</strong> {selectedOrder.city}, {selectedOrder.province}
+                  </p>
                 </div>
               )}
-                  {activeTab === 'products' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-white font-semibold mb-2">Product List</h3>
-                      {Array.isArray(selectedOrder?.products) && selectedOrder.products.length > 0 ? (
-                        selectedOrder.products.map((product) => (
-                          <div key={product.id} className="mb-4">
-                            <p>
-                              <strong>Product ID:</strong> {product.id}
-                            </p>
-                            <p>
-                              <strong>Product Name:</strong> {product.name}
-                            </p>
-                            <p>
-                              <strong>Quantity:</strong> {product.quantity}
-                            </p>
-                            <p>
-                              <strong>Status:</strong> {product.status}
-                            </p>
-                          </div>
-                        ))
-                      ) : (
-                        <p>No products available.</p>
-                      )}
+              {activeTab === 'products' && (
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Product List</h3>
+                  {selectedOrder.products?.map((product, index) => (
+                    <div key={index} className="mb-4">
+                      <p className="text-sm text-gray-400">
+                        <strong>Product Name:</strong> {product.name}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        <strong>Quantity:</strong> {product.quantity}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        <strong>Price:</strong> {product.price}
+                      </p>
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
