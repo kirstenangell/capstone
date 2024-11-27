@@ -7,6 +7,7 @@ import cartImg from '../assets/CartSection.jpeg';
 import { LiaOpencart } from "react-icons/lia";
 import axios from 'axios';
 
+
 const CartSection = ({ onRemoveFromCart }) => {
   const [quantities, setQuantities] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -22,10 +23,12 @@ const CartSection = ({ onRemoveFromCart }) => {
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 
+
+
   const fetchCartItems = async () => {
     const userId = localStorage.getItem('userId'); // Ensure the user is logged in
     if (!userId) return;
-  
+ 
     try {
       const response = await axios.get(`http://localhost:5000/api/cart/${userId}`);
       if (response.status === 200) {
@@ -42,14 +45,18 @@ const CartSection = ({ onRemoveFromCart }) => {
       console.error('Error fetching cart items:', error);
     }
   };
-  
+ 
+
+
 
 
   // Fetch cart items on mount
   useEffect(() => {
     fetchCartItems();
   }, []);
-  
+ 
+
+
 
 
   const mergeSimilarItems = (items) => {
@@ -70,6 +77,7 @@ const CartSection = ({ onRemoveFromCart }) => {
     return merged;
   };
 
+
   // Calculate subtotal and total
   const calculateSubtotal = (items) => {
     const total = items.reduce((sum, item, index) => {
@@ -79,48 +87,54 @@ const CartSection = ({ onRemoveFromCart }) => {
     setSubtotal(total);
   };
 
+
   // Calculate and update the cart item count
 const updateCartCount = () => {
   const totalItems = quantities.reduce((total, quantity) => total + quantity, 0); // Calculate total items
   setCartCount(totalItems); // Update the cart count state
 };
 
+
 useEffect(() => {
   updateCartCount(); // Update the cart count whenever quantities change
 }, [quantities]);
 
+
   // Update item quantity
   const handleQuantityChange = async (index, action) => {
     const updatedQuantities = [...quantities];
+
     if (action === 'increase') {
-      updatedQuantities[index]++;
+        updatedQuantities[index]++;
     } else if (action === 'decrease' && updatedQuantities[index] > 1) {
-      updatedQuantities[index]--;
-    } else {
-      setRemoveIndex(index);
-      setShowModal(true);
-      return;
+        updatedQuantities[index]--;
     }
- 
-    const updatedItem = { ...cartItems[index], quantity: updatedQuantities[index] };
- 
+
+    const updatedItem = {
+        user_id: localStorage.getItem('userId'),
+        product_id: cartItems[index].productId,
+        quantity: updatedQuantities[index]
+    };
+
     try {
-      await axios.post(`${baseUrl}/api/cart`, updatedItem); // Update the backend
-      const updatedCartItems = [...cartItems];
-      updatedCartItems[index] = updatedItem;
-      setCartItems(updatedCartItems); // Update state
-      setQuantities(updatedQuantities);
-      calculateSubtotal(updatedCartItems);
-      updateCartCount(updatedCartItems.reduce((count, item) => count + item.quantity, 0));
+        await axios.post(`${baseUrl}/api/cart`, updatedItem);
+        setQuantities(updatedQuantities);
+        setCartItems((prevItems) => {
+            const newItems = [...prevItems];
+            newItems[index].quantity = updatedQuantities[index];
+            return newItems;
+        });
     } catch (error) {
-      console.error('Error updating quantity:', error);
+        console.error('Error updating quantity:', error);
     }
-  };  
+};
+
 
   const handleDeleteClick = (index) => {
     setRemoveIndex(index);
     setShowModal(true);
   };
+
 
   // Confirm removal of item
   const handleConfirmRemove = async () => {
@@ -137,15 +151,20 @@ useEffect(() => {
     }
   };
 
+
   const handleCancelRemove = () => {
     setShowModal(false);
   };
+
+
 
 
   const handleSelectToggle = () => {
     setShowSelectors((prev) => !prev);
     setShowDeleteButton((prev) => !prev);
   };
+
+
 
 
   const handleCheckboxChange = (index, checked) => {
@@ -155,13 +174,17 @@ useEffect(() => {
   };
 
 
+
+
   const handleDeleteSelectedClick = () => {
     setShowSelectedModal(true);
   };
 
+
   const handleCancelSelectedRemove = () => {
     setShowSelectedModal(false);
   };
+
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-black text-white py-10 relative">
@@ -343,4 +366,7 @@ useEffect(() => {
 };
 
 
+
+
 export default CartSection;
+

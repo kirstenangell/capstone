@@ -19,17 +19,17 @@ const Shipping = () => {
         <div className="max-w-3xl w-full text-left">
           <h2 className="text-2xl font-semibold mb-4">Shipping Times</h2>
           <p className="mb-10">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla neque quam, maximus in sagittis quis, sollicitudin non nisi.
+          We process and ship orders promptly to ensure timely delivery. We process and ship orders during our business hours, which are from 8:00 AM to 6:00 PM, Monday to Saturday. Orders placed outside these hours or on Sundays will be processed on the next business day. Please note that delivery times may vary based on your location and the availability of the items.
           </p>
 
           <h2 className="text-2xl font-semibold mb-4">Shipping Costs</h2>
           <p className="mb-10">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla neque quam, maximus in sagittis quis, sollicitudin non nisi.
+          Shipping costs vary on the courier service you have selected. It may also base on the weight, size, and destination of your order. During checkout, the exact shipping fee will be displayed, ensuring transparency and convenience for our customers.
           </p>
 
           <h2 className="text-2xl font-semibold mb-4">International Shipping</h2>
           <p className="mb-10">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla neque quam, maximus in sagittis quis, sollicitudin non nisi.
+          We are pleased to offer international shipping to select locations. Additional fees and customs charges may apply based on the destination. Please contact us for more information or specific inquiries about international deliveries.
           </p>
         </div>
       </div>

@@ -7,15 +7,15 @@ const Terms = () => {
   const sections = [
     {
       title: 'Introduction',
-      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla neque quam, maximus in sagittis quis, sollicitudin non nisi.',
+      content: 'Welcome to Flacko Auto Parts and Accessories Trading. By using our website and services, you agree to comply with and be bound by the following terms and conditions. These terms govern your use of our platform, products, and services to ensure a secure and reliable shopping experience.',
     },
     {
       title: 'User Obligations',
-      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla neque quam, maximus in sagittis quis, sollicitudin non nisi.',
+      content: 'As a user, you are responsible for providing accurate information during account registration, maintaining the confidentiality of your account credentials, and using the platform in a lawful manner. Misuse of the platform or violation of these terms may result in account suspension or termination.',
     },
     {
       title: 'Governing Law',
-      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla neque quam, maximus in sagittis quis, sollicitudin non nisi.',
+      content: 'These terms and conditions are governed by and construed in accordance with the laws of the Philippines. Any disputes arising under these terms shall be resolved exclusively by the courts within the jurisdiction of the Philippines.',
     },
   ];
 

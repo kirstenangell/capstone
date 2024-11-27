@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { FaFacebook } from 'react-icons/fa'; // Importing Facebook icon
 
 function Footer() {
   return (
@@ -27,8 +28,7 @@ function Footer() {
           <div className="mb-4"></div>
 
           <p className="text-xs">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          At Flacko Auto Parts and Accessories Trading, we are committed to providing high-quality car parts and accessories that meet the needs of every vehicle enthusiast. With a legacy of excellent customer service and a focus on reliability, we strive to keep your vehicles performing at their best.
           </p>
         </div>
 
@@ -93,10 +93,19 @@ function Footer() {
         {/* Right Section */}
         <div className="w-1/3 text-left pl-16">
           <h2 className="text-xs font-bold mb-4 uppercase">SOCIAL MEDIA</h2>
-          <p className="text-xs">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          <p className="text-xs mb-4">
+            Follow us on our official Facebook page to stay updated with the
+            latest products, offers, and news:
           </p>
+          <a
+            href="https://www.facebook.com/franvillecaraccessoriesqc"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-2 text-xs text-blue-500 hover:text-blue-400"
+          >
+            <FaFacebook className="text-lg" />
+            <span>Flacko Auto Parts and Accessories Trading</span>
+          </a>
         </div>
       </div>
     </footer>
