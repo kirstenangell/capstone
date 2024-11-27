@@ -8,6 +8,8 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   const { products } = useContext(ProductContext);
   const location = useLocation();
   const navigate = useNavigate();
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5173';
+
   const [selectedProduct, setSelectedProduct] = useState({
     ...location.state?.product || products[0],
     quantity: 0,
@@ -50,6 +52,10 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
 
 
 
+const product = {
+  image: "uploads/example.png",
+  name: "Example Product",
+};
 
   const handleBuyNowClick = async () => {
     const userId = localStorage.getItem('userId');
@@ -111,35 +117,47 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   {/* Left Side - Thumbnails and Main Image */}
   <div className="flex flex-col items-center space-y-4">
     {selectedProduct.relatedImages?.slice(0, 3).map((image, index) => (
-      <img
-      key={index}
-      src={image.startsWith('http') ? image : `http://localhost:5173/${image}`}
-      alt={`Related image ${index + 1}`}
-      className={`w-16 h-16 object-contain cursor-pointer ${
-        selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'
-      }`}
-      onClick={() => setSelectedProduct({ ...selectedProduct, image })}
-    />    
+     <img
+     key={index}
+     src={image.startsWith('http') 
+       ? image 
+       : `${baseUrl}/${image.startsWith('/') ? image.slice(1) : image}`
+     }
+     alt={`Related image ${index + 1}`}
+     className={`w-16 h-16 object-contain cursor-pointer ${
+       selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'
+     }`}
+     onClick={() => setSelectedProduct({ ...selectedProduct, image })}
+   />
+   
     ))}
 
     <div className="w-full rounded-lg p-8 shadow-lg flex items-center justify-center bg-black">
-    <img 
-  src={selectedProduct.image.startsWith('http') ? selectedProduct.image : `http://localhost:5173/${selectedProduct.image}`}
+    <img  
+  src={selectedProduct.image.startsWith('http') 
+    ? selectedProduct.image 
+    : `${baseUrl}/${selectedProduct.image.startsWith('/') ? selectedProduct.image.slice(1) : selectedProduct.image}`
+  }
   alt={selectedProduct.name} 
   className="w-96 h-96 object-contain" 
 />
+
     </div>
 
     {selectedProduct.relatedImages?.slice(3).map((image, index) => (
-      <img
-      key={index}
-      src={image.startsWith('http') ? image : `http://localhost:5173/${image}`}
-      alt={`Related image ${index + 4}`} // Adjust the index to continue from above
-      className={`w-16 h-16 object-contain cursor-pointer ${
-        selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'
-      }`}
-      onClick={() => setSelectedProduct({ ...selectedProduct, image })}
-    />
+   <img
+   key={index}
+   src={image.startsWith('http') 
+     ? image 
+     : `${baseUrl}/${image.startsWith('/') ? image.slice(1) : image}`
+   }
+   alt={`Related image ${index + 4}`} // Adjust the index to continue from above
+   className={`w-16 h-16 object-contain cursor-pointer ${
+     selectedProduct.image === image ? 'border-2 border-blue-500' : 'border-2 border-transparent'
+   }`}
+   onClick={() => setSelectedProduct({ ...selectedProduct, image })}
+ />
+ 
     
     ))}
   </div>
@@ -205,13 +223,13 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
           {/* Action Buttons */}
           <div className="flex mt-6 space-x-4">
             <button
-              onClick={handleAddToCart}
+              onClick={handleAddToCartClick}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none border border-[#62B1D1] hover:bg-gray-800 transition-colors"
             >
               ADD TO CART
             </button>
             <button
-              onClick={handleBuyNowClick}
+              onClick={handleBuyNow}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none border border-[#62B1D1] hover:bg-gray-800 transition-colors"
             >
               BUY NOW
@@ -232,10 +250,14 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
               onClick={() => setSelectedProduct({ ...product, quantity: 0 })}
             >
               <img
-  src={product.image.startsWith('http') ? product.image : `http://localhost:5173/${product.image}`}
+  src={product.image.startsWith('http') 
+    ? product.image 
+    : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`
+  }
   alt={product.name}
   className="w-full h-64 object-contain rounded-md"
 />
+
               <div className="mt-4">
                 <p className="text-sm text-gray-400">LOREM IPSUM</p>
                 <h3 className="text-lg font-semibold mt-2">{product.name}</h3>

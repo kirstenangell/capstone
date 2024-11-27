@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(cors({
   origin: '*',  // Allow all origins (this is not recommended in production)
 }));
-app.use('/public', express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Ensure the uploads directory exists
 const dir = './public/uploads';
@@ -24,27 +24,49 @@ if (!fs.existsSync(dir)){
     fs.mkdirSync(dir, { recursive: true });
 }
 
+// Sanitize filenames
+const sanitizeFilename = (filename) => {
+  return filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+};
+
 // Set up storage options for multer
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, './public/uploads/');  // Directory to save files
+    cb(null, 'public/uploads');  // Directory to save files
   },
-  filename: function(req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));  // Prefix the filename with a timestamp
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${sanitizeFilename(file.originalname)}`;
+    cb(null, uniqueName);
   }
 });
 
-// Initialize multer with settings for file upload
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10000000 }, // 10MB limit per file
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-      cb(null, true);
-    } else {
-      cb(new Error("Only .jpg and .png formats are allowed!"), false);
-    }
+// File filter to accept only images
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only .jpeg, .png, and .gif formats are allowed!'), false);
   }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 } // Limit file size to 10MB
+});
+
+// Middleware to handle 1 to 4 image uploads
+const uploadImages = upload.array('images', 4);
+
+// Error handling for multer
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: err.message });
+  } else if (err) {
+    return res.status(500).json({ error: 'Something went wrong with the file upload!' });
+  }
+  next();
 });
 
 // MySQL Database Connection
@@ -140,35 +162,8 @@ app.post('/forgot-password', async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Reset Your Password',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <p>Hello,</p>
-          <p>We received a request to reset the password for your <strong>Flacko Auto Parts and Accessories</strong> account associated with this email address.</p>
-          <p>Click the link below to reset your password:</p>
-          <p>
-            <a href="${resetUrl}" 
-               style="display: inline-block; background: linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%);
-                      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.9); color: #ffffff; 
-                      padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-              🔗 Reset Your Password
-            </a>
-          </p>
-          <p>This link will expire in <strong>24 hours</strong> for your security. If you didn’t request a password reset, please ignore this email or contact our support team if you have any concerns.</p>
-          <h3>For your security:</h3>
-          <ul>
-            <li>Never share your password with anyone.</li>
-            <li>Use a strong, unique password for your account.</li>
-          </ul>
-          <p>If you need further assistance, feel free to reach out to our support team at <a href="mailto:flackoauto1990@gmail.com">flackoauto1990@gmail.com</a>.</p>
-          <p>Thank you,</p>
-          <p>The Flacko Auto Parts and Accessories Team</p>
-          <hr>
-          <p style="font-size: 12px; color: #777777;">
-            Privacy Notice: This email and any attachments are confidential and intended solely for the use of the individual or entity to whom they are addressed. If you have received this email in error, please notify the sender immediately and delete it from your system.
-          </p>
-        </div>
-      `,
+      subject: 'Password Reset Request',
+      html: `<p>Click the link below to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`,
     };
 
     transporter.sendMail(mailOptions, (err, info) => {
@@ -185,7 +180,6 @@ app.post('/forgot-password', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 // SET PASSWORD LOGIC
 // ====================
@@ -307,46 +301,12 @@ app.post('/update-password-tab', async (req, res) => {
 const { body, validationResult } = require('express-validator');
 
 const sendVerificationEmail = (email, token) => {
-  const verificationUrl = `http://localhost:5000/verify-email?token=${token}`; // Replace with your actual verification URL
+  const verificationUrl = `http://localhost:5000/verify-email?token=${token}`;
   const mailOptions = {
-    from: process.env.EMAIL_USER, // Sender's email address
-    to: email,                    // Recipient's email address
-    subject: 'Sign-up Verification',
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <p>Dear,</p>
-        <p>We are pleased to welcome you to <strong>Flacko Auto Parts and Accessories. </strong> As part of our commitment to ensuring the security and integrity of your account, we kindly request that you confirm your email address.</p>
-        <p>To verify your email, please click on the link below:</p>
-        <p>
-          <a href="${verificationUrl}" 
-             style="display: inline-block; background: linear-gradient(45deg, #4B88A3, #040405); 
-             color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-            Verify My Email Address
-          </a>
-        </p>
-        <p>Alternatively, you may copy and paste the following URL into your browser:</p>
-        <p>${verificationUrl}</p>
-        <p>
-          <strong>Please note:</strong> This link will expire in <strong>24 hours</strong> for your security. For security purposes, we encourage you to complete the verification process promptly.
-        </p>
-        <h3>Why is this necessary?</h3>
-        <ul>
-          <li>To confirm the authenticity of the email address provided during registration.</li>
-          <li>To activate your account and grant you full access to Flacko Auto Part and Accessories' features.</li>
-          <li>To safeguard your personal information and ensure secure communication.</li>
-        </ul>
-        <p>If you did not initiate this request or believe this email has reached you in error, no further action is required. Rest assured, your account will remain inactive without verification.</p>
-        <p>For assistance or inquiries, please feel free to contact our support team at flackoauto1990@gmail.com. We are available to assist you with any questions or concerns.</p>
-        <p>We appreciate your prompt attention to this matter and look forward to serving you.</p>
-        <p>Kind regards,</p>
-        <p>Flacko Auto Parts and Accessories</p>
-        <p>https://www.facebook.com/franvillecaraccessoriesqc</p>
-        <hr>
-        <p style="font-size: 12px; color: #777777;">
-          Privacy Notice: This message and any attachments are intended solely for the individual or entity to whom they are addressed. If you have received this message in error, please notify the sender immediately and delete this email.
-        </p>
-      </div>
-    `,
+    from: process.env.EMAIL_USER,  // Sender's email address
+    to: email,                     // Recipient's email address
+    subject: 'Verify your email address',
+    html: `<p>Please click on the following link to verify your email address:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
   };
 
   transporter.sendMail(mailOptions, (err, info) => {
@@ -365,19 +325,18 @@ app.post('/register', [
   body('last_name').notEmpty().withMessage('Last name is required'),
   body('email').isEmail().withMessage('Email is invalid'),
   body('password')
-  .isLength({ min: 8, max: 20 }).withMessage('Password must be between 8 and 20 characters long')
-  .withMessage('Password must be between 8 and 20 characters long')
-  .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
-  .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
-  .matches(/\d/).withMessage('Password must contain at least one number')
-  .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character')
-  .not().matches(/(\d)\1{2,}|([a-zA-Z])\2{2,}/).withMessage('Password should not have repeated or sequential characters')
-  .custom((value, { req }) => {
-    if (value.includes(req.body.first_name) || value.includes(req.body.last_name) || value.includes(req.body.email.split('@')[0])) {
-      throw new Error('Password should not contain personal information like your name or email.');
-    }
-    return true;
-  }),
+    .isLength({ min: 10, max: 12 }).withMessage('Password must be between 10 and 12 characters long')
+    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
+    .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
+    .matches(/\d/).withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character')
+    .not().matches(/(\d)\1{2,}|([a-zA-Z])\2{2,}/).withMessage('Password should not have repeated or sequential characters')
+    .custom((value, { req }) => {
+      if (value.includes(req.body.first_name) || value.includes(req.body.last_name) || value.includes(req.body.email.split('@')[0])) {
+        throw new Error('Password should not contain personal information like your name or email.');
+      }
+      return true;
+    }),
 ], async (req, res) => {
   // Validation result check
   const errors = validationResult(req);
@@ -437,43 +396,7 @@ app.get('/verify-email', (req, res) => {
         return res.status(500).json({ message: 'Server error' });
       }
 
-      res.status(200).send(`
-        <div style="
-          max-width: 600px;
-          margin: 50px auto;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.9);
-          font-family: Arial, sans-serif;
-          background: linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%);
-          text-align: center;
-          color: white;
-        ">
-         <h3 style="color: #ffffff; font-size: 24px; margin-bottom: 20px;">You Did It! Email Verified!</h3>
-  
-        <p style="color: #f0f0f0; line-height: 1.5; margin-bottom: 15px; font-size:12px">
-          Success! Your email is verified, and your account is officially activated.<br>
-          You now have full access to everything <strong>FLACKO AUTO PARTS AND ACCESSORIES</strong> has to offer—tailored just for you. 
-          We're so glad to have you here!<br> Dive in, and let's make something awesome together.
-        </p>
-        <p style="color: #f0f0f0; margin-bottom: 20px; font-size:12px">
-          You can now go back to the login page and start <br> exploring all the amazing features.
-        </p>
-
-      </div>
-
-      <div style="
-        background-color: white;
-        width: 100%;
-        height: 100vh;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: -1;">
-      </div>
-
-      `);
-      
+      res.status(200).send('<h2>Email successfully verified! You can now log in.</h2>');
     });
   });
 });
@@ -510,17 +433,7 @@ app.post('/login', (req, res) => {
           email: user.email,
         };
 
-        res.status(200).json({
-          message: 'Login successful',
-          userData: {
-              id: user.id, // Ensure id is included
-              firstName: user.first_name,
-              lastName: user.last_name,
-              email: user.email,
-          },
-          role: user.email.includes('flacko1990') ? 'admin' : 'customer',
-      });
-      
+        res.status(200).json({ message: 'Login successful', userData, role: user.email.includes('flacko1990') ? 'admin' : 'customer' });
       } else {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
@@ -532,27 +445,11 @@ app.post('/login', (req, res) => {
 app.get('/user-details', (req, res) => {
   const email = req.query.email;
 
-  if (!email) {
-    console.error('Email query parameter is missing');
-    return res.status(400).json({ message: 'Email query parameter is required' });
-  }
-
   const query = `
-    SELECT 
-      first_name AS firstName, 
-      last_name AS lastName, 
-      email, 
-      contact_number AS contactNumber,
-      street,
-      barangay,
-      city,
-      region,
-      province,
-      zip_code AS zipCode
-    FROM users
+    SELECT first_name AS firstName, last_name AS lastName, email, contact_number AS contactNumber, street, barangay, city, region, province, zip_code AS zipCode 
+    FROM users 
     WHERE email = ?
   `;
-
   db.query(query, [email], (err, result) => {
     if (err) {
       console.error('Error fetching user details:', err);
@@ -566,7 +463,6 @@ app.get('/user-details', (req, res) => {
     res.status(200).json(result[0]);
   });
 });
-
 
 // Update User Details API
 app.put('/update-user-details', (req, res) => {
@@ -598,6 +494,86 @@ app.put('/update-user-details', (req, res) => {
 
     res.status(200).json({ message: 'User details updated successfully' });
   });
+});
+
+// Product creation API with image upload
+app.post('/add-product', (req, res) => {
+  uploadImages(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      // Handle Multer-specific errors
+      return res.status(400).json({ message: 'Multer error', error: err.message });
+    } else if (err) {
+      // Handle other errors
+      return res.status(500).json({ message: 'Server error', error: err.message });
+    }
+
+    const {
+      name,
+      type,
+      brand,
+      category,
+      description,
+      price,
+      discount,
+      totalPrice,
+      dimensions,
+      color,
+      finish,
+      material,
+      model,
+      quantity,
+      totalQuantity,
+      status
+    } = req.body;
+
+    const imagePaths = req.files.map((file) =>
+      file.path.replace(/\\/g, '/') // Normalize path for cross-platform compatibility
+    );
+
+    if (!name || !price || !category || imagePaths.length === 0) {
+      return res.status(400).json({ message: 'Missing required fields or images' });
+    }
+
+    const query = `INSERT INTO products 
+      (name, type, brand, category, description, image, price, discount, totalPrice, dimensions, color, finish, material, model, quantity, totalQuantity, status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    db.query(
+      query,
+      [
+        name,
+        type,
+        brand,
+        category,
+        description,
+        imagePaths.join(','), // Save image paths as a comma-separated string
+        price,
+        discount,
+        totalPrice,
+        dimensions,
+        color,
+        finish,
+        material,
+        model,
+        quantity,
+        totalQuantity,
+        status
+      ],
+      (err, result) => {
+        if (err) {
+          console.error('Error adding product:', err);
+          return res.status(500).json({ message: 'Error adding product' });
+        }
+        res.status(200).json({ message: 'Product added successfully' });
+      }
+    );
+  });
+});
+
+// Upload Route
+app.post('/upload', uploadImages, (req, res) => {
+  console.log('Uploaded files:', req.files); // Logs file details
+  res.status(200).json({ message: 'Files uploaded successfully!', files: req.files });
 });
 
 app.put('/update-product/:id', upload.array('images', 4), (req, res) => {
@@ -1272,115 +1248,98 @@ app.put('/archive-order/:id', (req, res) => {
   });
 });
 
-app.post('/api/cart', async (req, res) => {
-  const { user_id: userId, product_id: productId, quantity } = req.body;
-
-  if (!userId || !productId || !quantity) {
-    return res.status(400).json({ message: 'All fields (userId, productId, quantity) are required.' });
-  }
-
-  try {
-    // Validate if user ID exists in the database
-    const userQuery = `SELECT id FROM users WHERE id = ?`;
-    const [userRows] = await db.promise().query(userQuery, [userId]);
-
-    if (userRows.length === 0) {
-      return res.status(400).json({ message: 'Invalid user ID.' });
-    }
-
-    // Validate if product ID exists in the database
-    const productQuery = `SELECT id FROM products WHERE id = ?`;
-    const [productRows] = await db.promise().query(productQuery, [productId]);
-
-    if (productRows.length === 0) {
-      return res.status(400).json({ message: 'Invalid product ID.' });
-    }
-
-    // Add item to cart
-    const insertQuery = `
-      INSERT INTO cart (user_id, product_id, quantity)
-      VALUES (?, ?, ?)
-      ON DUPLICATE KEY UPDATE quantity = quantity + ?
-    `;
-    await db.promise().query(insertQuery, [userId, productId, quantity, quantity]);
-
-    res.status(200).json({ message: 'Item added to cart successfully' });
-  } catch (error) {
-    console.error('Error adding item to cart:', error);
-    res.status(500).json({ message: 'Server error.' });
-  }
-});
-
-
-app.get('/api/cart/:userId', async (req, res) => {
+app.get('/api/cart/:userId', (req, res) => {
   const { userId } = req.params;
 
-  if (!userId) {
-    return res.status(400).json({ message: 'User ID is required.' });
-  }
+  const query = 'SELECT * FROM cart WHERE user_id = ?';
 
-  try {
-    // Validate if user ID exists in the database
-    const userQuery = `SELECT id FROM users WHERE id = ?`;
-    const [userRows] = await db.promise().query(userQuery, [userId]);
-
-    if (userRows.length === 0) {
-      return res.status(400).json({ message: 'Invalid user ID.' });
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching cart data:', err);
+      return res.status(500).json({ message: 'Error fetching cart data' });
     }
 
-    // Fetch cart items
-    const query = `
-      SELECT 
-        c.id AS cartId, p.id AS productId, p.name, p.price, c.quantity, p.image
-      FROM cart c
-      JOIN products p ON c.product_id = p.id
-      WHERE c.user_id = ?
-    `;
-    const [rows] = await db.promise().query(query, [userId]);
-
-    res.status(200).json({
-      success: true,
-      cartItems: rows,
-    });
-  } catch (err) {
-    console.error('Error fetching cart items:', err);
-    res.status(500).json({ message: 'Server error.' });
-  }
-});
-
-
-app.delete('/api/cart/:cartId', async (req, res) => {
-  const { cartId } = req.params;
-
-  if (!cartId) {
-    return res.status(400).json({ message: 'Cart ID is required.' });
-  }
-
-  try {
-    // Check if cart item exists
-    const checkQuery = `SELECT * FROM cart WHERE id = ?`;
-    const [rows] = await db.promise().query(checkQuery, [cartId]);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'Cart item not found.' });
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No cart data found for this user' });
     }
 
-    // Delete the cart item
-    const deleteQuery = `DELETE FROM cart WHERE id = ?`;
-    await db.promise().query(deleteQuery, [cartId]);
-
-    res.status(200).json({
-      message: 'Product removed from cart successfully.',
-      deletedItem: rows[0], // Return the deleted item
-    });
-  } catch (err) {
-    console.error('Error removing product from cart:', err);
-    res.status(500).json({ message: 'Server error.' });
-  }
+    res.status(200).json(results);
+  });
 });
 
+app.post('/api/cart/:userId', (req, res) => {
+  const { userId } = req.params;
+  const { cartItems } = req.body; // Expected cartItems to be an array of items
 
+  if (!Array.isArray(cartItems)) {
+    return res.status(400).json({ message: 'Invalid cart data format' });
+  }
 
+  // Begin a database transaction
+  db.beginTransaction((err) => {
+    if (err) {
+      console.error('Error starting transaction:', err);
+      return res.status(500).json({ message: 'Error syncing cart data' });
+    }
+
+    // Clear existing cart data for the user
+    const deleteQuery = 'DELETE FROM cart WHERE user_id = ?';
+    db.query(deleteQuery, [userId], (deleteErr) => {
+      if (deleteErr) {
+        console.error('Error clearing cart data:', deleteErr);
+        return db.rollback(() => {
+          res.status(500).json({ message: 'Error syncing cart data' });
+        });
+      }
+
+      // Insert new cart data
+      const insertQuery = 'INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)';
+      let completed = 0;
+      let hasError = false;
+
+      cartItems.forEach((item) => {
+        const { productId, quantity } = item;
+        db.query(insertQuery, [userId, productId, quantity], (insertErr) => {
+          if (insertErr) {
+            hasError = true;
+            console.error('Error inserting cart data:', insertErr);
+            return db.rollback(() => {
+              res.status(500).json({ message: 'Error syncing cart data' });
+            });
+          }
+
+          completed += 1;
+          if (completed === cartItems.length && !hasError) {
+            db.commit((commitErr) => {
+              if (commitErr) {
+                return db.rollback(() => {
+                  console.error('Error committing transaction:', commitErr);
+                  res.status(500).json({ message: 'Error syncing cart data' });
+                });
+              }
+
+              res.status(200).json({ message: 'Cart synced successfully' });
+            });
+          }
+        });
+      });
+
+      // Handle case where there are no items to insert
+      if (cartItems.length === 0) {
+        db.commit((commitErr) => {
+          if (commitErr) {
+            return db.rollback(() => {
+              console.error('Error committing transaction:', commitErr);
+              res.status(500).json({ message: 'Error syncing cart data' });
+            });
+          }
+
+          res.status(200).json({ message: 'Cart synced successfully' });
+        });
+      }
+    });
+  });
+});
 
 // Start the server
 const PORT = process.env.PORT || 5000;

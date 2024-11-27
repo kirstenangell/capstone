@@ -65,7 +65,7 @@ const AboutUs = () => {
 
       {/* Boxes */}
       <div
-        className="relative z-10 flex space-x-6"
+        className="relative z-10 flex space-x-6 flex-wrap justify-center md:space-x-4"
         style={{
           marginRight: '2%',
           marginLeft: '1%',
@@ -106,26 +106,17 @@ const AboutUs = () => {
         ))}
       </div>
 
-      {/* Media Queries for Responsive Adjustments */}
+      {/* Responsive Styling */}
       <style jsx>{`
-        @media (max-width: 1440px) {
-          .text-6xl {
-            font-size: 4rem;
-          }
-          .leading-relaxed {
-            font-size: 0.875rem;
-          }
-        }
         @media (max-width: 1024px) {
           .text-6xl {
             font-size: 3.5rem;
           }
           .leading-relaxed {
-            font-size: 0.75rem;
+            font-size: 0.85rem;
           }
-          .relative {
-            width: 300px;
-            height: 300px;
+          .max-w-lg {
+            max-width: 80%;
           }
         }
         @media (max-width: 768px) {
@@ -133,10 +124,24 @@ const AboutUs = () => {
             font-size: 3rem;
           }
           .leading-relaxed {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
+          }
+          .max-w-lg {
+            max-width: 90%;
+          }
+          .flex-wrap {
+            flex-wrap: wrap;
+          }
+        }
+        @media (max-width: 480px) {
+          .text-6xl {
+            font-size: 2.5rem;
+          }
+          .leading-relaxed {
+            font-size: 0.75rem;
           }
           .relative {
-            width: 250px;
+            width: 200px;
             height: 250px;
           }
         }

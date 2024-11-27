@@ -21,35 +21,22 @@ const InventoryLanding = () => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [searchQuery, setSearchQuery] = useState(''); // Initialize searchQuery state
   const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [selectedBrand, setSelectedBrand] = useState('All Brands');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [discountFilter, setDiscountFilter] = useState('All');
+  const [selectedColor, setSelectedColor] = useState('All Colors');
+  const [selectedFinish, setSelectedFinish] = useState('All Finishes');
+  const [quantityRange, setQuantityRange] = useState({ min: '', max: '' });
 
   // Use ProductContext to get products and product manipulation functions
   const { products, addProduct, updateProduct, archiveProduct } = useContext(ProductContext);
 
-  // State for FILTER BY dropdown
-  const [isFilterByOpen, setIsFilterByOpen] = useState(false);
-  const [selectedFilterBy, setSelectedFilterBy] = useState('');
-
-  // State for STATUS buttons
-  const [activeStatus, setActiveStatus] = useState('All'); // Default is 'All'
-
-  // Sample Filter By options (customize based on your requirements)
-  const filterByOptions = ['All Types', 'Online', 'Offline', 'Express Delivery', 'Standard Delivery'];
-
-  // Function to toggle FILTER BY dropdown
-  const toggleFilterByDropdown = () => {
-    setIsFilterByOpen(!isFilterByOpen);
-  };
-
-  // Function to handle selecting a FILTER BY option
-  const handleFilterBySelect = (option) => {
-    setSelectedFilterBy(option === 'All Types' ? '' : option);
-    setIsFilterByOpen(false);
-  };
-
-  // Function to handle STATUS button click
-  const handleStatusClick = (status) => {
-    setActiveStatus(status);
-  };
+  const categories = ['All Categories', 'Electronics', 'Accessories', 'Others'];
+  const brands = ['All Brands', 'Brand A', 'Brand B', 'Brand C'];
+  const colors = ['All Colors', 'Red', 'Blue', 'Black', 'White'];
+  const finishes = ['All Finishes', 'Matte', 'Glossy'];
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -127,22 +114,35 @@ const InventoryLanding = () => {
     setSelectedProduct(null); // Deselect the product after update
   };
 
-  // Filter products based on search query, FILTER BY, and STATUS
+  // Filtered Products
   const filteredProducts = products.filter((product) => {
-    const productName = (product.name || '').toLowerCase();
-    const productId = (`PID-${product.id}` || '').toLowerCase();
-    const searchLower = searchQuery.toLowerCase(); // Access the state here
+    const matchesName = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'All Categories' || product.category === selectedCategory;
+    const matchesBrand = selectedBrand === 'All Brands' || product.brand === selectedBrand;
+    const matchesStatus = statusFilter === 'All' || product.status === statusFilter;
+    const matchesDiscount = discountFilter === 'All' || product.discount > 0;
+    const matchesColor = selectedColor === 'All Colors' || product.color === selectedColor;
+    const matchesFinish = selectedFinish === 'All Finishes' || product.finish === selectedFinish;
 
-    // Search filter
-    const matchesSearch = productName.includes(searchLower) || productId.includes(searchLower);
+    const matchesPriceRange =
+      (priceRange.min === '' || product.price >= Number(priceRange.min)) &&
+      (priceRange.max === '' || product.price <= Number(priceRange.max));
 
-    // FILTER BY filter
-    const matchesFilterBy = selectedFilterBy === '' || (product.category && product.category === selectedFilterBy);
+    const matchesQuantityRange =
+      (quantityRange.min === '' || product.quantity >= Number(quantityRange.min)) &&
+      (quantityRange.max === '' || product.quantity <= Number(quantityRange.max));
 
-    // STATUS filter (assuming 'All', 'Active', 'Inactive' statuses exist)
-    const matchesStatus = activeStatus === 'All' || (product.status && product.status.toLowerCase() === activeStatus.toLowerCase());
-
-    return matchesSearch && matchesFilterBy && matchesStatus;
+    return (
+      matchesName &&
+      matchesCategory &&
+      matchesBrand &&
+      matchesStatus &&
+      matchesPriceRange &&
+      matchesDiscount &&
+      matchesColor &&
+      matchesFinish &&
+      matchesQuantityRange
+    );
   });
 
   return (
@@ -175,61 +175,152 @@ const InventoryLanding = () => {
           </div>
         </div>
 
-        {/* Filters and Sidebar */}
-        <div className="grid grid-cols-4 gap-10">
-          <div className="col-span-1">
-            {/* FILTER BY */}
-            <div className="mb-6">
-              <h2 className="text-sm font-bold text-white mb-2">FILTER BY</h2>
-
-              {/* FILTER BY Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={toggleFilterByDropdown}
-                  className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+            {/* Filters Section */}
+            <div className="grid grid-cols-4 gap-6">
+              <div className="col-span-1 space-y-6">
+                <h2 className="text-sm font-bold text-white">FILTERS</h2>
+                
+                        {/* Category Filter */}
+              <div>
+                <h3 className="text-sm font-bold text-white">CATEGORY</h3>
+                <select
+                  className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  {selectedFilterBy || 'PRODUCT CATEGORY'}
+                  <option value="All Categories">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Brand Filter */}
+              <div>
+                <h3 className="text-sm font-bold text-white">BRAND</h3>
+                <select
+                  className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg"
+                  value={selectedBrand}
+                  onChange={(e) => setSelectedBrand(e.target.value)}
+                >
+                  <option value="All Brands">All Brands</option>
+                  {brands.map((brand) => (
+                    <option key={brand} value={brand}>
+                      {brand}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <h3 className="text-sm font-bold text-white">STATUS</h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {["All", "In Stock", "Out of Stock", "Archived"].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setStatusFilter(status)}
+                      className={`px-4 py-2 text-sm rounded-lg ${
+                        statusFilter === status
+                          ? "bg-gradient-to-r from-[#040405] to-[#122127] text-white"
+                          : "bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]"
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range Filter */}
+              <div>
+                <h3 className="text-sm font-bold text-white">PRICE RANGE</h3>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    className="w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-sm"
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    className="w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-sm"
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {/* Discount Filter */}
+              <div>
+                <h3 className="text-sm font-bold text-white">DISCOUNT</h3>
+                <button
+                  onClick={() => setDiscountFilter(discountFilter === "All" ? "Discounted" : "All")}
+                  className="text-sm w-full px-6 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg"
+                >
+                  {discountFilter === "All" ? "All Products" : "Discounted Products"}
                 </button>
+              </div>
 
-                {/* Dropdown Menu */}
-                {isFilterByOpen && (
-                  <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                    <ul className="text-sm text-white">
-                      {filterByOptions.map((option) => (
-                        <li
-                          key={option}
-                          className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
-                          onClick={() => handleFilterBySelect(option)}
-                        >
-                          {option}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              {/* Color Filter */}
+              <div>
+                <h3 className="text-sm font-bold text-white">COLOR</h3>
+                <select
+                  className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg"
+                  value={selectedColor}
+                  onChange={(e) => setSelectedColor(e.target.value)}
+                >
+                  <option value="All Colors">All Colors</option>
+                  {colors.map((color) => (
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Finish Filter */}
+              <div>
+                <h3 className="text-sm font-bold text-white">FINISH</h3>
+                <select
+                  className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg"
+                  value={selectedFinish}
+                  onChange={(e) => setSelectedFinish(e.target.value)}
+                >
+                  <option value="All Finishes">All Finishes</option>
+                  {finishes.map((finish) => (
+                    <option key={finish} value={finish}>
+                      {finish}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Quantity Range Filter */}
+              <div>
+                <h3 className="text-sm font-bold text-white">QUANTITY RANGE</h3>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    className="w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-sm"
+                    value={quantityRange.min}
+                    onChange={(e) => setQuantityRange({ ...quantityRange, min: e.target.value })}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    className="w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-sm"
+                    value={quantityRange.max}
+                    onChange={(e) => setQuantityRange({ ...quantityRange, max: e.target.value })}
+                  />
+                </div>
               </div>
             </div>
-
-            {/* STATUS Filters */}
-            <div className="mb-6 mt-2">
-              <h2 className="text-sm font-bold text-white mb-2">STATUS</h2>
-              <div className="flex space-x-2">
-                {['All', 'Active', 'Inactive'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => handleStatusClick(status)}
-                    className={`text-sm px-6 py-2 rounded-lg ${
-                      activeStatus === status
-                        ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
-                        : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
-                    }`}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
 
           {/* Product List */}
           <div className="col-span-3">
@@ -249,7 +340,9 @@ const InventoryLanding = () => {
                     <div className="flex items-center">
                       <div className="w-24 h-24 bg-gray-800 rounded-lg mr-6">
                       <img 
-  src={typeof product.image === 'string' ? `http://localhost:5173/${product.image}` : URL.createObjectURL(product.image)} 
+  src={product.image.startsWith('http') 
+    ? product.image 
+    : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`}
   alt={product.name} 
   className="w-full h-full object-contain" 
 />
@@ -312,11 +405,17 @@ const InventoryLanding = () => {
 
                   {/* Product Main Image */}
                   <div className="mt-4 bg-gray-700 p-2 rounded-lg">
-                    <img
-                      src={uploadedImages[0] || selectedProduct.image} // Main image
-                      alt={selectedProduct.name}
-                      className="w-full h-64 object-contain rounded-lg"
-                    />
+                  <img
+  src={
+    uploadedImages[0]
+      ? typeof uploadedImages[0] === 'string'
+        ? `${baseUrl}/${uploadedImages[0].startsWith('/') ? uploadedImages[0].slice(1) : uploadedImages[0]}`
+        : URL.createObjectURL(uploadedImages[0])
+      : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`
+  }
+  alt={selectedProduct.name || 'Product Image'} // Fallback alt text
+  className="w-full h-64 object-contain rounded-lg"
+/>
                   </div>
 
                   {/* Thumbnails of uploaded images */}
@@ -329,12 +428,14 @@ const InventoryLanding = () => {
                             className="bg-gray-700 rounded-lg overflow-hidden cursor-pointer"
                             onClick={() => setSelectedProduct({ ...selectedProduct, image: image })}
                           >
-                            <img
-  src={typeof image === 'string' ? `http://localhost:5173/${image}` : URL.createObjectURL(image)}
+                          <img
+  src={product.image.startsWith('http') 
+    ? product.image 
+    : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`
+  }
   alt={`Thumbnail ${index + 1}`}
   className="w-full h-20 object-cover"
 />
-
                           </div>
                         ))}
                       </div>
