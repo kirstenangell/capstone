@@ -340,7 +340,9 @@ const InventoryLanding = () => {
                     <div className="flex items-center">
                       <div className="w-24 h-24 bg-gray-800 rounded-lg mr-6">
                       <img 
-  src={typeof product.image === 'string' ? `http://localhost:5173/${product.image}` : URL.createObjectURL(product.image)} 
+  src={product.image.startsWith('http') 
+    ? product.image 
+    : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`}
   alt={product.name} 
   className="w-full h-full object-contain" 
 />
@@ -403,11 +405,17 @@ const InventoryLanding = () => {
 
                   {/* Product Main Image */}
                   <div className="mt-4 bg-gray-700 p-2 rounded-lg">
-                    <img
-                      src={uploadedImages[0] || selectedProduct.image} // Main image
-                      alt={selectedProduct.name}
-                      className="w-full h-64 object-contain rounded-lg"
-                    />
+                  <img
+  src={
+    uploadedImages[0]
+      ? typeof uploadedImages[0] === 'string'
+        ? `${baseUrl}/${uploadedImages[0].startsWith('/') ? uploadedImages[0].slice(1) : uploadedImages[0]}`
+        : URL.createObjectURL(uploadedImages[0])
+      : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`
+  }
+  alt={selectedProduct.name || 'Product Image'} // Fallback alt text
+  className="w-full h-64 object-contain rounded-lg"
+/>
                   </div>
 
                   {/* Thumbnails of uploaded images */}
@@ -420,12 +428,14 @@ const InventoryLanding = () => {
                             className="bg-gray-700 rounded-lg overflow-hidden cursor-pointer"
                             onClick={() => setSelectedProduct({ ...selectedProduct, image: image })}
                           >
-                            <img
-  src={typeof image === 'string' ? `http://localhost:5173/${image}` : URL.createObjectURL(image)}
+                          <img
+  src={product.image.startsWith('http') 
+    ? product.image 
+    : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`
+  }
   alt={`Thumbnail ${index + 1}`}
   className="w-full h-20 object-cover"
 />
-
                           </div>
                         ))}
                       </div>
