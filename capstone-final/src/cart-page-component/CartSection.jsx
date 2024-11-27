@@ -198,6 +198,7 @@ useEffect(() => {
     </div>
     <LiaOpencart size={100} className="mx-auto mb-8 text-gray-500" />
     <h1 className="text-lg font-medium mb-4">Your Cart Is Currently Empty!</h1>
+    <p className="text-gray-400 mb-8 text-xs">Before proceeding to checkout you must add some products to your shopping cart.</p>
     <NavLink
       to="/products"
       className="inline-block bg-gradient-to-r from-black to-[#4B88A3] text-white py-2 px-6 rounded-full font-normal text-xs"
@@ -302,7 +303,7 @@ useEffect(() => {
                 </div>
               </div>
               <NavLink
-                to="/checkout-landing"
+                to="checkout-landing"
                 state={{ cartItems, subtotal }}
                 className="w-full mt-8"
               >
