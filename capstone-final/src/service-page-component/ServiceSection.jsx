@@ -23,7 +23,7 @@ const ServiceSection = () => {
           OUR COMPANY SERVICE
         </div>
         <div className="text-white text-[17px] font-light max-w-[700px]">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla neque quam, maximus in sagittis quis, sollicitudin non nisi. Mauris aliquet, dolor eget laoreet.
+        At Flacko Auto Parts and Accessories Trading, we are dedicated to providing high-quality car parts and accessories tailored to meet your needs. Our commitment to exceptional service ensures a seamless experience, from browsing our catalog to receiving your order. Whether you're upgrading your vehicle or maintaining its performance, we are here to support you every step of the way.
         </div>
       </div>
 
