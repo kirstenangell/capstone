@@ -67,18 +67,39 @@ import Tweeter from './subcategory-pages/Tweeter';
 function App() {
 
   // Cart State Management
-  const [cartItems, setCartItems] = useState(() => {
-    const savedCartItems = localStorage.getItem('cartItems');
+const [cartItems, setCartItems] = useState(() => {
+  const savedCartItems = localStorage.getItem('cartItems');
+  try {
+    // Safely parse savedCartItems to avoid JSON errors
     return savedCartItems ? JSON.parse(savedCartItems) : [];
-  });
+  } catch (error) {
+    console.error('Error parsing cart items from localStorage:', error);
+    return []; // Return empty array if parsing fails
+  }
+});
 
-  useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
-  }, [cartItems]);
+useEffect(() => {
+  try {
+    // Avoid circular structure issues by ensuring cartItems is serializable
+    const serializableCartItems = cartItems.map(item => ({
+      ...item,
+      // Omit any properties that could cause circular references
+    }));
+    localStorage.setItem('cartItems', JSON.stringify(serializableCartItems));
+  } catch (error) {
+    console.error('Error saving cart items to localStorage:', error);
+  }
+}, [cartItems]);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+const [isLoggedIn, setIsLoggedIn] = useState(() => {
+  try {
     return localStorage.getItem('isLoggedIn') === 'true';
-  });
+  } catch (error) {
+    console.error('Error reading isLoggedIn from localStorage:', error);
+    return false; // Default to false if localStorage is unavailable or fails
+  }
+});
+
 
   const handleLogout = () => {
     setIsLoggedIn(false);

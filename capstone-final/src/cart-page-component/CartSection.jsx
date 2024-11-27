@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { IoIosRemove, IoIosAdd } from 'react-icons/io';
 import { IoArrowForwardCircle } from 'react-icons/io5';
 import { NavLink } from 'react-router-dom';
@@ -15,29 +15,9 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
 
-  useEffect(() => {
-    const fetchCartItems = async () => {
-        const userId = localStorage.getItem('userId');
-        if (!userId) return;
-
-        try {
-            const response = await fetch(`http://localhost:5000/api/cart/${userId}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch cart items');
-            }
-            const items = await response.json();
-            setQuantities(items.map(item => item.quantity));
-        } catch (error) {
-            console.error('Error fetching cart items:', error);
-        }
-    };
-
-    fetchCartItems();
-}, []);
-
   const calculateSubtotal = () => {
     return quantities.reduce((total, quantity, index) => {
-      return total + quantity * cartItems[index].price;
+      return total + quantity * (cartItems[index]?.price || 0);
     }, 0);
   };
 
@@ -118,34 +98,34 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-black text-white py-10 relative">
-    {showModal && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
-        <div className="bg-black hover:shadow-blue-500/40 text-black p-6 rounded-lg shadow-md max-w-sm">
-          <p className="mb-2 text-md font-semibold text-center text-white">
-            Do you want to remove this product from the cart?
-          </p>
-          <p className="mb-6 text-xs text-center text-gray-600">
-            You cannot undo this action.
-          </p>
-          <div className="flex justify-around border-t pt-2">
-            <button
-              onClick={handleCancelRemove}
-              className="py-2 px-4 text-blue-600 font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirmRemove}
-              className="py-2 px-4 text-red-600 font-medium"
-            >
-              Delete
-            </button>
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
+          <div className="bg-black hover:shadow-blue-500/40 text-black p-6 rounded-lg shadow-md max-w-sm">
+            <p className="mb-2 text-md font-semibold text-center text-white">
+              Do you want to remove this product from the cart?
+            </p>
+            <p className="mb-6 text-xs text-center text-gray-600">
+              You cannot undo this action.
+            </p>
+            <div className="flex justify-around border-t pt-2">
+              <button
+                onClick={handleCancelRemove}
+                className="py-2 px-4 text-blue-600 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmRemove}
+                className="py-2 px-4 text-red-600 font-medium"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
-{showSelectedModal && (
+      {showSelectedModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
           <div className="bg-black hover:shadow-blue-500/40 text-black p-6 rounded-lg shadow-md max-w-sm">
             <p className="mb-2 text-md font-semibold text-center text-white">
@@ -172,7 +152,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
         </div>
       )}
 
-<div className="flex w-full max-w-6xl mx-auto">
+      <div className="flex w-full max-w-6xl mx-auto">
         <div
           className="w-full max-w-xl p-8 rounded-lg flex flex-col justify-between"
           style={{
@@ -235,7 +215,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                         />
                       )}
                       <img
-                        src={item.image}
+                        src={item?.image || '/default-img.jpg'}
                         alt="Product"
                         className="w-12 h-12 mr-4"
                       />
@@ -265,7 +245,7 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
                     </div>
                     <div className="flex items-center">
                       <div className="font-semibold text-blue-400 text-sm mr-4">
-                        PHP {item.price.toLocaleString()}
+                        PHP {item?.price?.toLocaleString() || '0'}
                       </div>
                       {!showSelectors && (
                         <RiDeleteBin2Line

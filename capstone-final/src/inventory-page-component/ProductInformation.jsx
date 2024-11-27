@@ -13,6 +13,8 @@ const ProductInformation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { addProduct, updateProduct } = useContext(ProductContext);
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5173';
+
 
   // Pre-fill the form with existing product data if editing
   const isEdit = location.state?.isEdit || false;
@@ -77,6 +79,11 @@ const ProductInformation = () => {
     const updatedImages = uploadedImages.filter((_, i) => i !== index);
     setUploadedImages(updatedImages);
   };
+
+  const product = {
+    image: "uploads/example.png",
+    name: "Example Product",
+  };  
 
   // *** NEW FUNCTION ***
   // Handle Save button click (Sending data to the backend)
@@ -257,7 +264,16 @@ const ProductInformation = () => {
                   <div key={index} className="relative w-full h-40 bg-gray-900 border border-gray-600 rounded-lg flex flex-col justify-center items-center">
                     {/* Image preview */}
                     <div className="w-full h-full rounded-lg overflow-hidden">
-                      <img src={typeof image === 'string' ? image : URL.createObjectURL(image)} alt={`attachment-${index}`} className="object-cover w-full h-full" />
+                    <img 
+  src={product.image.startsWith('http') 
+    ? product.image 
+    : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`
+  }
+  alt={`attachment-${index}`}
+  className="object-cover w-full h-full"
+/>
+
+
                     </div>
 
                 {/* Display file name */}

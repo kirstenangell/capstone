@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(cors({
   origin: '*',  // Allow all origins (this is not recommended in production)
 }));
-app.use('/public', express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Ensure the uploads directory exists
 const dir = './public/uploads';
@@ -24,27 +24,49 @@ if (!fs.existsSync(dir)){
     fs.mkdirSync(dir, { recursive: true });
 }
 
+// Sanitize filenames
+const sanitizeFilename = (filename) => {
+  return filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+};
+
 // Set up storage options for multer
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, './public/uploads/');  // Directory to save files
+    cb(null, 'public/uploads');  // Directory to save files
   },
-  filename: function(req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));  // Prefix the filename with a timestamp
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${sanitizeFilename(file.originalname)}`;
+    cb(null, uniqueName);
   }
 });
 
-// Initialize multer with settings for file upload
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10000000 }, // 10MB limit per file
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-      cb(null, true);
-    } else {
-      cb(new Error("Only .jpg and .png formats are allowed!"), false);
-    }
+// File filter to accept only images
+const fileFilter = (req, file, cb) => {
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only .jpeg, .png, and .gif formats are allowed!'), false);
   }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 } // Limit file size to 10MB
+});
+
+// Middleware to handle 1 to 4 image uploads
+const uploadImages = upload.array('images', 4);
+
+// Error handling for multer
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: err.message });
+  } else if (err) {
+    return res.status(500).json({ error: 'Something went wrong with the file upload!' });
+  }
+  next();
 });
 
 // MySQL Database Connection
@@ -472,6 +494,86 @@ app.put('/update-user-details', (req, res) => {
 
     res.status(200).json({ message: 'User details updated successfully' });
   });
+});
+
+// Product creation API with image upload
+app.post('/add-product', (req, res) => {
+  uploadImages(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      // Handle Multer-specific errors
+      return res.status(400).json({ message: 'Multer error', error: err.message });
+    } else if (err) {
+      // Handle other errors
+      return res.status(500).json({ message: 'Server error', error: err.message });
+    }
+
+    const {
+      name,
+      type,
+      brand,
+      category,
+      description,
+      price,
+      discount,
+      totalPrice,
+      dimensions,
+      color,
+      finish,
+      material,
+      model,
+      quantity,
+      totalQuantity,
+      status
+    } = req.body;
+
+    const imagePaths = req.files.map((file) =>
+      file.path.replace(/\\/g, '/') // Normalize path for cross-platform compatibility
+    );
+
+    if (!name || !price || !category || imagePaths.length === 0) {
+      return res.status(400).json({ message: 'Missing required fields or images' });
+    }
+
+    const query = `INSERT INTO products 
+      (name, type, brand, category, description, image, price, discount, totalPrice, dimensions, color, finish, material, model, quantity, totalQuantity, status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    db.query(
+      query,
+      [
+        name,
+        type,
+        brand,
+        category,
+        description,
+        imagePaths.join(','), // Save image paths as a comma-separated string
+        price,
+        discount,
+        totalPrice,
+        dimensions,
+        color,
+        finish,
+        material,
+        model,
+        quantity,
+        totalQuantity,
+        status
+      ],
+      (err, result) => {
+        if (err) {
+          console.error('Error adding product:', err);
+          return res.status(500).json({ message: 'Error adding product' });
+        }
+        res.status(200).json({ message: 'Product added successfully' });
+      }
+    );
+  });
+});
+
+// Upload Route
+app.post('/upload', uploadImages, (req, res) => {
+  console.log('Uploaded files:', req.files); // Logs file details
+  res.status(200).json({ message: 'Files uploaded successfully!', files: req.files });
 });
 
 app.put('/update-product/:id', upload.array('images', 4), (req, res) => {
