@@ -14,6 +14,8 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
   const [showLoginWarning, setShowLoginWarning] = useState(false); // Warning state
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5173';
+  console.log('Base URL:', baseUrl); // Add this line
+  
 
   // Ensure all products display by default
   useEffect(() => {

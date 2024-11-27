@@ -8,6 +8,7 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5173';
+  console.log('Base URL:', baseUrl); // Add this line
 
 
   const [selectedProduct, setSelectedProduct] = useState({
@@ -77,9 +78,18 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   
       if (response.status === 200) {
         console.log('Product added to cart:', response.data);
-        // Redirect to checkout page with cart data
+  
+        // Redirect to checkout-landing page with selected product details
         navigate('/checkout-landing', {
-          state: { cartItems: [selectedProduct], total: selectedProduct.price * (selectedProduct.quantity || 1) },
+          state: {
+            cartItems: [
+              {
+                ...selectedProduct,
+                quantity: selectedProduct.quantity || 1,
+              },
+            ],
+            total: selectedProduct.price * (selectedProduct.quantity || 1),
+          },
         });
       }
     } catch (error) {

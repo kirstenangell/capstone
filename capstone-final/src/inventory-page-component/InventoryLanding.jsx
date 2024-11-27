@@ -29,6 +29,8 @@ const InventoryLanding = () => {
   const [selectedColor, setSelectedColor] = useState('All Colors');
   const [selectedFinish, setSelectedFinish] = useState('All Finishes');
   const [quantityRange, setQuantityRange] = useState({ min: '', max: '' });
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  console.log('Base URL:', baseUrl); // Add this line
 
   // Use ProductContext to get products and product manipulation functions
   const { products, addProduct, updateProduct, archiveProduct } = useContext(ProductContext);
@@ -406,15 +408,15 @@ const InventoryLanding = () => {
                   {/* Product Main Image */}
                   <div className="mt-4 bg-gray-700 p-2 rounded-lg">
                   <img
-  src={
-    uploadedImages[0]
-      ? typeof uploadedImages[0] === 'string'
-        ? `${baseUrl}/${uploadedImages[0].startsWith('/') ? uploadedImages[0].slice(1) : uploadedImages[0]}`
-        : URL.createObjectURL(uploadedImages[0])
-      : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`
-  }
-  alt={selectedProduct.name || 'Product Image'} // Fallback alt text
-  className="w-full h-64 object-contain rounded-lg"
+ src={
+  uploadedImages[0]
+    ? typeof uploadedImages[0] === 'string'
+      ? `${baseUrl}/${uploadedImages[0].startsWith('/') ? uploadedImages[0].slice(1) : uploadedImages[0]}`
+      : URL.createObjectURL(uploadedImages[0])
+    : `${baseUrl}/${selectedProduct.image.startsWith('/') ? selectedProduct.image.slice(1) : selectedProduct.image}`
+}
+alt={selectedProduct.name || 'Product Image'} // Fallback alt text
+className="w-full h-64 object-contain rounded-lg"
 />
                   </div>
 

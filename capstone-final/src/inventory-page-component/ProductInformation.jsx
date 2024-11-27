@@ -14,6 +14,7 @@ const ProductInformation = () => {
   const location = useLocation();
   const { addProduct, updateProduct } = useContext(ProductContext);
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5173';
+  console.log('Base URL:', baseUrl); // Add this line
 
 
   // Pre-fill the form with existing product data if editing
