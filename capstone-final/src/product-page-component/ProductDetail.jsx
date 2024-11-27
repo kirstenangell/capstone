@@ -47,18 +47,18 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   
       if (response.status === 200) {
         console.log('Product added to cart:', response.data);
+        if (updateCartCount) updateCartCount(response.data.cartCount || 0); // Update cart count if passed as a prop
       }
     } catch (error) {
       console.error('Error adding product to cart:', error);
     }
   };
-  
-
 
   const handleBuyNowClick = async () => {
     const userId = localStorage.getItem('userId'); // Ensure the user is logged in
     if (!userId) {
-      setShowLoginWarning(true); // Show the login warning modal
+      console.error('User ID is missing. Redirecting to login...');
+      navigate('/login');
       return;
     }
   
@@ -70,19 +70,20 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
     };
   
     try {
-      // Add the item to the cart
+      // Make API call to add item to cart
       const response = await axios.post('http://localhost:5000/api/cart', payload, {
         headers: { 'Content-Type': 'application/json' },
       });
   
       if (response.status === 200) {
         console.log('Product added to cart:', response.data);
-  
-        // Navigate to the cart page
-        navigate('/checkout-landing');
+        // Redirect to checkout page with cart data
+        navigate('/checkout-landing', {
+          state: { cartItems: [selectedProduct], total: selectedProduct.price * (selectedProduct.quantity || 1) },
+        });
       }
     } catch (error) {
-      console.error('Failed to proceed with Buy Now:', error.response?.data || error.message);
+      console.error('Error processing Buy Now action:', error);
     }
   };
   

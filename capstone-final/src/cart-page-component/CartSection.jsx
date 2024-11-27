@@ -30,9 +30,13 @@ const CartSection = ({ onRemoveFromCart }) => {
       const response = await axios.get(`http://localhost:5000/api/cart/${userId}`);
       if (response.status === 200) {
         const fetchedItems = response.data.cartItems;
-        setCartItems(fetchedItems);
-        setQuantities(fetchedItems.map((item) => item.quantity || 1));
-        calculateSubtotal(fetchedItems);
+        const mergedItems = mergeSimilarItems(fetchedItems); // Merge similar products
+        setCartItems(mergedItems);
+        setQuantities(mergedItems.map((item) => item.quantity || 1));
+        calculateSubtotal(mergedItems);
+        // Update cart count based on merged items
+        const newCartCount = mergedItems.reduce((count, item) => count + item.quantity, 0);
+        updateCartCount(newCartCount);
       }
     } catch (error) {
       console.error('Error fetching cart items:', error);
@@ -202,6 +206,7 @@ useEffect(() => {
     </div>
     <LiaOpencart size={100} className="mx-auto mb-8 text-gray-500" />
     <h1 className="text-lg font-medium mb-4">Your Cart Is Currently Empty!</h1>
+    <p className="text-gray-400 mb-8 text-xs">Before proceeding to checkout you must add some products to your shopping cart.</p>
     <NavLink
       to="/products"
       className="inline-block bg-gradient-to-r from-black to-[#4B88A3] text-white py-2 px-6 rounded-full font-normal text-xs"

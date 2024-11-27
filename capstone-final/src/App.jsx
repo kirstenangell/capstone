@@ -37,6 +37,7 @@ import ProductDetail from './product-page-component/ProductDetail';
 import Login from './login-page-component/Login';
 import ForgotPassword from './login-page-component/ForgotPassword';
 import ProductSection from './product-page-component/ProductSection';
+import CheckoutLanding from './cart-page-component/CheckoutLanding';
 
 
 
@@ -360,6 +361,7 @@ const [isLoggedIn, setIsLoggedIn] = useState(() => {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/about" element={<AboutUsPage />} />
                     <Route path="/services" element={<ServicePage />} />
+                    <Route path="/checkout-landing" element={<CheckoutLanding />} />
                     <Route
   path="/products"
   element={
