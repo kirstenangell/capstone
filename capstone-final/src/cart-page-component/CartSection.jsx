@@ -21,36 +21,37 @@ const CartSection = ({ onRemoveFromCart }) => {
   const [cartCount, setCartCount] = useState(0); // To store the cart count
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+
   const fetchCartItems = async () => {
-    const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem('userId'); // Ensure the user is logged in
     if (!userId) return;
   
     try {
-      const response = await axios.get(`${baseUrl}/api/cart/${userId}`);
+      const response = await axios.get(`http://localhost:5000/api/cart/${userId}`);
       if (response.status === 200) {
         const fetchedItems = response.data.cartItems;
-        const mergedItems = mergeSimilarItems(fetchedItems); // Merge similar products
-        setCartItems(mergedItems);
-        setQuantities(mergedItems.map((item) => item.quantity || 1));
-        calculateSubtotal(mergedItems);
-        // Update cart count based on merged items
-              const newCartCount = mergedItems.reduce((count, item) => count + item.quantity, 0);
-              updateCartCount(newCartCount);
+        setCartItems(fetchedItems);
+        setQuantities(fetchedItems.map((item) => item.quantity || 1));
+        calculateSubtotal(fetchedItems);
       }
     } catch (error) {
       console.error('Error fetching cart items:', error);
     }
-  };  
+  };
+  
+
 
   // Fetch cart items on mount
   useEffect(() => {
     fetchCartItems();
   }, []);
+  
+
 
   const mergeSimilarItems = (items) => {
     const merged = [];
     const itemMap = new Map();
-  
+ 
     items.forEach((item) => {
       const key = item.name; // Use product name as the key for merging
       if (itemMap.has(key)) {
@@ -60,7 +61,7 @@ const CartSection = ({ onRemoveFromCart }) => {
         itemMap.set(key, { ...item });
       }
     });
-  
+ 
     itemMap.forEach((value) => merged.push(value));
     return merged;
   };
@@ -96,9 +97,9 @@ useEffect(() => {
       setShowModal(true);
       return;
     }
-  
+ 
     const updatedItem = { ...cartItems[index], quantity: updatedQuantities[index] };
-  
+ 
     try {
       await axios.post(`${baseUrl}/api/cart`, updatedItem); // Update the backend
       const updatedCartItems = [...cartItems];
@@ -136,16 +137,19 @@ useEffect(() => {
     setShowModal(false);
   };
 
+
   const handleSelectToggle = () => {
     setShowSelectors((prev) => !prev);
     setShowDeleteButton((prev) => !prev);
   };
+
 
   const handleCheckboxChange = (index, checked) => {
     setSelectedItems((prev) =>
       checked ? [...prev, index] : prev.filter((itemIndex) => itemIndex !== index)
     );
   };
+
 
   const handleDeleteSelectedClick = () => {
     setShowSelectedModal(true);
@@ -198,7 +202,6 @@ useEffect(() => {
     </div>
     <LiaOpencart size={100} className="mx-auto mb-8 text-gray-500" />
     <h1 className="text-lg font-medium mb-4">Your Cart Is Currently Empty!</h1>
-    <p className="text-gray-400 mb-8 text-xs">Before proceeding to checkout you must add some products to your shopping cart.</p>
     <NavLink
       to="/products"
       className="inline-block bg-gradient-to-r from-black to-[#4B88A3] text-white py-2 px-6 rounded-full font-normal text-xs"
@@ -333,5 +336,6 @@ useEffect(() => {
     </div>
   );
 };
+
 
 export default CartSection;

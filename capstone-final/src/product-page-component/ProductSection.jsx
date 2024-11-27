@@ -67,37 +67,41 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     window.scrollTo(0, 0);
   };
 
+
   const handleBackToProducts = () => {
     setSelectedProduct(null);
   };
 
   const handleAddToCartClick = async (product) => {
-    const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem('userId'); // Ensure the user is logged in
     if (!userId) {
       console.error('User ID is missing. Redirecting to login...');
       navigate('/login');
       return;
     }
-
+  
+    // Prepare the payload
     const payload = {
       user_id: userId,
       product_id: product.id,
       quantity: product.quantity || 1,
     };
-
-    console.log('Payload to be sent:', payload);
-
+  
     try {
+      // Make API call to add item to cart
       const response = await axios.post('http://localhost:5000/api/cart', payload, {
         headers: { 'Content-Type': 'application/json' },
       });
+  
       if (response.status === 200) {
         console.log('Product added to cart:', response.data);
       }
     } catch (error) {
-      console.error('Failed to add product to cart:', error.response?.data || error.message);
+      console.error('Error adding product to cart:', error);
     }
   };
+  
+
 
   const handleBuyNow = (product) => {
     if (isLoggedIn) {
@@ -108,10 +112,12 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     }
   };
 
+
   // Filtering related products by category (for recommendations)
   const getRelatedProducts = (product) => {
     return products.filter((p) => p.category === product.category && p.id !== product.id && !p.archived);
   };
+
 
   return (
     <div className="relative min-h-screen bg-black text-white pb-80">
@@ -146,6 +152,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
               style={{ backgroundImage: `url(${dashboardImage})`, opacity: 0.3, zIndex: -1 }}
             />
           </div>
+
 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
             <h1 className="text-4xl font-bold">PRODUCT NAME</h1>
@@ -184,7 +191,6 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     Filter <FaChevronDown />
   </button>
 </form>
-
 
         {isDropdownOpen && (
           <div className="absolute right-64 mt-2 w-46 bg-black text-white rounded-md shadow-lg border border-cyan-900 shadow-cyan-900/50 z-10">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductContext } from '../context/ProductContext';
+import axios from 'axios'; // Add this import statement
 
 const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   const { products } = useContext(ProductContext);
@@ -8,11 +9,13 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5173';
 
+
   const [selectedProduct, setSelectedProduct] = useState({
     ...location.state?.product || products[0],
     quantity: 0,
   });
   const [showLoginWarning, setShowLoginWarning] = useState(false);
+
 
   useEffect(() => {
     if (location.state?.product) {
@@ -20,44 +23,74 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
     }
   }, [location.state]);
 
-  const handleAddToCartClick = () => {
-    if (isLoggedIn) {
-      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
-    } else {
-      setShowLoginWarning(true);
+
+  const handleAddToCartClick = async () => {
+    const userId = localStorage.getItem('userId'); // Ensure the user is logged in
+    if (!userId) {
+      console.error('User ID is missing. Redirecting to login...');
+      navigate('/login');
+      return;
     }
-};
-
-const handleBuyNowClick = async () => {
-  if (isLoggedIn) {
-    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
-          navigate('/cart');
-    const userId = localStorage.getItem('userId');
-
-    const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        productId: selectedProduct.id,
-        quantity: selectedProduct.quantity || 1,
-      }),
-    });
-
-    if (response.ok) {
-      navigate('/checkout-landing'); // Redirect to checkout
-    } else {
-      console.error('Error with Buy Now:', response.statusText);
+  
+    // Prepare the payload
+    const payload = {
+      user_id: userId,
+      product_id: selectedProduct.id,
+      quantity: selectedProduct.quantity || 1,
+    };
+  
+    try {
+      // Make API call to add item to cart
+      const response = await axios.post('http://localhost:5000/api/cart', payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+  
+      if (response.status === 200) {
+        console.log('Product added to cart:', response.data);
+      }
+    } catch (error) {
+      console.error('Error adding product to cart:', error);
     }
-  } else {
-    setShowLoginWarning(true);
-  }
-};
+  };
+  
+
+
+  const handleBuyNowClick = async () => {
+    const userId = localStorage.getItem('userId'); // Ensure the user is logged in
+    if (!userId) {
+      setShowLoginWarning(true); // Show the login warning modal
+      return;
+    }
+  
+    // Prepare the payload
+    const payload = {
+      user_id: userId,
+      product_id: selectedProduct.id,
+      quantity: selectedProduct.quantity || 1,
+    };
+  
+    try {
+      // Add the item to the cart
+      const response = await axios.post('http://localhost:5000/api/cart', payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+  
+      if (response.status === 200) {
+        console.log('Product added to cart:', response.data);
+  
+        // Navigate to the cart page
+        navigate('/checkout-landing');
+      }
+    } catch (error) {
+      console.error('Failed to proceed with Buy Now:', error.response?.data || error.message);
+    }
+  };
+  
 
   const handleLoginRedirect = () => {
     navigate('/login');
   };
+
 
   return (
     <div className="min-h-screen bg-black text-white p-6 mt-12">
@@ -83,14 +116,15 @@ const handleBuyNowClick = async () => {
         </div>
       )}
 
+
       <div className="max-w-7xl mx-auto flex">
   {/* Left Side - Thumbnails and Main Image */}
   <div className="flex flex-col items-center space-y-4">
     {selectedProduct.relatedImages?.slice(0, 3).map((image, index) => (
      <img
      key={index}
-     src={image.startsWith('http') 
-       ? image 
+     src={image.startsWith('http')
+       ? image
        : `${baseUrl}/${image.startsWith('/') ? image.slice(1) : image}`
      }
      alt={`Related image ${index + 1}`}
@@ -102,23 +136,26 @@ const handleBuyNowClick = async () => {
    
     ))}
 
+
     <div className="w-full rounded-lg p-8 shadow-lg flex items-center justify-center bg-black">
     <img  
-  src={selectedProduct.image.startsWith('http') 
-    ? selectedProduct.image 
+  src={selectedProduct.image.startsWith('http')
+    ? selectedProduct.image
     : `${baseUrl}/${selectedProduct.image.startsWith('/') ? selectedProduct.image.slice(1) : selectedProduct.image}`
   }
-  alt={selectedProduct.name} 
-  className="w-96 h-96 object-contain" 
+  alt={selectedProduct.name}
+  className="w-96 h-96 object-contain"
 />
 
+
     </div>
+
 
     {selectedProduct.relatedImages?.slice(3).map((image, index) => (
    <img
    key={index}
-   src={image.startsWith('http') 
-     ? image 
+   src={image.startsWith('http')
+     ? image
      : `${baseUrl}/${image.startsWith('/') ? image.slice(1) : image}`
    }
    alt={`Related image ${index + 4}`} // Adjust the index to continue from above
@@ -128,9 +165,10 @@ const handleBuyNowClick = async () => {
    onClick={() => setSelectedProduct({ ...selectedProduct, image })}
  />
  
-    
+   
     ))}
   </div>
+
 
   {/* Right Side - Product Details */}
   <div className="ml-12 flex-1">
@@ -138,6 +176,7 @@ const handleBuyNowClick = async () => {
     <p className="mt-4 text-gray-400">
       {selectedProduct.description || 'No description provided.'}
     </p>
+
 
           {/* Static Star Rating */}
           <div className="flex items-center mt-4">
@@ -147,10 +186,12 @@ const handleBuyNowClick = async () => {
             <span className="ml-2 text-sm text-gray-400">(11 Reviews)</span>
           </div>
 
+
           {/* Price */}
           <div className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
             PHP {selectedProduct.price.toLocaleString()}
           </div>
+
 
           {/* Quantity Selector */}
           <div className="flex items-center mt-4">
@@ -179,6 +220,7 @@ const handleBuyNowClick = async () => {
             </button>
           </div>
 
+
           {/* Additional Product Details */}
           <div className="mt-6 space-y-2 text-gray-400 font-thin">
             <p>Product Type: {selectedProduct.type || 'N/A'}</p>
@@ -189,6 +231,7 @@ const handleBuyNowClick = async () => {
             <p>Material: {selectedProduct.material || 'N/A'}</p>
             <p>Model: {selectedProduct.model || 'N/A'}</p>
           </div>
+
 
           {/* Action Buttons */}
           <div className="flex mt-6 space-x-4">
@@ -208,6 +251,7 @@ const handleBuyNowClick = async () => {
         </div>
       </div>
 
+
       {/* "You may also like" Section */}
       <div className="mt-16">
         <h2 className="text-xl font-semibold mb-4">You may also like</h2>
@@ -220,13 +264,14 @@ const handleBuyNowClick = async () => {
               onClick={() => setSelectedProduct({ ...product, quantity: 0 })}
             >
               <img
-  src={product.image.startsWith('http') 
-    ? product.image 
+  src={product.image.startsWith('http')
+    ? product.image
     : `${baseUrl}/${product.image.startsWith('/') ? product.image.slice(1) : product.image}`
   }
   alt={product.name}
   className="w-full h-64 object-contain rounded-md"
 />
+
 
               <div className="mt-4">
                 <p className="text-sm text-gray-400">LOREM IPSUM</p>
@@ -242,5 +287,6 @@ const handleBuyNowClick = async () => {
     </div>
   );
 };
+
 
 export default ProductDetail;
