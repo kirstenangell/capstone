@@ -37,6 +37,7 @@ import ProductDetail from './product-page-component/ProductDetail';
 import Login from './login-page-component/Login';
 import ForgotPassword from './login-page-component/ForgotPassword';
 import ProductSection from './product-page-component/ProductSection';
+import CheckoutLanding from './cart-page-component/CheckoutLanding';
 
 
 
@@ -360,20 +361,20 @@ const [isLoggedIn, setIsLoggedIn] = useState(() => {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/about" element={<AboutUsPage />} />
                     <Route path="/services" element={<ServicePage />} />
+                    <Route path="/checkout-landing" element={<CheckoutLanding />} />
+
                     <Route
-  path="/products"
-  element={
-    <ProductProvider>
-      <ProductSection
-        // Pass the list of products as props
-        onAddToCart={handleAddToCartClick} // Directly pass the handleAddToCart function
-        isLoggedIn={isLoggedIn} // Pass the logged-in status
-      />
-    </ProductProvider>
-  }
-/>
-
-
+                      path="/products"
+                      element={
+                        <ProductProvider>
+                          <ProductSection
+                            // Pass the list of products as props
+                            onAddToCart={handleAddToCartClick} // Directly pass the handleAddToCart function
+                            isLoggedIn={isLoggedIn} // Pass the logged-in status
+                          />
+                        </ProductProvider>
+                      }
+                    />
                     <Route
                       path="/cart/*"
                       element={
@@ -400,20 +401,20 @@ const [isLoggedIn, setIsLoggedIn] = useState(() => {
                     <Route path="/manage-account" element={<ManageAcc />} />
 
                     {/* Subcategory routes */}
-        <Route path="/category" element={<Category />} />            
-        <Route path="/products/subwoofer" element={<Subwoofer />} />
-        <Route path="/products/amplifier" element={<Amplifier />} />
-        <Route path="/products/carcooler" element={<CarCooler />} />
-        <Route path="/products/carhorn" element={<CarHorn />} />
-        <Route path="/products/carmultimedia" element={<CarMultimedia />} />
-        <Route path="/products/dashcam" element={<DashCam />} />
-        <Route path="/products/halogen" element={<Halogen />} />
-        <Route path="/products/led" element={<LED />} />
-        <Route path="/products/reversecamera" element={<ReverseCamera />} />
-        <Route path="/products/sedanwheel" element={<SedanWheel />} />
-        <Route path="/products/speaker" element={<Speaker />} />
-        <Route path="/products/suvwheel" element={<SUVWheel />} />
-        <Route path="/products/tweeter" element={<Tweeter />} />
+                    <Route path="/category" element={<Category />} />            
+                    <Route path="/products/subwoofer" element={<Subwoofer />} />
+                    <Route path="/products/amplifier" element={<Amplifier />} />
+                    <Route path="/products/carcooler" element={<CarCooler />} />
+                    <Route path="/products/carhorn" element={<CarHorn />} />
+                    <Route path="/products/carmultimedia" element={<CarMultimedia />} />
+                    <Route path="/products/dashcam" element={<DashCam />} />
+                    <Route path="/products/halogen" element={<Halogen />} />
+                    <Route path="/products/led" element={<LED />} />
+                    <Route path="/products/reversecamera" element={<ReverseCamera />} />
+                    <Route path="/products/sedanwheel" element={<SedanWheel />} />
+                    <Route path="/products/speaker" element={<Speaker />} />
+                    <Route path="/products/suvwheel" element={<SUVWheel />} />
+                    <Route path="/products/tweeter" element={<Tweeter />} />
 
 
                   </Routes>
