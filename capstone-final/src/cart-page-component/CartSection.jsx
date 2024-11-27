@@ -86,48 +86,77 @@ const CartSection = ({ onRemoveFromCart }) => {
     }, 0);
     setSubtotal(total);
   };
+  
+  // Trigger subtotal calculation on quantities change
+  useEffect(() => {
+    calculateSubtotal(cartItems);
+  }, [quantities, cartItems]);
+  
 
 
   // Calculate and update the cart item count
-const updateCartCount = () => {
-  const totalItems = quantities.reduce((total, quantity) => total + quantity, 0); // Calculate total items
-  setCartCount(totalItems); // Update the cart count state
-};
+  const updateCartCount = () => {
+    const totalItems = cartItems.reduce((total, item, index) => {
+      return total + (quantities[index] || item.quantity || 0);
+    }, 0);
+    setCartCount(totalItems);
+  };
+  
+  // Update cart count on quantities or cartItems change
+  useEffect(() => {
+    updateCartCount();
+  }, [quantities, cartItems]);
+  
 
 
 useEffect(() => {
-  updateCartCount(); // Update the cart count whenever quantities change
-}, [quantities]);
+  updateCartCount();
+}, [quantities, cartItems]);
 
 
   // Update item quantity
   const handleQuantityChange = async (index, action) => {
     const updatedQuantities = [...quantities];
 
+    // Adjust quantity based on the action
     if (action === 'increase') {
         updatedQuantities[index]++;
     } else if (action === 'decrease' && updatedQuantities[index] > 1) {
         updatedQuantities[index]--;
+    } else {
+        return; // Prevent quantity from going below 1
     }
 
-    const updatedItem = {
-        user_id: localStorage.getItem('userId'),
-        product_id: cartItems[index].productId,
-        quantity: updatedQuantities[index]
-    };
+    const cartId = cartItems[index].cartId;
+
+    // Debugging logs
+    console.log('Updating cartId:', cartId);
+    console.log('New Quantity:', updatedQuantities[index]);
 
     try {
-        await axios.post(`${baseUrl}/api/cart`, updatedItem);
-        setQuantities(updatedQuantities);
-        setCartItems((prevItems) => {
-            const newItems = [...prevItems];
-            newItems[index].quantity = updatedQuantities[index];
-            return newItems;
+        // Send the updated quantity to the server
+        const response = await axios.put(`http://localhost:5000/api/cart/${cartId}`, {
+            quantity: updatedQuantities[index],
         });
+
+        if (response.status === 200) {
+            // Update state only if the server update is successful
+            setQuantities(updatedQuantities);
+            setCartItems((prevItems) => {
+                const newItems = [...prevItems];
+                newItems[index].quantity = updatedQuantities[index];
+                return newItems;
+            });
+            calculateSubtotal(cartItems); // Recalculate subtotal
+        }
     } catch (error) {
-        console.error('Error updating quantity:', error);
+        console.error('Error updating quantity:', error.response?.data || error.message);
+        alert('Unable to update quantity. Please try again.');
     }
 };
+
+  
+
 
 
   const handleDeleteClick = (index) => {
