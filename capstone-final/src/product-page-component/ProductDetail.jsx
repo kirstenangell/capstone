@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductContext } from '../context/ProductContext';
 import { useUser } from '../context/UserContext';
+import axios from 'axios'; // Add this import statement
 
 const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   const { products } = useContext(ProductContext);
@@ -13,66 +14,70 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   });
   const [showLoginWarning, setShowLoginWarning] = useState(false);
 
+
   useEffect(() => {
     if (location.state?.product) {
       setSelectedProduct({ ...location.state.product, quantity: 0 });
     }
   }, [location.state]);
 
-  const handleAddToCart = async (productId, quantity) => {
-    if (isLoggedIn) {
-      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
-      const userId = localStorage.getItem('userId');
-  
-      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          quantity: selectedProduct.quantity || 1,
-        }),
-      });
-  
-      if (response.ok) {
-        console.log('Product added to cart successfully');
-        // Optionally, if you need to do something on success, you can do it here.
-      } else {
-        console.error('Error with Add to Cart:', response.statusText);
-      }
-    } else {
-      setShowLoginWarning(true);
+  const handleAddToCart = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+        console.error("User ID is missing. Redirecting to login...");
+        navigate('/login');
+        return;
     }
-};
+
+    const payload = {
+        user_id: userId,
+        product_id: selectedProduct.id,
+        quantity: selectedProduct.quantity || 1,
+    };
+
+    try {
+        const response = await axios.post('http://localhost:5000/api/cart', payload, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (response.status === 200) {
+            console.log("Product added to cart:", response.data);
+            if (updateCartCount) updateCartCount(); // Use the prop
+        }
+    } catch (error) {
+        console.error("Failed to add product to cart:", error.response?.data || error.message);
+    }
+  };
+
+
 
 
   const handleBuyNowClick = async () => {
-    if (isLoggedIn) {
-      onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
-            navigate('/cart');
-      const userId = localStorage.getItem('userId');
-  
-      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          quantity: selectedProduct.quantity || 1,
-        }),
-      });
-  
-      if (response.ok) {
-        navigate('/checkout-landing'); // Redirect to checkout
-      } else {
-        console.error('Error with Buy Now:', response.statusText);
-      }
-    } else {
-      setShowLoginWarning(true);
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+        console.error("User ID is missing. Redirecting to login...");
+        navigate('/login');
+        return;
     }
-  };  
+
+    const payload = {
+        user_id: userId,
+        product_id: selectedProduct.id,
+        quantity: selectedProduct.quantity || 1,
+    };
+
+    try {
+        const response = await axios.post('http://localhost:5000/api/cart', payload, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (response.status === 200) {
+            console.log("Product added to cart for Buy Now:", response.data);
+            navigate('/checkout-landing'); // Redirect to checkout page
+        }
+    } catch (error) {
+        console.error("Failed to process Buy Now:", error.response?.data || error.message);
+    }
+  };
+
 
   const handleLoginRedirect = () => {
     navigate('/login');
