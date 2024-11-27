@@ -61,7 +61,6 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
     }
   };
 
-
   const handleBuyNowClick = async () => {
     const userId = localStorage.getItem('userId'); // Ensure the user is logged in
     if (!userId) {
@@ -85,18 +84,9 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
  
       if (response.status === 200) {
         console.log('Product added to cart:', response.data);
- 
-        // Redirect to checkout-landing page with selected product details
+        // Redirect to checkout page with cart data
         navigate('/checkout-landing', {
-          state: {
-            cartItems: [
-              {
-                ...selectedProduct,
-                quantity: selectedProduct.quantity || 1,
-              },
-            ],
-            total: selectedProduct.price * (selectedProduct.quantity || 1),
-          },
+          state: { cartItems: [selectedProduct], total: selectedProduct.price * (selectedProduct.quantity || 1) },
         });
       }
     } catch (error) {

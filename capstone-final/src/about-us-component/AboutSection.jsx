@@ -8,7 +8,7 @@ const boxes = [
     id: 1,
     title: 'ABOUT US',
     image: backgroundImage1,
-    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Cras fermentum odio eu feugiat. Duis at tellus at urna condimentum mattis pellentesque id nibh.',
+    text: 'Established in 1990 by Mrs. Veneranda Villafuerte Francisco, our family-owned business began as Franville Car Accessories in Cubao, offering quality car accessories and exceptional service. Despite challenges, including the loss of our founder in 2021, we rebranded as Flacko Auto Parts and Accessories Trading under the leadership of Rhea Villafuerte Francisco, continuing our commitment to excellence and our customers.',
   },
   {
     id: 2,
@@ -28,7 +28,7 @@ const AboutUs = () => {
   const [background, setBackground] = useState({
     image: backgroundImage1,
     title: 'ABOUT US',
-    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Cras fermentum odio eu feugiat. Duis at tellus at urna condimentum mattis pellentesque id nibh.',
+    text: 'Flacko Auto Parts and Accessories Trading is your trusted source for quality car parts and accessories. Built on a legacy of dedication and exceptional service, we strive to provide solutions tailored to every need. From our humble beginnings to a trusted industry name, we remain committed to reliability, innovation, and customer satisfaction.',
   });
 
   const handleBoxClick = (box) => {
