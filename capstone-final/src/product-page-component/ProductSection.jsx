@@ -7,6 +7,7 @@ import Wheel3 from "../assets/wheel3.png";
 import Wheel5 from "../assets/wheel5.png";
 import dashboardImage from '../assets/dashboard.png';
 import { ProductContext } from '../context/ProductContext';
+import axios from 'axios'; // Add this import statement
 
 
 const ProductSection = ({ onAddToCart, isLoggedIn }) => {
@@ -36,13 +37,40 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     setSelectedProduct(null);
   };
 
-  const handleAddToCartClick = (product) => {
-    if (isLoggedIn) {
-      onAddToCart(product);
-    } else {
-      setShowLoginWarning(true); // Show login warning
+  const handleAddToCartClick = async (product) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+        console.error("User ID is missing. Redirecting to login...");
+        navigate('/login');
+        return;
     }
-  };
+
+    const payload = {
+        user_id: userId,
+        product_id: product.id,
+        quantity: product.quantity || 1,
+    };
+
+    console.log("Payload to be sent:", payload);
+
+    try {
+        const response = await axios.post('http://localhost:5000/api/cart', payload, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (response.status === 200) {
+            console.log("Product added to cart:", response.data);
+        }
+    } catch (error) {
+        console.error("Failed to add product to cart:", error.response?.data || error.message);
+    }
+};
+
+
+
+
+
+
+
 
   const handleBuyNow = (product) => {
     if (isLoggedIn) {

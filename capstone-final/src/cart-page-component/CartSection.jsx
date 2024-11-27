@@ -15,6 +15,29 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
 
+  useEffect(() => {
+    const fetchCartItems = async () => {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/cart/${userId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch cart items');
+            }
+            const items = await response.json();
+            console.log('Fetched Cart Items:', items); // Log fetched cart items
+            setQuantities(items.map(item => item.quantity));
+        } catch (error) {
+            console.error('Error fetching cart items:', error);
+        }
+    };
+
+    fetchCartItems();
+}, []);
+
+
+
   const calculateSubtotal = () => {
     return quantities.reduce((total, quantity, index) => {
       return total + quantity * (cartItems[index]?.price || 0);
@@ -46,11 +69,18 @@ const CartSection = ({ cartItems, onRemoveFromCart, onUpdateQuantity }) => {
     setShowModal(true);
   };
 
-  const handleConfirmRemove = () => {
-    onRemoveFromCart(removeIndex);
-    setQuantities((prevQuantities) => prevQuantities.filter((_, i) => i !== removeIndex));
-    setShowModal(false);
-  };
+  const handleConfirmRemove = async () => {
+    try {
+        const cartId = cartItems[removeIndex].cartId;
+        await fetch(`http://localhost:5000/api/cart/${cartId}`, { method: 'DELETE' });
+        onRemoveFromCart(removeIndex);
+        setQuantities((prevQuantities) => prevQuantities.filter((_, i) => i !== removeIndex));
+        setShowModal(false);
+    } catch (error) {
+        console.error('Error removing product from cart:', error);
+    }
+};
+
 
   const handleCancelRemove = () => {
     setShowModal(false);

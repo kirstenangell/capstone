@@ -66,6 +66,33 @@ import Tweeter from './subcategory-pages/Tweeter';
 
 function App() {
 
+  const [userId, setUserId] = useState(() => {
+    const id = localStorage.getItem('userId');
+    if (!id) {
+      console.warn('User ID not found in localStorage. Redirecting to login.');
+      // Handle user redirection or initialization
+    }
+    return id;
+  });
+
+  useEffect(() => {
+    if (!userId) {
+      console.error('User ID is missing. Redirecting to login...');
+      // Redirect to login page or show appropriate message
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    const id = localStorage.getItem('userId');
+    if (id) {
+        console.log(`User ID exists in localStorage: ${id}`);
+    } else {
+        console.error('User ID is missing in localStorage. Redirecting to login...');
+
+    }
+}, []);
+
+
   // Cart State Management
 const [cartItems, setCartItems] = useState(() => {
   const savedCartItems = localStorage.getItem('cartItems');
@@ -103,14 +130,14 @@ const [isLoggedIn, setIsLoggedIn] = useState(() => {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('email');
-    localStorage.removeItem('firstName');
-    localStorage.removeItem('lastName');
+    localStorage.removeItem('userId'); // Clears only the userId
+    localStorage.removeItem('isLoggedIn'); // Optionally clear isLoggedIn
+    localStorage.removeItem('cartItems'); // Optionally clear the cart
+    // Redirect to the login page
+    navigate('/login');
+};
 
-    localStorage.clear();
-  };
-
+  
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
   };
