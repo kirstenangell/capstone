@@ -18,6 +18,7 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
     navigate('/'); // Redirect to landing page
   };
 
+
   return (
     <nav
       className="p-4 flex justify-between items-center sticky top-[52px] z-40"
@@ -127,29 +128,29 @@ const Navbar = ({ cartItemCount, isLoggedIn, handleLogout }) => {
           </div>
 
           <div className="flex items-center space-x-2 ml-10">
-      <NavLink
-        to="/cart"
-        className={({ isActive }) =>
-          `flex items-center justify-center text-white px-4 py-2 relative group transition-all duration-300 transform ${
-            isActive ? 'rounded-full' : ''
-          }`
-        }
-        style={({ isActive }) =>
-          isActive
-            ? {
-                background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
-                boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
-              }
-            : {}
-        }
-      >
-        <IoIosCart className="text-white w-5 h-5" />
-        {cartItemCount > 0 && (
-          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-            {cartItemCount}
-          </span>
-        )}
-      </NavLink>
+          <NavLink
+    to="/cart"
+    className={({ isActive }) =>
+      `flex items-center justify-center text-white px-4 py-2 relative group transition-all duration-300 transform ${
+        isActive ? 'rounded-full' : ''
+      }`
+    }
+    style={({ isActive }) =>
+      isActive
+        ? {
+            background: 'linear-gradient(45deg, #4B88A3 0%, #040405 0%, #4B88A3 180%)',
+            boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.9)',
+          }
+        : {}
+    }
+  >
+    <IoIosCart className="text-white w-5 h-5" />
+    {cartItemCount > 0 && (
+      <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+        {cartItemCount}
+      </span>
+    )}
+  </NavLink>
       
             {!isLoggedIn ? (
               <NavLink

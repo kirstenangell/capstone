@@ -28,15 +28,28 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
     }
 };
 
-const product = {
-  image: "uploads/example.png",
-  name: "Example Product",
-};
-
-const handleBuyNow = (product) => {
+const handleBuyNowClick = async () => {
   if (isLoggedIn) {
-    onAddToCart(product);
-    navigate('/cart');
+    onAddToCart({ ...selectedProduct, quantity: selectedProduct.quantity || 1 });
+          navigate('/cart');
+    const userId = localStorage.getItem('userId');
+
+    const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        productId: selectedProduct.id,
+        quantity: selectedProduct.quantity || 1,
+      }),
+    });
+
+    if (response.ok) {
+      navigate('/checkout-landing'); // Redirect to checkout
+    } else {
+      console.error('Error with Buy Now:', response.statusText);
+    }
   } else {
     setShowLoginWarning(true);
   }
@@ -186,7 +199,7 @@ const handleBuyNow = (product) => {
               ADD TO CART
             </button>
             <button
-              onClick={handleBuyNow}
+              onClick={handleBuyNowClick}
               className="px-6 py-2 text-white bg-black rounded-md focus:outline-none border border-[#62B1D1] hover:bg-gray-800 transition-colors"
             >
               BUY NOW

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const express = require('express');
+const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const mysql = require('mysql2');
@@ -1390,21 +1391,25 @@ app.post('/api/cart', async (req, res) => {
       return res.status(400).json({ message: 'Invalid user ID.' });
     }
 
-    // Validate if product ID exists in the database
-    const productQuery = `SELECT id FROM products WHERE id = ?`;
+    // Validate if product ID exists in the database and fetch its price
+    const productQuery = `SELECT id, price FROM products WHERE id = ?`;
     const [productRows] = await db.promise().query(productQuery, [productId]);
 
     if (productRows.length === 0) {
       return res.status(400).json({ message: 'Invalid product ID.' });
     }
 
-    // Add item to cart
+    const price = productRows[0].price; // Get the product price
+
+    // Add item to cart with price
     const insertQuery = `
-      INSERT INTO cart (user_id, product_id, quantity)
-      VALUES (?, ?, ?)
-      ON DUPLICATE KEY UPDATE quantity = quantity + ?
+      INSERT INTO cart (user_id, product_id, quantity, price)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE 
+        quantity = quantity + ?, 
+        price = VALUES(price)
     `;
-    await db.promise().query(insertQuery, [userId, productId, quantity, quantity]);
+    await db.promise().query(insertQuery, [userId, productId, quantity, price, quantity]);
 
     res.status(200).json({ message: 'Item added to cart successfully' });
   } catch (error) {
@@ -1433,23 +1438,27 @@ app.get('/api/cart/:userId', async (req, res) => {
     // Fetch cart items
     const query = `
       SELECT 
-        c.id AS cartId, p.id AS productId, p.name, p.price, c.quantity, p.image
-      FROM cart c
-      JOIN products p ON c.product_id = p.id
-      WHERE c.user_id = ?
+  c.id AS cartId, 
+  p.id AS productId, 
+  p.name, 
+  p.price, 
+  c.quantity, 
+  p.image 
+  FROM cart c
+  JOIN products p ON c.product_id = p.id
+  WHERE c.user_id = ?
     `;
     const [rows] = await db.promise().query(query, [userId]);
 
     res.status(200).json({
       success: true,
-      cartItems: rows,
+      cartItems: rows, // Ensure this matches what the frontend expects
     });
   } catch (err) {
     console.error('Error fetching cart items:', err);
     res.status(500).json({ message: 'Server error.' });
   }
 });
-
 
 app.delete('/api/cart/:cartId', async (req, res) => {
   const { cartId } = req.params;
@@ -1481,7 +1490,45 @@ app.delete('/api/cart/:cartId', async (req, res) => {
   }
 });
 
+// Fetches all cart items for a given user_id
+app.get('/api/cart', (req, res) => {
+  const userId = req.query.user_id; // Retrieve the user_id from query params
 
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required' });
+  }
+
+  // Replace with your actual query to fetch cart items for the user
+  const query = `SELECT * FROM cart WHERE user_id = ?`;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching cart items:', err);
+      return res.status(500).json({ message: 'Error fetching cart items' });
+    }
+    res.status(200).json(results); // Send cart items back to the client
+  });
+});
+
+router.get('/cart', async (req, res) => {
+  const { user_id } = req.query; // Extract user_id from query parameters
+  if (!user_id) return res.status(400).send('User ID is required');
+  
+  // Fetch cart items from the database
+  const cartItems = await db.query('SELECT * FROM cart WHERE user_id = ?', [user_id]);
+  res.json(cartItems);
+});
+
+router.post('/cart', async (req, res) => {
+  const { user_id, product_id, quantity } = req.body; // Extract payload
+  if (!user_id || !product_id || !quantity) return res.status(400).send('Missing required fields');
+  
+  // Insert into cart database
+  await db.query('INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)', [user_id, product_id, quantity]);
+  res.json({ message: 'Item added to cart successfully' });
+});
+
+module.exports = router;
 
 
 // Start the server
