@@ -1703,6 +1703,129 @@ router.post('/cart', async (req, res) => {
 
 module.exports = router;
 
+app.put('/api/cart/:cartId', async (req, res) => {
+  const { cartId } = req.params; // Extract cartId from the request parameters
+  const { quantity } = req.body; // Extract quantity from the request body
+
+  // Validate input
+  if (!cartId || typeof quantity !== 'number' || quantity <= 0) {
+    return res.status(400).json({ message: 'Invalid cart ID or quantity.' });
+  }
+
+  try {
+    // Check if the cart item exists
+    const [cartItemRows] = await db.promise().query(
+      'SELECT product_id, quantity FROM cart WHERE id = ?',
+      [cartId]
+    );
+
+    if (cartItemRows.length === 0) {
+      return res.status(404).json({ message: 'Cart item not found.' });
+    }
+
+    const cartItem = cartItemRows[0];
+
+    // Fetch the product to ensure stock validation
+    const [productRows] = await db.promise().query(
+      'SELECT quantity AS available_quantity FROM products WHERE id = ?',
+      [cartItem.product_id]
+    );
+
+    if (productRows.length === 0) {
+      return res.status(404).json({ message: 'Product associated with cart item not found.' });
+    }
+
+    const availableQuantity = productRows[0].available_quantity;
+
+    // Ensure the updated quantity doesn't exceed the available stock
+    if (quantity > availableQuantity + cartItem.quantity) {
+      return res.status(400).json({
+        message: `Insufficient stock. Only ${availableQuantity + cartItem.quantity} items are available.`,
+      });
+    }
+
+    // Update the cart quantity
+    await db.promise().query(
+      'UPDATE cart SET quantity = ? WHERE id = ?',
+      [quantity, cartId]
+    );
+
+    // Update the product's stock
+    const quantityDifference = quantity - cartItem.quantity; // Calculate how much the quantity has changed
+    await db.promise().query(
+      'UPDATE products SET quantity = quantity - ? WHERE id = ?',
+      [quantityDifference, cartItem.product_id]
+    );
+
+    res.status(200).json({ message: 'Cart updated successfully.' });
+  } catch (error) {
+    console.error('Error updating cart item:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+});
+
+
+
+app.post('/api/cart', async (req, res) => {
+  console.log('Payload received:', req.body); 
+  const { user_id, product_id, quantity } = req.body;
+
+  // Validation block for user_id, product_id, and quantity
+  if (!user_id || !product_id || typeof quantity !== 'number' || quantity < 0) {
+      return res.status(400).json({ message: 'Invalid input: Ensure all fields are provided and valid.' });
+  }
+
+  try {
+      // Further logic to check if user and product exist in the database
+      const [userRows] = await db.promise().query('SELECT id FROM users WHERE id = ?', [user_id]);
+      const [productRows] = await db.promise().query('SELECT id, price, quantity AS available_quantity FROM products WHERE id = ?', [product_id]);
+
+      if (userRows.length === 0 || productRows.length === 0) {
+          return res.status(400).json({ message: 'Invalid user or product ID.' });
+      }
+
+      const price = productRows[0].price;
+      const availableQuantity = productRows[0].available_quantity;
+
+      // Check if the quantity exceeds available stock
+      if (quantity > availableQuantity) {
+          return res.status(400).json({ message: `Insufficient stock. Only ${availableQuantity} items available.` });
+      }
+
+      // If quantity is 0, delete the item from the cart
+      if (quantity === 0) {
+          const deleteQuery = `DELETE FROM cart WHERE user_id = ? AND product_id = ?`;
+          await db.promise().query(deleteQuery, [user_id, product_id]);
+          return res.status(200).json({ message: 'Item removed from cart successfully.' });
+      }
+
+      // Insert or update the cart item
+      const query = `
+          INSERT INTO cart (user_id, product_id, quantity, price)
+          VALUES (?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+              quantity = VALUES(quantity),
+              price = VALUES(price)
+      `;
+      await db.promise().query(query, [user_id, product_id, quantity, price]);
+
+      // Update product stock in the products table
+      const stockUpdateQuery = `
+          UPDATE products
+          SET quantity = quantity - ?
+          WHERE id = ? AND quantity >= ?
+      `;
+      await db.promise().query(stockUpdateQuery, [quantity, product_id, quantity]);
+
+      res.status(200).json({ message: 'Cart updated successfully.' });
+  } catch (error) {
+      console.error('Error adding item to cart:', error);
+      res.status(500).json({ message: 'Server error.' });
+  }
+});
+
+
+
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
