@@ -8,7 +8,7 @@ const Header = () => {
 
   return (
     <header style={headerStyle} className="text-center py-4 sticky top-0 z-50">
-      <h1 className="text-sm text-white tracking-widest">LOREM IPSUM DOLOR SIT AMET CONSECTETUR ADIPISCING ELIT</h1>
+      <h1 className="text-sm text-white tracking-widest">Flacko Auto Parts and Accessories: Excellence in Every Detail</h1>
     </header>
   );
 };
