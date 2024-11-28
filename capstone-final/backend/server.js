@@ -125,15 +125,23 @@ app.post('/submit-contact', async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER, // Sender's email address
       to: 'rhea.ceo.flacko1990@gmail.com', // Owner's email address
-      subject: 'New Inquiry from Contact Us Form',
+      subject: 'New Inquiry Alert',
       html: `
-        <h2>New Inquiry Received</h2>
+        <p><strong>Dear Flacko Team,</p>
+        <p>I am writing to inform you that a new inquiry has been submitted and requires your attention. Below are the details for your reference:</p>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Message:</strong></p>
         <p>${message}</p>
+        <p><strong>What’s next?</strong></p>
+        <ol>
+          <li>Conduct a thorough review of the inquiry to ensure a complete understanding of ${name.split(' ')[0]}'s request.</li>
+          <li>Provide a timely and comprehensive response, addressing all aspects of the inquiry to the best of your ability.</li>
+          <li>Should you require any additional information, resources, or clarification to proceed, do not hesitate to inform the team promptly.</li>
+        </ol>
+        <p>Your responsiveness is appreciated, as it reflects our dedication to excellent service. Thank you for taking care of this!</p>
         <hr />
-        <p>This is an automated message from the Flacko Auto Parts Contact Us form.</p>
+        <p>This is an automated message from the Flacko Auto Parts Contact Us Form.</p>
       `,
     };
 
