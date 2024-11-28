@@ -134,6 +134,36 @@ app.post('/submit-contact', async (req, res) => {
   }
 });
 
+// Check if email exists and is verified
+// Route to check if email exists and is verified
+app.get('/check-email', async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  try {
+    // Replace `users` with your actual table name
+    const query = 'SELECT email, verified FROM users WHERE email = ?';
+    const [results] = await db.promise().query(query, [email]);
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Email not found' });
+    }
+
+    if (results[0].verified !== 1) {
+      return res.status(403).json({ message: 'Email is not verified' });
+    }
+
+    res.status(200).json({ message: 'Email is verified' });
+  } catch (error) {
+    console.error('Error checking email:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 
 
 

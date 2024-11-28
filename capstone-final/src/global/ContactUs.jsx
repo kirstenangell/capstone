@@ -21,32 +21,47 @@ const ContactUs = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(''); // Clear previous errors
+  // Handle form submission
+const handleSubmit = async (e) => {
+  e.preventDefault(); // Prevent default form submission
+  setError(''); // Clear previous errors
 
-    try {
-      // Validate the email before submitting
-      const emailCheckResponse = await axios.get(`http://localhost:5000/check-email?email=${formData.email}`);
+  try {
+    // Step 1: Validate the email before submitting
+    const emailCheckResponse = await axios.get(`http://localhost:5000/check-email?email=${formData.email}`);
 
-      if (emailCheckResponse.status === 200) {
-        // If email exists, proceed with form submission
-        const response = await axios.post('http://localhost:5000/submit-contact', formData);
+    if (emailCheckResponse.status === 200) {
+      // Step 2: Email exists and is verified, proceed with form submission
+      const response = await axios.post('http://localhost:5000/submit-contact', formData);
 
-        if (response.status === 200) {
-          setSubmitted(true);
-          setError('');
-        }
-      }
-    } catch (err) {
-      // Display error if the email does not exist or any other issue occurs
-      if (err.response && err.response.status === 404) {
-        setError('The email is not verified. Please create an account.');
+      if (response.status === 200) {
+        // Step 3: If form submission is successful
+        setSubmitted(true);
+        setError('');
       } else {
-        setError('Failed to submit the form. Please try again.');
+        // Handle unexpected response
+        setError('An unexpected error occurred. Please try again.');
       }
     }
-  };
+  } catch (err) {
+    // Step 4: Handle errors
+    if (err.response) {
+      // Specific error handling based on backend response
+      if (err.response.status === 404) {
+        setError('The email is not verified. Please create an account.');
+      } else if (err.response.status === 403) {
+        setError('The email exists but is not verified. Please verify your email.');
+      } else {
+        setError('Failed to submit the form. Please try again later.');
+      }
+    } else {
+      // Generic error handling
+      console.error('Error submitting the form:', err);
+      setError('A network error occurred. Please check your connection and try again.');
+    }
+  }
+};
+
 
   return (
     <div className="w-full min-h-screen bg-black text-white flex justify-center items-center px-4">
