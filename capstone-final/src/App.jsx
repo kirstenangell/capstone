@@ -362,6 +362,7 @@ const [isLoggedIn, setIsLoggedIn] = useState(() => {
                     <Route path="/about" element={<AboutUsPage />} />
                     <Route path="/services" element={<ServicePage />} />
                     <Route path="/checkout-landing" element={<CheckoutLanding />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
                     <Route
                       path="/products"
                       element={

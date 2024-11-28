@@ -3,7 +3,7 @@ import { FaSearch, FaChevronDown } from 'react-icons/fa';
 import tweeterImage from '../assets/tweeterImage.webp'; // Replace with the path to your image
 import { ProductContext } from '../context/ProductContext';
 
-const Amplifier = () => {
+const Tweeter = () => {
   const { products } = useContext(ProductContext);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState(products);
@@ -164,4 +164,4 @@ const Amplifier = () => {
   );
 };
 
-export default Amplifier;
+export default Tweeter;
