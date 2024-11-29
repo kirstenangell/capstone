@@ -16,7 +16,6 @@ const ProductInformation = () => {
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5173';
   console.log('Base URL:', baseUrl); // Add this line
 
-
   // Pre-fill the form with existing product data if editing
   const isEdit = location.state?.isEdit || false;
   const existingProduct = location.state?.product || {};
@@ -84,7 +83,7 @@ const ProductInformation = () => {
   const product = {
     image: "uploads/example.png",
     name: "Example Product",
-  };  
+  };
 
   // *** NEW FUNCTION ***
   // Handle Save button click (Sending data to the backend)
@@ -141,7 +140,14 @@ const ProductInformation = () => {
         alert(`An error occurred while saving the product: ${error.message}`);
     }
 };
-  
+
+  // Sample categories array (replace with actual categories)
+  const categories = [
+    'Amplifier', 'Car Audio System', 'Car Cooler', 'Car Gadgets', 'Car Horn', 
+    'Car Multimedia', 'Dash Cam', 'Exterior', 'Halogen', 'Hubcap', 'LED', 
+    'Speakers', 'Subwoofer', 'Tweeter', 'Sedan', 'SUV'
+  ];
+
   return (
     <div className="min-h-screen bg-black flex flex-col justify-center items-center relative">
       {/* Header */}
@@ -223,13 +229,16 @@ const ProductInformation = () => {
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-1">Product Category</label>
-                <input
-                  type="text"
+                <select
                   className="w-full p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="Product Category"
                   value={formData.productCategory}
                   onChange={(e) => setFormData({ ...formData, productCategory: e.target.value })}
-                />
+                >
+                  <option value="" disabled>Select Category</option>
+                  {categories.sort().map((category, index) => (
+                    <option key={index} value={category}>{category}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="mb-6">
