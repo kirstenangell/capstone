@@ -40,7 +40,24 @@ const OrderDetails = () => {
     pickUpDate: existingOrder?.pickUpDate || '',
     products: existingOrder?.products ? [...existingOrder.products] : [''],
   });
+  const [address, setAddress] = useState({
+    streetNumber: '',
+    streetName: '',
+    barangay: '',
+    city: '',
+    region: '',
+    zipCode: '',
+    landmark: ''
+  });
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setAddress({
+      ...address,
+      [name]: value
+    });
+  };
+  
   // Add a new product field
   const handleAddProduct = () => {
     setFormData((prevFormData) => ({

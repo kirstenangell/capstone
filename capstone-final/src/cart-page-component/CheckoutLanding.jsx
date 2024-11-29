@@ -163,40 +163,51 @@ const CheckoutLanding = () => {
     setSelectedPaymentMethod(method);
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     const orderDetails = {
-      id: `OID-${Math.floor(Math.random() * 10000)}`,
-      items: cartItems.map((item) => ({
-        ...item,
-        price: parseFloat(item.price) || 0, // Ensure price is a number
-      })),
-      createdAt: new Date().toLocaleDateString(),
-      deliveryService: selectedDeliveryOption === 'courier' ? selectedCourier : 'Pickup',
-      paymentMethod: selectedPaymentMethod === 'gcash' ? 'GCash' : 'Physical Store',
-      status: 'Processing',
-      customerName: `${userInfo.firstName} ${userInfo.lastName}`,
-      email: userInfo.email,
-      phone: userInfo.contactNumber,
-      paymentSummary: {
-          subtotal: total,
-          shippingFee: selectedDeliveryOption === 'courier' ? 50 : 0,
-          total: total + (selectedDeliveryOption === 'courier' ? 50 : 0),
+      user: {
+        firstName: userInfo.firstName,
+        lastName: userInfo.lastName,
+        email: userInfo.email,
+        contactNumber: userInfo.contactNumber,
       },
-  };
+      order: {
+        address: selectedAddress,
+        deliveryOption: selectedDeliveryOption,
+        courier: selectedCourier,
+        paymentOption: selectedPaymentMethod,
+        pickUpTime: pickupTime,
+        pickUpDate: pickupDate ? pickupDate.toISOString().split("T")[0] : null,
+        products: cartItems.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+        })),
+        total: total + (selectedDeliveryOption === "courier" ? 50 : 0),
+      },
+      orderItems: cartItems.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.price,
+      })),
+    };
   
-
-
-    // Save order to localStorage or Context
-    const existingOrders = JSON.parse(localStorage.getItem('orders')) || [];
-    existingOrders.push(orderDetails);
-    localStorage.setItem('orders', JSON.stringify(existingOrders));
-
-    setOrderPlaced(true); // Show modal
-    setTimeout(() => {
-        navigate('/manage-account'); // Redirect to manage account page
-    }, 2000);
+    try {
+      const response = await axios.post('http://localhost:5000/api/save-order', orderDetails);
+      if (response.data.success) {
+          alert('Order placed successfully!');
+          // Update order history after placing an order
+          fetchOrderHistory(); // Fetch the updated order history
+          setOrderPlaced(true);
+          setTimeout(() => {
+              navigate('/manage-account');
+          }, 2000);
+      }
+  } catch (error) {
+      console.error('Error placing order:', error.message);
+      alert('Failed to place order. Please try again.');
+  }
 };
-
+  
   const isFutureDate = (date) => {
     const today = new Date();
     return date >= today && date <= new Date(today.setMonth(today.getMonth() + 3));

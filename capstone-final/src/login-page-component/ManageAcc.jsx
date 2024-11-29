@@ -83,19 +83,30 @@ const ManageAcc = () => {
         fetchUserData();
     }, []);
     
-      
-      
-
-
-    useEffect(() => {
-        const fetchOrders = () => {
-            const savedOrders = JSON.parse(localStorage.getItem('orders')) || [];
-            setOrderHistory(savedOrders);
-        };
-
-        fetchOrders();
-    }, []);
-
+    const fetchOrderHistory = async () => {
+        const userId = parseInt(localStorage.getItem('userId'), 10); // Get and parse the user ID
+    
+        if (isNaN(userId)) {
+            console.error('User ID is missing or invalid in localStorage.');
+            return;
+        }
+    
+        try {
+            // Make the request with the user_id as a query parameter
+            const response = await axios.get(`http://localhost:5000/orders`, {
+                params: { user_id: userId }, // Pass userId directly
+            });
+    
+            if (response.status === 200) {
+                const filteredOrders = response.data.filter(order => order.user_id === userId); // Ensure data is filtered
+                setOrderHistory(filteredOrders); // Set filtered orders in state
+            } else {
+                console.error('Failed to fetch order history:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching order history:', error.message);
+        }
+    };    
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
@@ -648,12 +659,12 @@ const ManageAcc = () => {
                     <p className="text-sm text-gray-300">Placed on {order.createdAt}</p>
                 </div>
                 <div className="font-semibold text-white">
-                    PHP {order.paymentSummary.total.toFixed(2)}
+                PHP {order.total_price?.toFixed(2) ?? '0.00'}
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                     order.status === 'Delivered' ? 'bg-green-500 text-black' : 'bg-yellow-500 text-black'
                 }`}>
-                    {order.status}
+                    {order.status ?? 'Pending'}
                 </span>
             </div>
         ))}

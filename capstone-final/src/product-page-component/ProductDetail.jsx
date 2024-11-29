@@ -3,15 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductContext } from '../context/ProductContext';
 import axios from 'axios'; // Add this import statement
 
-
 const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   const { products } = useContext(ProductContext);
   const location = useLocation();
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5173';
   console.log('Base URL:', baseUrl); // Add this line
-
-
 
 
   const [selectedProduct, setSelectedProduct] = useState({
@@ -21,15 +18,11 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   const [showLoginWarning, setShowLoginWarning] = useState(false);
 
 
-
-
   useEffect(() => {
     if (location.state?.product) {
       setSelectedProduct({ ...location.state.product, quantity: 0 });
     }
   }, [location.state]);
-
-
 
 
   const handleAddToCartClick = async () => {
@@ -39,20 +32,20 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
       navigate('/login');
       return;
     }
- 
+  
     // Prepare the payload
     const payload = {
       user_id: userId,
       product_id: selectedProduct.id,
       quantity: selectedProduct.quantity || 1,
     };
- 
+  
     try {
       // Make API call to add item to cart
       const response = await axios.post('http://localhost:5000/api/cart', payload, {
         headers: { 'Content-Type': 'application/json' },
       });
- 
+  
       if (response.status === 200) {
         console.log('Product added to cart:', response.data);
         if (updateCartCount) updateCartCount(response.data.cartCount || 0); // Update cart count if passed as a prop
@@ -69,20 +62,20 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
       navigate('/login');
       return;
     }
- 
+  
     // Prepare the payload
     const payload = {
       user_id: userId,
       product_id: selectedProduct.id,
       quantity: selectedProduct.quantity || 1,
     };
- 
+  
     try {
       // Make API call to add item to cart
       const response = await axios.post('http://localhost:5000/api/cart', payload, {
         headers: { 'Content-Type': 'application/json' },
       });
- 
+  
       if (response.status === 200) {
         console.log('Product added to cart:', response.data);
   
@@ -103,14 +96,11 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
       console.error('Error processing Buy Now action:', error);
     }
   };
- 
-
+  
 
   const handleLoginRedirect = () => {
     navigate('/login');
   };
-
-
 
 
   return (
@@ -138,8 +128,6 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
       )}
 
 
-
-
       <div className="max-w-7xl mx-auto flex">
   {/* Left Side - Thumbnails and Main Image */}
   <div className="flex flex-col items-center space-y-4">
@@ -160,8 +148,6 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
     ))}
 
 
-
-
     <div className="w-full rounded-lg p-8 shadow-lg flex items-center justify-center bg-black">
     <img  
   src={selectedProduct.image.startsWith('http')
@@ -173,11 +159,7 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
 />
 
 
-
-
     </div>
-
-
 
 
     {selectedProduct.relatedImages?.slice(3).map((image, index) => (
@@ -199,16 +181,12 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
   </div>
 
 
-
-
   {/* Right Side - Product Details */}
   <div className="ml-12 flex-1">
     <h1 className="text-3xl font-medium">{selectedProduct.name}</h1>
     <p className="mt-4 text-gray-400">
       {selectedProduct.description || 'No description provided.'}
     </p>
-
-
 
 
           {/* Static Star Rating */}
@@ -220,14 +198,10 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
           </div>
 
 
-
-
           {/* Price */}
           <div className="text-3xl font-bold mt-4 bg-gradient-to-r from-[#335C6E] to-[#979797] bg-clip-text text-transparent">
             PHP {selectedProduct.price.toLocaleString()}
           </div>
-
-
 
 
           {/* Quantity Selector */}
@@ -258,8 +232,6 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
           </div>
 
 
-
-
           {/* Additional Product Details */}
           <div className="mt-6 space-y-2 text-gray-400 font-thin">
             <p>Product Type: {selectedProduct.type || 'N/A'}</p>
@@ -270,8 +242,6 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
             <p>Material: {selectedProduct.material || 'N/A'}</p>
             <p>Model: {selectedProduct.model || 'N/A'}</p>
           </div>
-
-
 
 
           {/* Action Buttons */}
@@ -291,8 +261,6 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
           </div>
         </div>
       </div>
-
-
 
 
       {/* "You may also like" Section */}
@@ -316,8 +284,6 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
 />
 
 
-
-
               <div className="mt-4">
                 <p className="text-sm text-gray-400">LOREM IPSUM</p>
                 <h3 className="text-lg font-semibold mt-2">{product.name}</h3>
@@ -334,7 +300,4 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
 };
 
 
-
-
 export default ProductDetail;
-

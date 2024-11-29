@@ -1825,6 +1825,215 @@ app.post('/api/cart', async (req, res) => {
 });
 
 
+// API to save orders
+app.post("/api/save-order", (req, res) => {
+  const { user, order, orderItems } = req.body;
+
+  // Insert into `orders` table
+  const orderQuery = `
+    INSERT INTO orders (
+      firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode, 
+      deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', CURDATE())
+  `;
+
+  db.query(
+    orderQuery,
+    [
+      user.firstName,
+      user.lastName,
+      user.email,
+      user.contactNumber,
+      order.address.streetName,
+      order.address.barangay,
+      order.address.city,
+      order.address.region,
+      order.address.province,
+      order.address.zipCode,
+      order.deliveryOption,
+      order.courier,
+      order.paymentOption,
+      order.pickUpTime || null,
+      order.pickUpDate || null,
+      JSON.stringify(order.products),
+      order.total,
+    ],
+    (err, orderResult) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Failed to save order" });
+      }
+
+      const orderId = orderResult.insertId;
+
+      // Insert into `order_items` table
+      const orderItemsQuery = `
+        INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES ?
+      `;
+      const orderItemsData = orderItems.map((item) => [
+        orderId,
+        item.productId,
+        item.quantity,
+        item.unitPrice,
+      ]);
+
+      db.query(orderItemsQuery, [orderItemsData], (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: "Failed to save order items" });
+        }
+
+        res.json({ success: true, orderId });
+      });
+    }
+  );
+});
+
+// Fetch orders specific to the user_id with associated order items
+app.get('/orders', (req, res) => {
+  const userId = parseInt(req.query.user_id, 10); // Parse user_id as an integer
+
+  // Check if userId is valid
+  if (isNaN(userId)) {
+    return res.status(400).json({ message: 'Invalid User ID provided.' });
+  }
+
+  // Step 1: Validate if the user exists in the database
+  const userValidationQuery = `SELECT id FROM users WHERE id = ? LIMIT 1;`;
+
+  db.query(userValidationQuery, [userId], (userErr, userResults) => {
+    if (userErr) {
+      console.error('Error validating user:', userErr);
+      return res.status(500).json({ message: 'Internal server error while validating user.' });
+    }
+
+    if (userResults.length === 0) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Step 2: Fetch the orders and associated items for the valid user
+    const query = `
+      SELECT 
+        o.id AS order_id,
+        o.firstName,
+        o.lastName,
+        o.email,
+        o.contactNumber,
+        o.streetName,
+        o.barangay,
+        o.city,
+        o.region,
+        o.province,
+        o.zipCode,
+        o.deliveryOption,
+        o.courier,
+        o.paymentOption,
+        o.pickUpTime,
+        o.pickUpDate,
+        o.price AS total_price,
+        o.status,
+        o.date AS order_date,
+        oi.id AS order_item_id,
+        oi.product_id,
+        p.name AS product_name,
+        oi.quantity AS item_quantity,
+        oi.unit_price AS item_unit_price,
+        oi.total_price AS item_total_price
+      FROM 
+        orders o
+      LEFT JOIN 
+        order_items oi ON o.id = oi.order_id
+      LEFT JOIN 
+        products p ON oi.product_id = p.id
+      WHERE 
+        o.user_id = ? AND o.archived = 0
+      ORDER BY 
+        o.date DESC, o.id;
+    `;
+
+    db.query(query, [userId], (err, results) => {
+      if (err) {
+        console.error('Error fetching user-specific orders:', err);
+        return res.status(500).json({ message: 'Internal server error while fetching orders.' });
+      }
+
+      // Step 3: Group orders by `order_id` for structured response
+      const orders = results.reduce((acc, row) => {
+        const {
+          order_id,
+          firstName,
+          lastName,
+          email,
+          contactNumber,
+          streetName,
+          barangay,
+          city,
+          region,
+          province,
+          zipCode,
+          deliveryOption,
+          courier,
+          paymentOption,
+          pickUpTime,
+          pickUpDate,
+          total_price,
+          status,
+          order_date,
+          order_item_id,
+          product_id,
+          product_name,
+          item_quantity,
+          item_unit_price,
+          item_total_price,
+        } = row;
+
+        // If the order ID is not in the accumulator, add it
+        if (!acc[order_id]) {
+          acc[order_id] = {
+            order_id,
+            firstName,
+            lastName,
+            email,
+            contactNumber,
+            streetName,
+            barangay,
+            city,
+            region,
+            province,
+            zipCode,
+            deliveryOption,
+            courier,
+            paymentOption,
+            pickUpTime,
+            pickUpDate,
+            total_price,
+            status,
+            order_date,
+            items: [], // Initialize items array
+          };
+        }
+
+        // If the current row has order item details, add to the items array
+        if (order_item_id) {
+          acc[order_id].items.push({
+            order_item_id,
+            product_id,
+            product_name,
+            item_quantity,
+            item_unit_price,
+            item_total_price,
+          });
+        }
+
+        return acc;
+      }, {});
+
+      // Step 4: Respond with grouped orders as an array
+      res.status(200).json(Object.values(orders));
+    });
+  });
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 5000;
