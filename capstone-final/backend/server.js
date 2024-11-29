@@ -102,37 +102,95 @@ db.connect((err) => {
 app.post('/submit-contact', async (req, res) => {
   const { name, email, message } = req.body;
 
-
   // Validate input
   if (!name || !email || !message) {
     return res.status(400).json({ message: 'All fields are required' });
   }
-
 
   try {
     // Check if the email exists in the database and is verified
     const emailCheckQuery = 'SELECT email, verified FROM users WHERE email = ?';
     const [results] = await db.promise().query(emailCheckQuery, [email]);
 
-
     if (results.length === 0 || results[0].verified !== 1) {
       // Return error if email does not exist or is not verified
       return res.status(404).json({ message: 'The email is not verified. Please create an account.' });
     }
 
-
     // Insert contact submission into the database
     const insertQuery = 'INSERT INTO contact_submissions (name, email, message) VALUES (?, ?, ?)';
     await db.promise().query(insertQuery, [name, email, message]);
 
+    // Prepare the email content
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: 'rhea.ceo.flacko1990@gmail.com', // Owner's email address
+      subject: 'New Inquiry Alert',
+      html: `
+        <p><strong>Dear Flacko Team,</p>
+        <p>I am writing to inform you that a new inquiry has been submitted and requires your attention. Below are the details for your reference:</p>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message}</p>
+        <p><strong>What’s next?</strong></p>
+        <ol>
+          <li>Conduct a thorough review of the inquiry to ensure a complete understanding of ${name.split(' ')[0]}'s request.</li>
+          <li>Provide a timely and comprehensive response, addressing all aspects of the inquiry to the best of your ability.</li>
+          <li>Should you require any additional information, resources, or clarification to proceed, do not hesitate to inform the team promptly.</li>
+        </ol>
+        <p>Your responsiveness is appreciated, as it reflects our dedication to excellent service. Thank you for taking care of this!</p>
+        <hr />
+        <p>This is an automated message from the Flacko Auto Parts Contact Us Form.</p>
+      `,
+    };
 
-    // Respond with success message
-    res.status(200).json({ message: 'Contact form submitted successfully' });
+    // Send the email
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error('Error sending email:', err);
+        return res.status(500).json({ message: 'Failed to send email, but the message was saved to the database.' });
+      }
+
+      console.log('Email sent:', info.response);
+      res.status(200).json({ message: 'Contact form submitted successfully.' });
+    });
   } catch (err) {
     console.error('Error handling contact submission:', err);
     res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 });
+
+
+// Check if email exists and is verified
+// Route to check if email exists and is verified
+app.get('/check-email', async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  try {
+    // Replace `users` with your actual table name
+    const query = 'SELECT email, verified FROM users WHERE email = ?';
+    const [results] = await db.promise().query(query, [email]);
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Email not found' });
+    }
+
+    if (results[0].verified !== 1) {
+      return res.status(403).json({ message: 'Email is not verified' });
+    }
+
+    res.status(200).json({ message: 'Email is verified' });
+  } catch (error) {
+    console.error('Error checking email:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 
 
