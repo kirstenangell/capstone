@@ -2,7 +2,6 @@ const fs = require('fs');
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -12,6 +11,14 @@ require('dotenv').config();
 
 
 const app = express();
+
+const path = require('path');
+
+app.use(express.static(path.join(__dirname, '../src/build')));
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../src/build/index.html'));
+});
 
 
 // Middleware
@@ -2091,6 +2098,7 @@ app.get('/orders', (req, res) => {
     });
   });
 });
+
 
 
 // Start the server
