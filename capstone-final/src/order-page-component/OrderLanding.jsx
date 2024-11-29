@@ -86,29 +86,34 @@ const OrderLanding = () => {
   // Filter orders based on search query and filters
   const filteredOrders = (orders || []).filter((order) => {
     const searchQueryLower = searchQuery.toLowerCase();
-
+  
     const matchesSearchQuery =
       (`OID-${order.id}`.toLowerCase().includes(searchQueryLower) ||
         (order.firstName?.toLowerCase() || '').includes(searchQueryLower) ||
         (order.lastName?.toLowerCase() || '').includes(searchQueryLower));
-
-    const matchesStatus = activeStatus === 'All' || order.status === activeStatus;
-
+  
+    const matchesStatus =
+      activeStatus === 'All' || 
+      order.status?.toLowerCase() === activeStatus.toLowerCase();
+  
     const matchesPaymentStatus =
-      !selectedPaymentStatus || order.paymentStatus === selectedPaymentStatus;
-
+      selectedPaymentStatus === '' || 
+      order.paymentStatus?.toLowerCase() === selectedPaymentStatus.toLowerCase();
+  
     const matchesPaymentMethod =
-      !selectedPaymentMethod || order.paymentOption === selectedPaymentMethod;
-
+      selectedPaymentMethod === '' || 
+      order.paymentOption?.toLowerCase() === selectedPaymentMethod.toLowerCase();
+  
     const matchesDeliveryOption =
-      !selectedDeliveryOption || order.deliveryOption === selectedDeliveryOption;
-
-    const matchesDeliveryDate = !deliveryDate || order.pickUpDate === deliveryDate;
-
-    const matchesProvince = !selectedProvince || order.province === selectedProvince;
-
-    const matchesCity = !selectedCity || order.city === selectedCity;
-
+      selectedDeliveryOption === '' || 
+      order.deliveryOption?.toLowerCase() === selectedDeliveryOption.toLowerCase();
+  
+    const matchesDeliveryDate = deliveryDate === '' || order.pickUpDate === deliveryDate;
+  
+    const matchesProvince = selectedProvince === '' || order.province === selectedProvince;
+  
+    const matchesCity = selectedCity === '' || order.city === selectedCity;
+  
     return (
       !order.archived &&
       matchesSearchQuery &&
@@ -121,6 +126,7 @@ const OrderLanding = () => {
       matchesCity
     );
   });
+  
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
@@ -187,7 +193,7 @@ const OrderLanding = () => {
                   {isPaymentStatusOpen && (
                     <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10">
                       <ul className="text-sm text-white">
-                        {['All', 'Paid', 'Unpaid', 'Partially Paid'].map((status) => (
+                        {['All', 'Paid', 'Unpaid'].map((status) => (
                           <li
                             key={status}
                             className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
@@ -213,7 +219,7 @@ const OrderLanding = () => {
                   {isPaymentMethodOpen && (
                     <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10">
                       <ul className="text-sm text-white">
-                        {['Cash', 'GCash', 'Card'].map((method) => (
+                        {['Cash', 'GCash'].map((method) => (
                           <li
                             key={method}
                             className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
@@ -266,66 +272,6 @@ const OrderLanding = () => {
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
                 />
-              </div>
-
-              {/* Address Filters */}
-              <div className="mb-6">
-                <h3 className="text-sm font-bold text-white mb-2">ADDRESS</h3>
-                <div className="relative mb-4">
-                  <button
-                    onClick={() => setIsProvinceOpen(!isProvinceOpen)}
-                    className="w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
-                  >
-                    {selectedProvince || 'PROVINCE'}
-                  </button>
-                  {isProvinceOpen && (
-                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                      <ul className="text-sm text-white">
-                        {provinces.map((province) => (
-                          <li
-                            key={province}
-                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
-                            onClick={() => {
-                              setSelectedProvince(province);
-                              setIsProvinceOpen(false);
-                            }}
-                          >
-                            {province}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-                <div className="relative">
-                  <button
-                    onClick={() => setIsCityOpen(!isCityOpen)}
-                    className={`w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left ${
-                      !selectedProvince ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    disabled={!selectedProvince}
-                  >
-                    {selectedCity || 'CITY'}
-                  </button>
-                  {isCityOpen && (
-                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                      <ul className="text-sm text-white">
-                        {cities.map((city) => (
-                          <li
-                            key={city}
-                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
-                            onClick={() => {
-                              setSelectedCity(city);
-                              setIsCityOpen(false);
-                            }}
-                          >
-                            {city}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </div>
