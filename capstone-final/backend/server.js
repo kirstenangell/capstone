@@ -2,6 +2,7 @@ const fs = require('fs');
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const path = require('path');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -9,17 +10,7 @@ const crypto = require('crypto'); // For generating verification token
 const nodemailer = require('nodemailer'); // For sending emails
 require('dotenv').config();
 
-
 const app = express();
-
-const path = require('path');
-
-app.use(express.static(path.join(__dirname, '../src/build')));
-
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../src/build/index.html'));
-});
-
 
 // Middleware
 app.use(express.json());
@@ -27,7 +18,6 @@ app.use(cors({
   origin: '*',  // Allow all origins (this is not recommended in production)
 }));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-
 
 // Ensure the uploads directory exists
 const dir = './public/uploads';
