@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaUser } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
+import FlackoLogo from '../assets/FlackoLogo.png';
 
 const InventoryNavbar = ({ cartItemCount }) => {
   return (
@@ -10,7 +11,7 @@ const InventoryNavbar = ({ cartItemCount }) => {
     >
       {/* Logo */}
       <NavLink to="/" className="text-white text-2xl font-bold">
-        LOGO
+        <img src={FlackoLogo} alt="Flacko Logo" style={{ height: '50px' }} />
       </NavLink>
 
       {/* Combined Links and Buttons with Gradient Background and Rounded Corners */}

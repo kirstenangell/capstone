@@ -26,76 +26,89 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
 
 
   const handleAddToCartClick = async () => {
-    const userId = localStorage.getItem('userId'); // Ensure the user is logged in
-    if (!userId) {
-      console.error('User ID is missing. Redirecting to login...');
-      navigate('/login');
-      return;
-    }
-  
-    // Prepare the payload
-    const payload = {
-      user_id: userId,
-      product_id: selectedProduct.id,
-      quantity: selectedProduct.quantity || 1,
-    };
-  
-    try {
-      // Make API call to add item to cart
-      const response = await axios.post('http://localhost:5000/api/cart', payload, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-  
-      if (response.status === 200) {
-        console.log('Product added to cart:', response.data);
-        if (updateCartCount) updateCartCount(response.data.cartCount || 0); // Update cart count if passed as a prop
-      }
-    } catch (error) {
-      console.error('Error adding product to cart:', error);
-    }
+  const userId = localStorage.getItem('userId'); // Ensure the user is logged in
+  if (!userId) {
+    console.error('User ID is missing. Redirecting to login...');
+    navigate('/login');
+    return;
+  }
+
+  // Prepare the payload
+  const payload = {
+    user_id: userId,
+    product_id: selectedProduct.id,
+    quantity: selectedProduct.quantity || 1, // Default quantity to 1 if not provided
   };
 
-  const handleBuyNowClick = async () => {
-    const userId = localStorage.getItem('userId'); // Ensure the user is logged in
-    if (!userId) {
-      console.error('User ID is missing. Redirecting to login...');
-      navigate('/login');
-      return;
+  try {
+    // Make API call to add item to cart
+    const response = await axios.post('http://localhost:5000/api/cart', payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status === 200) {
+      console.log('Product added to cart:', response.data);
+
+      // Update cart count if the function is passed as a prop
+      if (updateCartCount) updateCartCount(response.data.cartCount || 0);
+
+      // Optional: Provide user feedback
+      alert('Product successfully added to cart!');
     }
-  
-    // Prepare the payload
-    const payload = {
-      user_id: userId,
-      product_id: selectedProduct.id,
-      quantity: selectedProduct.quantity || 1,
-    };
-  
-    try {
-      // Make API call to add item to cart
-      const response = await axios.post('http://localhost:5000/api/cart', payload, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-  
-      if (response.status === 200) {
-        console.log('Product added to cart:', response.data);
-  
-        // Redirect to checkout-landing page with selected product details
-        navigate('/checkout-landing', {
-          state: {
-            cartItems: [
-              {
-                ...selectedProduct,
-                quantity: selectedProduct.quantity || 1,
-              },
-            ],
-            total: selectedProduct.price * (selectedProduct.quantity || 1),
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Error processing Buy Now action:', error);
-    }
+  } catch (error) {
+    console.error('Error adding product to cart:', error.response?.data || error.message);
+
+    // Optional: Provide error feedback
+    alert(error.response?.data?.message || 'Failed to add product to cart. Please try again.');
+  }
+};
+
+const handleBuyNowClick = async () => {
+  const userId = localStorage.getItem('userId'); // Ensure the user is logged in
+  if (!userId) {
+    console.error('User ID is missing. Redirecting to login...');
+    navigate('/login');
+    return;
+  }
+
+  const payload = {
+    user_id: userId,
+    product_id: selectedProduct.id,
+    quantity: selectedProduct.quantity || 1, // Default quantity to 1
   };
+
+  try {
+    // Add product to the cart table in the database
+    const response = await axios.post('http://localhost:5000/api/cart', payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status === 200) {
+      console.log('Product added to cart:', response.data);
+
+      // Prepare cartItems and total for CheckoutLanding
+      const cartItems = [
+        {
+          productId: selectedProduct.id,
+          name: selectedProduct.name,
+          quantity: selectedProduct.quantity || 1,
+          price: selectedProduct.price,
+          image: selectedProduct.image,
+        },
+      ];
+      const total = selectedProduct.price * (selectedProduct.quantity || 1);
+
+      // Navigate to CheckoutLanding with cartItems and total
+      navigate('/checkout-landing', { state: { cartItems, total } });
+    }
+  } catch (error) {
+    console.error('Error adding product to cart:', error.response?.data || error.message);
+    alert(error.response?.data?.message || 'Failed to add product to cart. Please try again.');
+  }
+};
+
+
+  
   
 
   const handleLoginRedirect = () => {
