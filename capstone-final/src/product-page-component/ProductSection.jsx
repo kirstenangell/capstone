@@ -158,10 +158,11 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
 
 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
-            <h1 className="text-4xl font-bold">PRODUCT NAME</h1>
-            <p className="mt-4 text-lg text-gray-400">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla neque quam, maximus in sagittis quis, sollicitudin non nisi.
-            </p>
+          <h1 className="text-4xl font-bold">PRODUCTS</h1>
+          <p className="mt-8 mx-8 text-sm text-gray-400">
+            Discover our extensive range of high-quality auto parts and accessories, tailored to meet the needs of every car enthusiast. From advanced audio systems and cutting-edge security devices to durable tires and stylish exterior enhancements, each product is designed to improve performance and elevate your driving experience. Shop now to find the perfect upgrades for your vehicle.
+          </p>
+
             <button className="mt-6 bg-black text-gray-200 py-2 pl-10 pr-8 rounded-full focus:outline-none placeholder-gray-500 bg-opacity-75 border border-cyan-900 shadow-lg shadow-cyan-800/50 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-[0_0_15px_5px_rgba(0,255,255,0.5)]">
               SHOP NOW
             </button>
