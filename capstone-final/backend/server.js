@@ -1581,55 +1581,40 @@ app.put('/archive-order/:id', (req, res) => {
 
 // Add item to cart
 app.post('/api/cart', async (req, res) => {
-  console.log('Payload received:', req.body); 
   const { user_id, product_id, quantity } = req.body;
 
-  // Validation block for user_id, product_id, and quantity
   if (!user_id || !product_id || typeof quantity !== 'number' || quantity <= 0) {
-    return res.status(400).json({ message: 'Invalid input: Ensure all fields are provided and valid.' });
-}
-
+    return res.status(400).json({ message: 'Invalid input. Ensure all fields are provided and valid.' });
+  }
 
   try {
-      // Further logic to check if user and product exist in the database
-      const [userRows] = await db.promise().query('SELECT id FROM users WHERE id = ?', [user_id]);
-      const [productRows] = await db.promise().query('SELECT id, price, quantity AS available_quantity FROM products WHERE id = ?', [product_id]);
+    // Check if product exists and validate stock availability
+    const [productRows] = await db.promise().query('SELECT id, price, quantity FROM products WHERE id = ?', [product_id]);
+    if (productRows.length === 0) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
 
+    const product = productRows[0];
+    if (quantity > product.quantity) {
+      return res.status(400).json({ message: `Insufficient stock. Only ${product.quantity} items available.` });
+    }
 
-      if (userRows.length === 0 || productRows.length === 0) {
-          return res.status(400).json({ message: 'Invalid user or product ID.' });
-      }
+    // Insert or update cart
+    const query = `
+      INSERT INTO cart (user_id, product_id, quantity, price)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)
+    `;
+    await db.promise().query(query, [user_id, product_id, quantity, product.price]);
 
-      const price = productRows[0].price;
-      const availableQuantity = productRows[0].available_quantity;
+    // Update product stock
+    const stockUpdateQuery = `UPDATE products SET quantity = quantity - ? WHERE id = ?`;
+    await db.promise().query(stockUpdateQuery, [quantity, product_id]);
 
-      // Check if the quantity exceeds available stock
-      if (quantity > availableQuantity) {
-          return res.status(400).json({ message: `Insufficient stock. Only ${availableQuantity} items available.` });
-      }
-
-      // Insert or update the cart item
-      const query = `
-          INSERT INTO cart (user_id, product_id, quantity, price)
-          VALUES (?, ?, ?, ?)
-          ON DUPLICATE KEY UPDATE
-              quantity = IF(quantity + VALUES(quantity) > 0, VALUES(quantity), quantity),
-              price = VALUES(price)
-      `;
-      await db.promise().query(query, [user_id, product_id, quantity, price]);
-
-      // Update product stock in the products table
-      const stockUpdateQuery = `
-          UPDATE products
-          SET quantity = quantity - ?
-          WHERE id = ? AND quantity >= ?
-      `;
-      await db.promise().query(stockUpdateQuery, [quantity, product_id, quantity]);
-
-      res.status(200).json({ message: 'Cart updated successfully' });
+    res.status(200).json({ message: 'Product added to cart successfully.' });
   } catch (error) {
-      console.error('Error adding item to cart:', error);
-      res.status(500).json({ message: 'Server error.' });
+    console.error('Error updating cart:', error.message);
+    res.status(500).json({ message: 'Server error. Could not add product to cart.' });
   }
 });
 

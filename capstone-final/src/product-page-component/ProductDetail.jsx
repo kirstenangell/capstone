@@ -64,53 +64,49 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
 };
 
 const handleBuyNowClick = async () => {
-  const userId = localStorage.getItem('userId');
+  const userId = localStorage.getItem('userId'); // Ensure the user is logged in
   if (!userId) {
-      console.error('User ID is missing. Redirecting to login...');
-      navigate('/login');
-      return;
+    console.error('User ID is missing. Redirecting to login...');
+    navigate('/login');
+    return;
   }
 
   const payload = {
-      user: {
-          firstName: "User's First Name", // Replace with actual user data
-          lastName: "User's Last Name",
-          email: "User's Email",
-          contactNumber: "User's Contact Number",
-      },
-      product: selectedProduct,
-      quantity: selectedProduct.quantity || 1,
-      deliveryDetails: {
-          streetName: "Street Address",
-          barangay: "Barangay",
-          city: "City",
-          region: "Region",
-          province: "Province",
-          zipCode: "Zip Code",
-          deliveryOption: "Delivery Method", // e.g., 'Pick-up' or 'Delivery'
-      },
-      paymentOption: "Payment Method", // e.g., 'Cash', 'Gcash', etc.
+    user_id: userId,
+    product_id: selectedProduct.id,
+    quantity: selectedProduct.quantity || 1, // Default quantity to 1
   };
 
   try {
-    const response = await axios.post('http://localhost:5000/api/buy-now', payload, {
+    // Add product to the cart table in the database
+    const response = await axios.post('http://localhost:5000/api/cart', payload, {
       headers: { 'Content-Type': 'application/json' },
-  });
-  
+    });
 
-      if (response.status === 201) {
-          console.log('Order placed successfully:', response.data);
-          navigate('/checkout-landing', {
-              state: {
-                  orderId: response.data.orderId,
-              },
-          });
-      }
+    if (response.status === 200) {
+      console.log('Product added to cart:', response.data);
+
+      // Prepare cartItems and total for CheckoutLanding
+      const cartItems = [
+        {
+          productId: selectedProduct.id,
+          name: selectedProduct.name,
+          quantity: selectedProduct.quantity || 1,
+          price: selectedProduct.price,
+          image: selectedProduct.image,
+        },
+      ];
+      const total = selectedProduct.price * (selectedProduct.quantity || 1);
+
+      // Navigate to CheckoutLanding with cartItems and total
+      navigate('/checkout-landing', { state: { cartItems, total } });
+    }
   } catch (error) {
-      console.error('Error processing Buy Now action:', error.response?.data || error.message);
-      alert(error.response?.data?.message || 'Failed to place the order. Please try again.');
+    console.error('Error adding product to cart:', error.response?.data || error.message);
+    alert(error.response?.data?.message || 'Failed to add product to cart. Please try again.');
   }
 };
+
 
   
   

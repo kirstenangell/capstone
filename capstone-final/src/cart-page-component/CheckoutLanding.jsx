@@ -59,7 +59,7 @@ const CheckoutLanding = () => {
             province,
             zipCode,
           } = response.data;
-  
+
           // Populate user information
           setUserInfo({
             firstName,
@@ -68,7 +68,7 @@ const CheckoutLanding = () => {
             contactNumber: contactNumber || '',
             countryCode: '+63',
           });
-  
+
           // Populate addresses and set the default address
           const defaultAddress = {
             streetName: street || '',
@@ -78,7 +78,7 @@ const CheckoutLanding = () => {
             province: province || '',
             zipCode: zipCode || '',
           };
-  
+
           setAddresses([defaultAddress]); // Set default address in addresses
           setSelectedAddress(defaultAddress); // Set the selected address as the default
         } catch (error) {
@@ -86,7 +86,7 @@ const CheckoutLanding = () => {
         }
       }
     };
-  
+
     fetchUserDetails();
   }, []);
   
