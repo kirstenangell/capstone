@@ -26,76 +26,93 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
 
 
   const handleAddToCartClick = async () => {
-    const userId = localStorage.getItem('userId'); // Ensure the user is logged in
-    if (!userId) {
-      console.error('User ID is missing. Redirecting to login...');
-      navigate('/login');
-      return;
-    }
-  
-    // Prepare the payload
-    const payload = {
-      user_id: userId,
-      product_id: selectedProduct.id,
-      quantity: selectedProduct.quantity || 1,
-    };
-  
-    try {
-      // Make API call to add item to cart
-      const response = await axios.post('http://localhost:5000/api/cart', payload, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-  
-      if (response.status === 200) {
-        console.log('Product added to cart:', response.data);
-        if (updateCartCount) updateCartCount(response.data.cartCount || 0); // Update cart count if passed as a prop
-      }
-    } catch (error) {
-      console.error('Error adding product to cart:', error);
-    }
+  const userId = localStorage.getItem('userId'); // Ensure the user is logged in
+  if (!userId) {
+    console.error('User ID is missing. Redirecting to login...');
+    navigate('/login');
+    return;
+  }
+
+  // Prepare the payload
+  const payload = {
+    user_id: userId,
+    product_id: selectedProduct.id,
+    quantity: selectedProduct.quantity || 1, // Default quantity to 1 if not provided
   };
 
-  const handleBuyNowClick = async () => {
-    const userId = localStorage.getItem('userId'); // Ensure the user is logged in
-    if (!userId) {
+  try {
+    // Make API call to add item to cart
+    const response = await axios.post('http://localhost:5000/api/cart', payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status === 200) {
+      console.log('Product added to cart:', response.data);
+
+      // Update cart count if the function is passed as a prop
+      if (updateCartCount) updateCartCount(response.data.cartCount || 0);
+
+      // Optional: Provide user feedback
+      alert('Product successfully added to cart!');
+    }
+  } catch (error) {
+    console.error('Error adding product to cart:', error.response?.data || error.message);
+
+    // Optional: Provide error feedback
+    alert(error.response?.data?.message || 'Failed to add product to cart. Please try again.');
+  }
+};
+
+const handleBuyNowClick = async () => {
+  const userId = localStorage.getItem('userId');
+  if (!userId) {
       console.error('User ID is missing. Redirecting to login...');
       navigate('/login');
       return;
-    }
-  
-    // Prepare the payload
-    const payload = {
-      user_id: userId,
-      product_id: selectedProduct.id,
+  }
+
+  const payload = {
+      user: {
+          firstName: "User's First Name", // Replace with actual user data
+          lastName: "User's Last Name",
+          email: "User's Email",
+          contactNumber: "User's Contact Number",
+      },
+      product: selectedProduct,
       quantity: selectedProduct.quantity || 1,
-    };
-  
-    try {
-      // Make API call to add item to cart
-      const response = await axios.post('http://localhost:5000/api/cart', payload, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-  
-      if (response.status === 200) {
-        console.log('Product added to cart:', response.data);
-  
-        // Redirect to checkout-landing page with selected product details
-        navigate('/checkout-landing', {
-          state: {
-            cartItems: [
-              {
-                ...selectedProduct,
-                quantity: selectedProduct.quantity || 1,
-              },
-            ],
-            total: selectedProduct.price * (selectedProduct.quantity || 1),
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Error processing Buy Now action:', error);
-    }
+      deliveryDetails: {
+          streetName: "Street Address",
+          barangay: "Barangay",
+          city: "City",
+          region: "Region",
+          province: "Province",
+          zipCode: "Zip Code",
+          deliveryOption: "Delivery Method", // e.g., 'Pick-up' or 'Delivery'
+      },
+      paymentOption: "Payment Method", // e.g., 'Cash', 'Gcash', etc.
   };
+
+  try {
+    const response = await axios.post('http://localhost:5000/api/buy-now', payload, {
+      headers: { 'Content-Type': 'application/json' },
+  });
+  
+
+      if (response.status === 201) {
+          console.log('Order placed successfully:', response.data);
+          navigate('/checkout-landing', {
+              state: {
+                  orderId: response.data.orderId,
+              },
+          });
+      }
+  } catch (error) {
+      console.error('Error processing Buy Now action:', error.response?.data || error.message);
+      alert(error.response?.data?.message || 'Failed to place the order. Please try again.');
+  }
+};
+
+  
   
 
   const handleLoginRedirect = () => {

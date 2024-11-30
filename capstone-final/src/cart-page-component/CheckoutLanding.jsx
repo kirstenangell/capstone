@@ -171,8 +171,10 @@ const CheckoutLanding = () => {
         price: parseFloat(item.price) || 0, // Ensure price is a number
       })),
       createdAt: new Date().toLocaleDateString(),
-      deliveryService: selectedDeliveryOption === "courier" ? selectedCourier : "Pickup",
-      paymentMethod: selectedPaymentMethod === "gcash" ? "GCash" : "Physical Store",
+      deliveryService:
+        selectedDeliveryOption === "courier" ? selectedCourier : "Pickup",
+      paymentMethod:
+        selectedPaymentMethod === "gcash" ? "GCash" : "Physical Store",
       status: "Processing",
       customerName: `${userInfo.firstName} ${userInfo.lastName}`,
       email: userInfo.email,
@@ -208,21 +210,33 @@ const CheckoutLanding = () => {
       })),
     };
   
+    // Log order details for debugging
+    console.log("Order Details Payload:", orderDetails);
+  
     try {
-      const response = await axios.post("http://localhost:5000/api/save-order", orderDetails);
+      const response = await axios.post(
+        "http://localhost:5000/api/save-order",
+        orderDetails
+      );
+  
       if (response.data.success) {
         alert("Order placed successfully!");
         fetchOrderHistory(); // Fetch the updated order history
         setOrderPlaced(true);
         setTimeout(() => {
-            navigate("/manage-account");
+          navigate("/manage-account");
         }, 2000);
+      }
+    } catch (error) {
+      // Log detailed error for debugging
+      console.error("Error placing order:", error.response?.data || error.message);
+      alert(
+        error.response?.data?.message ||
+          "Failed to place order. Please try again."
+      );
     }
-  } catch (error) {
-      console.error("Error placing order:", error.message);
-      alert("Failed to place order. Please try again.");
-  }
   };
+  
 
   const fetchOrderHistory = async () => {
     try {

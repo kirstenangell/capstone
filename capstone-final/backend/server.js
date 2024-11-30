@@ -1586,13 +1586,15 @@ app.post('/api/cart', async (req, res) => {
 
   // Validation block for user_id, product_id, and quantity
   if (!user_id || !product_id || typeof quantity !== 'number' || quantity <= 0) {
-      return res.status(400).json({ message: 'Invalid input: Ensure all fields are provided and valid.' });
-  }
+    return res.status(400).json({ message: 'Invalid input: Ensure all fields are provided and valid.' });
+}
+
 
   try {
       // Further logic to check if user and product exist in the database
       const [userRows] = await db.promise().query('SELECT id FROM users WHERE id = ?', [user_id]);
       const [productRows] = await db.promise().query('SELECT id, price, quantity AS available_quantity FROM products WHERE id = ?', [product_id]);
+
 
       if (userRows.length === 0 || productRows.length === 0) {
           return res.status(400).json({ message: 'Invalid user or product ID.' });
@@ -1937,6 +1939,68 @@ app.post("/api/save-order", (req, res) => {
     }
   );
 });
+
+app.post('/api/buy-now', async (req, res) => {
+  const { user, product, quantity, deliveryDetails, paymentOption } = req.body;
+
+  if (!user || !product || !quantity || !deliveryDetails || !paymentOption) {
+      return res.status(400).json({ message: 'Invalid input: All fields are required.' });
+  }
+
+  try {
+      // Begin transaction
+      await db.promise().query('START TRANSACTION');
+
+      // Insert into `orders` table
+      const orderQuery = `
+          INSERT INTO orders (
+              firstName, lastName, email, contactNumber, streetName, barangay, city,
+              region, province, zipCode, deliveryOption, paymentOption, products, price, status, date
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', CURDATE())
+      `;
+      const [orderResult] = await db.promise().query(orderQuery, [
+          user.firstName, user.lastName, user.email, user.contactNumber,
+          deliveryDetails.streetName, deliveryDetails.barangay, deliveryDetails.city,
+          deliveryDetails.region, deliveryDetails.province, deliveryDetails.zipCode,
+          deliveryDetails.deliveryOption, paymentOption, JSON.stringify([product]), product.price * quantity,
+      ]);
+
+      const orderId = orderResult.insertId;
+
+      // Insert into `order_items` table
+      const orderItemQuery = `
+          INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+          VALUES (?, ?, ?, ?)
+      `;
+      await db.promise().query(orderItemQuery, [
+          orderId, product.id, quantity, product.price
+      ]);
+
+      // Update product stock in `products` table
+      const updateStockQuery = `
+          UPDATE products SET quantity = quantity - ? WHERE id = ? AND quantity >= ?
+      `;
+      const [stockResult] = await db.promise().query(updateStockQuery, [
+          quantity, product.id, quantity
+      ]);
+
+      if (stockResult.affectedRows === 0) {
+          throw new Error('Insufficient stock available.');
+      }
+
+      // Commit transaction
+      await db.promise().query('COMMIT');
+
+      res.status(201).json({ message: 'Order placed successfully.', orderId });
+  } catch (error) {
+      // Rollback transaction in case of error
+      await db.promise().query('ROLLBACK');
+      console.error('Error processing Buy Now order:', error.message);
+      res.status(500).json({ message: 'Server error. Could not place the order.' });
+  }
+});
+
+
 // Fetch orders specific to the user_id with associated order items
 app.get('/orders', (req, res) => {
   const userId = parseInt(req.query.user_id, 10); // Parse user_id as an integer

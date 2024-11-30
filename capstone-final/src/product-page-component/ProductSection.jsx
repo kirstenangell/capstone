@@ -86,7 +86,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
     const payload = {
       user_id: userId,
       product_id: product.id,
-      quantity: product.quantity || 1,
+      quantity: product.quantity || 1, // Default to 1 if not provided
     };
   
     try {
@@ -94,14 +94,15 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
       const response = await axios.post('http://localhost:5000/api/cart', payload, {
         headers: { 'Content-Type': 'application/json' },
       });
+    
   
       if (response.status === 200) {
         console.log('Product added to cart:', response.data);
       }
     } catch (error) {
-      console.error('Error adding product to cart:', error);
+      console.error('Error adding product to cart:', error.response?.data || error.message);
     }
-  };
+    };
   
 
 
