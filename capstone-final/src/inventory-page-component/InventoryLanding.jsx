@@ -1,4 +1,3 @@
-// src/order-page-component/InventoryLanding.jsx
 import React, { useState, useContext } from 'react';
 import { IoMdClose } from 'react-icons/io'; // Close Icon
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Password Visibility Icons
@@ -17,6 +16,7 @@ const InventoryLanding = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [password, setPassword] = useState('');
+  const [archivedProducts, setArchivedProducts] = useState([]); // Archived products state
   const [actionType, setActionType] = useState(''); // Track action type (add/edit/archive)
   const [uploadedImages, setUploadedImages] = useState([]);
   const [searchQuery, setSearchQuery] = useState(''); // Initialize searchQuery state
@@ -32,13 +32,40 @@ const InventoryLanding = () => {
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   console.log('Base URL:', baseUrl); // Add this line
 
-  // Use ProductContext to get products and product manipulation functions
-  const { products, addProduct, updateProduct, archiveProduct } = useContext(ProductContext);
+   // Use ProductContext to get products and product manipulation functions
+   const { products, archiveProduct } = useContext(ProductContext);
 
-  const categories = ['All Categories', 'Electronics', 'Accessories', 'Others'];
-  const brands = ['All Brands', 'Brand A', 'Brand B', 'Brand C'];
-  const colors = ['All Colors', 'Red', 'Blue', 'Black', 'White'];
-  const finishes = ['All Finishes', 'Matte', 'Glossy'];
+   // Fetch archived products
+   const fetchArchivedProducts = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${baseUrl}/archived-products`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch archived products: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('Archived Products:', data); // Debugging response
+      setArchivedProducts(data); // Update state with fetched archived products
+    } catch (error) {
+      console.error('Error fetching archived products:', error);
+      setArchivedProducts([]); // Set empty array on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleStatusFilterChange = (status) => {
+    setStatusFilter(status);
+    if (status === 'Archived') {
+      fetchArchivedProducts(); // Fetch archived products when "Archived" is selected
+    }
+  };  
+ 
+  // Generate dynamic filter options from product data
+  const uniqueCategories = ['All Categories', ...new Set(products.map(product => product.category || 'Uncategorized'))];
+  const uniqueBrands = ['All Brands', ...new Set(products.map(product => product.brand || 'Unknown'))];
+  const uniqueColors = ['All Colors', ...new Set(products.map(product => product.color || 'Unspecified'))];
+  const uniqueFinishes = ['All Finishes', ...new Set(products.map(product => product.finish || 'Unspecified'))];
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -117,35 +144,40 @@ const InventoryLanding = () => {
   };
 
   // Filtered Products
-  const filteredProducts = products.filter((product) => {
-    const matchesName = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All Categories' || product.category === selectedCategory;
-    const matchesBrand = selectedBrand === 'All Brands' || product.brand === selectedBrand;
-    const matchesStatus = statusFilter === 'All' || product.status === statusFilter;
-    const matchesDiscount = discountFilter === 'All' || product.discount > 0;
-    const matchesColor = selectedColor === 'All Colors' || product.color === selectedColor;
-    const matchesFinish = selectedFinish === 'All Finishes' || product.finish === selectedFinish;
+  const filteredProducts = statusFilter === 'Archived'
+  ? archivedProducts.filter((product) =>
+      product.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  : products.filter((product) => {
+      const matchesName = product.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'All Categories' || product.category === selectedCategory;
+      const matchesBrand = selectedBrand === 'All Brands' || product.brand === selectedBrand;
+      const matchesStatus = statusFilter === 'All' || product.status === statusFilter;
+      const matchesDiscount = discountFilter === 'All' || (product.discount || 0) > 0;
+      const matchesColor = selectedColor === 'All Colors' || product.color === selectedColor;
+      const matchesFinish = selectedFinish === 'All Finishes' || product.finish === selectedFinish;
 
-    const matchesPriceRange =
-      (priceRange.min === '' || product.price >= Number(priceRange.min)) &&
-      (priceRange.max === '' || product.price <= Number(priceRange.max));
+      const matchesPriceRange =
+        (priceRange.min === '' || (product.price || 0) >= Number(priceRange.min)) &&
+        (priceRange.max === '' || (product.price || 0) <= Number(priceRange.max));
 
-    const matchesQuantityRange =
-      (quantityRange.min === '' || product.quantity >= Number(quantityRange.min)) &&
-      (quantityRange.max === '' || product.quantity <= Number(quantityRange.max));
+      const matchesQuantityRange =
+        (quantityRange.min === '' || (product.quantity || 0) >= Number(quantityRange.min)) &&
+        (quantityRange.max === '' || (product.quantity || 0) <= Number(quantityRange.max));
 
-    return (
-      matchesName &&
-      matchesCategory &&
-      matchesBrand &&
-      matchesStatus &&
-      matchesPriceRange &&
-      matchesDiscount &&
-      matchesColor &&
-      matchesFinish &&
-      matchesQuantityRange
-    );
-  });
+      return (
+        matchesName &&
+        matchesCategory &&
+        matchesBrand &&
+        matchesStatus &&
+        matchesPriceRange &&
+        matchesDiscount &&
+        matchesColor &&
+        matchesFinish &&
+        matchesQuantityRange
+      );
+    });
+
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
@@ -177,27 +209,35 @@ const InventoryLanding = () => {
           </div>
         </div>
 
-            {/* Filters Section */}
-            <div className="grid grid-cols-4 gap-6">
-              <div className="col-span-1 space-y-6">
-                <h2 className="text-sm font-bold text-white">FILTERS</h2>
-                
-                        {/* Category Filter */}
-              <div>
-                <h3 className="text-sm font-bold text-white">CATEGORY</h3>
-                <select
-                  className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="All Categories">All Categories</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {/* Filters Section */}
+          <div className="grid grid-cols-4 gap-6">
+            <div className="col-span-1 space-y-6">
+              <h2 className="text-sm font-bold text-white">FILTERS</h2>
+
+                {/* Category Filter */}
+                <div>
+                  <h3 className="text-sm font-bold text-white">CATEGORY</h3>
+                  <select
+                    className="mt-2 text-sm w-full p-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg"
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                  >
+                    <option value="All Categories">All Categories</option>
+                    <option value="Amplifier">Amplifier</option>
+                    <option value="Car Cooler">Car Cooler</option>
+                    <option value="Car Horn">Car Horn</option>
+                    <option value="Car Multimedia">Car Multimedia</option>
+                    <option value="Dash Cam">Dash Cam</option>
+                    <option value="Halogen">Halogen</option>
+                    <option value="LED">LED</option>
+                    <option value="Reverse Camera">Reverse Camera</option>
+                    <option value="SUV">SUV</option>
+                    <option value="Sedan">Sedan</option>
+                    <option value="Speakers">Speakers</option>
+                    <option value="Subwoofer">Subwoofer</option>
+                    <option value="Tweeter">Tweeter</option>
+                  </select>
+                </div>
 
               {/* Brand Filter */}
               <div>
@@ -207,8 +247,7 @@ const InventoryLanding = () => {
                   value={selectedBrand}
                   onChange={(e) => setSelectedBrand(e.target.value)}
                 >
-                  <option value="All Brands">All Brands</option>
-                  {brands.map((brand) => (
+                  {uniqueBrands.map((brand) => (
                     <option key={brand} value={brand}>
                       {brand}
                     </option>
@@ -219,8 +258,8 @@ const InventoryLanding = () => {
               {/* Status Filter */}
               <div>
                 <h3 className="text-sm font-bold text-white">STATUS</h3>
-                <div className="grid grid-cols-4 gap-2">
-                  {["All", "In Stock", "Out of Stock", "Archived"].map((status) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {["All", "In Stock", "Out of Stock"].map((status) => (
                     <button
                       key={status}
                       onClick={() => setStatusFilter(status)}
@@ -276,8 +315,7 @@ const InventoryLanding = () => {
                   value={selectedColor}
                   onChange={(e) => setSelectedColor(e.target.value)}
                 >
-                  <option value="All Colors">All Colors</option>
-                  {colors.map((color) => (
+                  {uniqueColors.map((color) => (
                     <option key={color} value={color}>
                       {color}
                     </option>
@@ -293,8 +331,7 @@ const InventoryLanding = () => {
                   value={selectedFinish}
                   onChange={(e) => setSelectedFinish(e.target.value)}
                 >
-                  <option value="All Finishes">All Finishes</option>
-                  {finishes.map((finish) => (
+                  {uniqueFinishes.map((finish) => (
                     <option key={finish} value={finish}>
                       {finish}
                     </option>

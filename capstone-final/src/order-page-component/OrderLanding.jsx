@@ -15,17 +15,19 @@ const OrderLanding = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('general'); // Default to 'general'
   const [activeStatus, setActiveStatus] = useState('All'); // Default status filter
+  const [orderItems, setOrderItems] = useState([]); // State for order items
+  const [loadingItems, setLoadingItems] = useState(false); // Loading indicator for order items
+
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [selectedDeliveryOption, setSelectedDeliveryOption] = useState('');
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
-  const [isDeliveryOptionOpen, setIsDeliveryOptionOpen] = useState(false);
   const [isPaymentStatusOpen, setIsPaymentStatusOpen] = useState(false);
   const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false);
-  const [isProvinceOpen, setIsProvinceOpen] = useState(false);
-  const [isCityOpen, setIsCityOpen] = useState(false);
+  const [isDeliveryOptionOpen, setIsDeliveryOptionOpen] = useState(false);
+
 
   const provinces = ['Metro Manila', 'Cavite', 'Laguna']; // Example provinces
   const cities = selectedProvince
@@ -46,6 +48,8 @@ const OrderLanding = () => {
   // Close modal
   const handleCloseModal = () => {
     setSelectedOrder(null);
+    setOrderItems([]); // Clear order items when modal is closed
+    setLoadingItems(false); // Reset loading state
   };
 
   // Archive the selected order
@@ -83,48 +87,60 @@ const OrderLanding = () => {
     navigate('/order-details', { state: { order: newOrder, isEdit: false } });
   };
 
+  // Fetch order items for the selected order
+  const fetchOrderItems = async (orderId) => {
+    setLoadingItems(true);
+    try {
+      const response = await fetch(`/api/order-items/${orderId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch order items');
+      }
+      const items = await response.json();
+      setOrderItems(items);
+    } catch (error) {
+      console.error('Error fetching order items:', error);
+    } finally {
+      setLoadingItems(false);
+    }
+  };
+  
+  
+  // Trigger fetching order items when the "Product List" tab is clicked
+  useEffect(() => {
+    if (activeTab === 'products' && selectedOrder) {
+      fetchOrderItems(selectedOrder.id);
+    }
+  }, [activeTab, selectedOrder]);
+
   // Filter orders based on search query and filters
   const filteredOrders = (orders || []).filter((order) => {
     const searchQueryLower = searchQuery.toLowerCase();
     const matchesSearchQuery =
-    (`OID-${order.id}`.toLowerCase().includes(searchQueryLower) ||
-      (order.firstName?.toLowerCase() || '').includes(searchQueryLower) ||
-      (order.lastName?.toLowerCase() || '').includes(searchQueryLower));
-      const matchesStatus =
-      activeStatus === 'All' || 
-      order.status?.toLowerCase() === activeStatus.toLowerCase();
-  
+      (`OID-${order.id}`.toLowerCase().includes(searchQueryLower) ||
+        (order.firstName?.toLowerCase() || '').includes(searchQueryLower) ||
+        (order.lastName?.toLowerCase() || '').includes(searchQueryLower));
+    const matchesStatus =
+      activeStatus === 'All' || order.status?.toLowerCase() === activeStatus.toLowerCase();
     const matchesPaymentStatus =
-    selectedPaymentStatus === '' || 
-      order.paymentStatus?.toLowerCase() === selectedPaymentStatus.toLowerCase();
-  
+      selectedPaymentStatus === '' || order.paymentStatus?.toLowerCase() === selectedPaymentStatus.toLowerCase();
     const matchesPaymentMethod =
-    selectedPaymentMethod === '' || 
-      order.paymentOption?.toLowerCase() === selectedPaymentMethod.toLowerCase();
-  
+      selectedPaymentMethod === '' || order.paymentOption?.toLowerCase() === selectedPaymentMethod.toLowerCase();
     const matchesDeliveryOption =
-    selectedDeliveryOption === '' || 
-    order.deliveryOption?.toLowerCase() === selectedDeliveryOption.toLowerCase();
+      selectedDeliveryOption === '' || order.deliveryOption?.toLowerCase() === selectedDeliveryOption.toLowerCase();
+    const matchesProvince = selectedProvince === '' || order.province === selectedProvince;
+    const matchesCity = selectedCity === '' || order.city === selectedCity;
 
-  const matchesDeliveryDate = deliveryDate === '' || order.pickUpDate === deliveryDate;
-
-  const matchesProvince = selectedProvince === '' || order.province === selectedProvince;
-
-  const matchesCity = selectedCity === '' || order.city === selectedCity;
-
-  return (
-    !order.archived &&
-    matchesSearchQuery &&
-    matchesStatus &&
-    matchesPaymentStatus &&
-    matchesPaymentMethod &&
-    matchesDeliveryOption &&
-    matchesDeliveryDate &&
-    matchesProvince &&
-    matchesCity
-  );
-});
-
+    return (
+      !order.archived &&
+      matchesSearchQuery &&
+      matchesStatus &&
+      matchesPaymentStatus &&
+      matchesPaymentMethod &&
+      matchesDeliveryOption &&
+      matchesProvince &&
+      matchesCity
+    );
+  });
 
 return (
   <div className="min-h-screen bg-black text-white py-10">
@@ -409,22 +425,23 @@ return (
                 </div>
               )}
               {activeTab === 'products' && (
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Product List</h3>
-                  {selectedOrder.products?.map((product, index) => (
-                    <div key={index} className="mb-4">
-                      <p className="text-sm text-gray-400">
-                        <strong>Product Name:</strong> {product.name}
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        <strong>Quantity:</strong> {product.quantity}
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        <strong>Price:</strong> {product.price}
-                      </p>
+                <>
+                  {loadingItems ? (
+                    <p>Loading...</p>
+                  ) : orderItems.length === 0 ? (
+                    <p>No products found.</p>
+                  ) : (
+                    <div>
+                      {orderItems.map((item) => (
+                        <div key={item.id}>
+                          <p>Product: {item.product_name}</p>
+                          <p>Quantity: {item.quantity}</p>
+                          <p>Price: {item.unit_price}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>

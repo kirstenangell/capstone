@@ -2071,6 +2071,51 @@ app.get('/orders', (req, res) => {
   });
 });
 
+// Endpoint to fetch archived products
+router.get('/products/archived', async (req, res) => {
+  try {
+    const [archivedProducts] = await pool.query('SELECT * FROM products WHERE archived = 1');
+    res.status(200).json(archivedProducts);
+  } catch (error) {
+    console.error('Error fetching archived products:', error);
+    res.status(500).json({ message: 'Error fetching archived products' });
+  }
+});
+
+// Endpoint to fetch order items with product details
+app.get('/api/order-items/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    // Update your SQL query to join the `order_items` table with the `products` table
+    const query = `
+      SELECT 
+        oi.id, 
+        oi.order_id, 
+        oi.quantity, 
+        oi.unit_price, 
+        oi.total_price, 
+        p.name AS product_name, 
+        p.description, 
+        p.image 
+      FROM 
+        order_items oi
+      INNER JOIN 
+        products p 
+      ON 
+        oi.product_id = p.id
+      WHERE 
+        oi.order_id = ?
+    `;
+
+    // Execute the query
+    const [rows] = await pool.execute(query, [orderId]);
+    res.json(rows); // Send the result as JSON
+  } catch (error) {
+    console.error('Error fetching order items:', error);
+    res.status(500).json({ error: 'Failed to fetch order items' });
+  }
+});
 
 
 // Start the server
