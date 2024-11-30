@@ -2,24 +2,29 @@ import React, { useState, useContext, useEffect } from 'react';
 import { FaSearch, FaChevronDown } from 'react-icons/fa';
 import AmplifierImage from '../assets/AmplifierImage.png'; // Replace with the path to your image
 import { ProductContext } from '../context/ProductContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Amplifier = () => {
   const { products } = useContext(ProductContext);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'; // Backend server
 
-  // Ensure all products display by default
+  // Filter products to only show those with the category 'Amplifier'
   useEffect(() => {
-    setFilteredProducts(products);
+    const amplifierProducts = products.filter((product) => product.category === 'Amplifier');
+    setFilteredProducts(amplifierProducts);
   }, [products]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim() === '') {
-      setFilteredProducts(products);
+      setFilteredProducts(products.filter((product) => product.category === 'Amplifier'));
     } else {
-      const searchResults = products.filter((product) =>
+      const searchResults = filteredProducts.filter((product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredProducts(searchResults);
@@ -56,6 +61,37 @@ const Amplifier = () => {
     setIsDropdownOpen(false);
   };
 
+  const handleAddToCartClick = async (product) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      console.error('User ID is missing. Redirecting to login...');
+      navigate('/login');
+      return;
+    }
+
+    const payload = {
+      user_id: userId,
+      product_id: product.id,
+      quantity: product.quantity || 1,
+    };
+
+    console.log('Add to Cart Payload:', payload);
+
+    try {
+      const response = await axios.post(`${baseUrl}/api/cart`, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.status === 200) {
+        console.log('Product added to cart successfully:', response.data);
+      } else {
+        console.error('Unexpected response:', response);
+      }
+    } catch (error) {
+      console.error('Error adding product to cart:', error.response?.data || error.message);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-black text-white">
       {/* Header Section */}
@@ -69,7 +105,7 @@ const Amplifier = () => {
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
           <h1 className="text-4xl font-bold">Amplifier</h1>
           <p className="mt-4 text-lg text-gray-400">
-            Lorem Ipsum blah blah blah
+            Discover the best amplifiers for your sound system.
           </p>
         </div>
       </div>
@@ -151,6 +187,15 @@ const Amplifier = () => {
                 <p className="text-lg font-semibold text-gray-400 mt-1">
                   PHP {product.price.toLocaleString()}
                 </p>
+                <button
+                  className="mt-4 bg-gradient-to-r from-[#4B88A3]/[0.3] via-[#040405] to-[#4B88A3]/[0.3] text-white py-2 px-4 rounded-lg hover:from-cyan-400 hover:to-blue-400 w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToCartClick({ ...product, quantity: 1 });
+                  }}
+                >
+                  Add to Cart
+                </button>
               </div>
             </div>
           ))

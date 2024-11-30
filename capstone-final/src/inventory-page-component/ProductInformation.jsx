@@ -143,8 +143,8 @@ const ProductInformation = () => {
 
   // Sample categories array (replace with actual categories)
   const categories = [
-    'Amplifier', 'Car Audio System', 'Car Cooler', 'Car Gadgets', 'Car Horn', 
-    'Car Multimedia', 'Dash Cam', 'Exterior', 'Halogen', 'Hubcap', 'LED', 
+    'Amplifier', 'Car Cooler', 'Car Horn', 
+    'Car Multimedia', 'Dash Cam', 'Reverse Camera', 'Halogen', 'LED', 
     'Speakers', 'Subwoofer', 'Tweeter', 'Sedan', 'SUV'
   ];
 
