@@ -86,108 +86,112 @@ const OrderLanding = () => {
   // Filter orders based on search query and filters
   const filteredOrders = (orders || []).filter((order) => {
     const searchQueryLower = searchQuery.toLowerCase();
-
     const matchesSearchQuery =
-      (`OID-${order.id}`.toLowerCase().includes(searchQueryLower) ||
-        (order.firstName?.toLowerCase() || '').includes(searchQueryLower) ||
-        (order.lastName?.toLowerCase() || '').includes(searchQueryLower));
-
-    const matchesStatus = activeStatus === 'All' || order.status === activeStatus;
-
+    (`OID-${order.id}`.toLowerCase().includes(searchQueryLower) ||
+      (order.firstName?.toLowerCase() || '').includes(searchQueryLower) ||
+      (order.lastName?.toLowerCase() || '').includes(searchQueryLower));
+      const matchesStatus =
+      activeStatus === 'All' || 
+      order.status?.toLowerCase() === activeStatus.toLowerCase();
+  
     const matchesPaymentStatus =
-      !selectedPaymentStatus || order.paymentStatus === selectedPaymentStatus;
-
+    selectedPaymentStatus === '' || 
+      order.paymentStatus?.toLowerCase() === selectedPaymentStatus.toLowerCase();
+  
     const matchesPaymentMethod =
-      !selectedPaymentMethod || order.paymentOption === selectedPaymentMethod;
-
+    selectedPaymentMethod === '' || 
+      order.paymentOption?.toLowerCase() === selectedPaymentMethod.toLowerCase();
+  
     const matchesDeliveryOption =
-      !selectedDeliveryOption || order.deliveryOption === selectedDeliveryOption;
+    selectedDeliveryOption === '' || 
+    order.deliveryOption?.toLowerCase() === selectedDeliveryOption.toLowerCase();
 
-    const matchesDeliveryDate = !deliveryDate || order.pickUpDate === deliveryDate;
+  const matchesDeliveryDate = deliveryDate === '' || order.pickUpDate === deliveryDate;
 
-    const matchesProvince = !selectedProvince || order.province === selectedProvince;
+  const matchesProvince = selectedProvince === '' || order.province === selectedProvince;
 
-    const matchesCity = !selectedCity || order.city === selectedCity;
-
-    return (
-      !order.archived &&
-      matchesSearchQuery &&
-      matchesStatus &&
-      matchesPaymentStatus &&
-      matchesPaymentMethod &&
-      matchesDeliveryOption &&
-      matchesDeliveryDate &&
-      matchesProvince &&
-      matchesCity
-    );
-  });
+  const matchesCity = selectedCity === '' || order.city === selectedCity;
 
   return (
-    <div className="min-h-screen bg-black text-white py-10">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">ORDER</h1>
-          <div className="flex items-center">
-            <div className="flex items-center border-b border-gray-600">
-              <CiSearch className="text-gray-600 text-xl mr-2" />
-              <input
-                type="text"
-                placeholder="Search order"
-                className="bg-transparent text-gray-600 px-4 py-2 focus:outline-none"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <button
-              onClick={handleAddOrder}
-              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
-            >
-              Add Order
-            </button>
+    !order.archived &&
+    matchesSearchQuery &&
+    matchesStatus &&
+    matchesPaymentStatus &&
+    matchesPaymentMethod &&
+    matchesDeliveryOption &&
+    matchesDeliveryDate &&
+    matchesProvince &&
+    matchesCity
+  );
+});
+
+
+return (
+  <div className="min-h-screen bg-black text-white py-10">
+    <div className="max-w-7xl mx-auto px-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">ORDER</h1>
+        <div className="flex items-center">
+          <div className="flex items-center border-b border-gray-600">
+            <CiSearch className="text-gray-600 text-xl mr-2" />
+            <input
+              type="text"
+              placeholder="Search order"
+              className="bg-transparent text-gray-600 px-4 py-2 focus:outline-none"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+          <button
+            onClick={handleAddOrder}
+            className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
+          >
+            Add Order
+          </button>
         </div>
+      </div>
 
-        {/* Filters and Order List */}
-        <div className="grid grid-cols-4 gap-6">
-          {/* Sidebar Filters */}
-          <div className="col-span-1">
+      {/* Filters and Order List */}
+      <div className="grid grid-cols-4 gap-6">
+        {/* Sidebar Filters */}
+        <div className="col-span-1">
+          <div className="mb-6">
+            <h2 className="text-sm font-bold text-white mb-4">FILTERS</h2>
+
+            {/* Order Status Filter */}
             <div className="mb-6">
-              <h2 className="text-sm font-bold text-white mb-4">FILTERS</h2>
-
-              {/* Order Status Filter */}
-              <div className="mb-6">
-                <h3 className="text-sm font-bold text-white mb-2">ORDER STATUS</h3>
-                <div className="flex space-x-2">
-                  {['All', 'Pending', 'Completed', 'Cancelled'].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setActiveStatus(status)}
-                      className={`text-sm px-4 py-2 rounded-lg ${
-                        activeStatus === status
-                          ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
-                          : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Payment Status and Method Filters */}
-              <div className="mb-6">
-                <h3 className="text-sm font-bold text-white mb-2">PAYMENT</h3>
-                <div className="relative mb-4">
+              <h3 className="text-sm font-bold text-white mb-2">ORDER STATUS</h3>
+              <div className="flex space-x-2">
+                {['All', 'Pending', 'Completed', 'Cancelled'].map((status) => (
                   <button
-                    onClick={() => setIsPaymentStatusOpen(!isPaymentStatusOpen)}
-                    className="w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+                    key={status}
+                    onClick={() => setActiveStatus(status)}
+                    className={`text-sm px-4 py-2 rounded-lg ${
+                      activeStatus === status
+                        ? 'bg-gradient-to-r from-[#040405] to-[#122127] text-white'
+                        : 'bg-gradient-to-r from-[#000000] to-[#000000] text-white hover:from-[#040405] hover:to-[#122127]'
+                    }`}
                   >
-                    {selectedPaymentStatus || 'PAYMENT STATUS'}
+                    {status}
                   </button>
-                  {isPaymentStatusOpen && (
-                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10">
-                      <ul className="text-sm text-white">
-                        {['All', 'Paid', 'Unpaid', 'Partially Paid'].map((status) => (
+                ))}
+              </div>
+            </div>
+
+            {/* Payment Status and Method Filters */}
+            <div className="mb-6">
+              <h3 className="text-sm font-bold text-white mb-2">PAYMENT</h3>
+              <div className="relative mb-4">
+                <button
+                  onClick={() => setIsPaymentStatusOpen(!isPaymentStatusOpen)}
+                  className="w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
+                >
+                  {selectedPaymentStatus || 'PAYMENT STATUS'}
+                </button>
+                {isPaymentStatusOpen && (
+                  <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10">
+                    <ul className="text-sm text-white">
+                    {['All', 'Paid', 'Unpaid'].map((status) => (
                           <li
                             key={status}
                             className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
@@ -213,7 +217,7 @@ const OrderLanding = () => {
                   {isPaymentMethodOpen && (
                     <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10">
                       <ul className="text-sm text-white">
-                        {['Cash', 'GCash', 'Card'].map((method) => (
+                      {['Cash', 'GCash'].map((method) => (
                           <li
                             key={method}
                             className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
@@ -267,67 +271,7 @@ const OrderLanding = () => {
                   onChange={(e) => setDeliveryDate(e.target.value)}
                 />
               </div>
-
-              {/* Address Filters */}
-              <div className="mb-6">
-                <h3 className="text-sm font-bold text-white mb-2">ADDRESS</h3>
-                <div className="relative mb-4">
-                  <button
-                    onClick={() => setIsProvinceOpen(!isProvinceOpen)}
-                    className="w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left"
-                  >
-                    {selectedProvince || 'PROVINCE'}
-                  </button>
-                  {isProvinceOpen && (
-                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                      <ul className="text-sm text-white">
-                        {provinces.map((province) => (
-                          <li
-                            key={province}
-                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
-                            onClick={() => {
-                              setSelectedProvince(province);
-                              setIsProvinceOpen(false);
-                            }}
-                          >
-                            {province}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-                <div className="relative">
-                  <button
-                    onClick={() => setIsCityOpen(!isCityOpen)}
-                    className={`w-full text-sm px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] rounded-lg text-left ${
-                      !selectedProvince ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    disabled={!selectedProvince}
-                  >
-                    {selectedCity || 'CITY'}
-                  </button>
-                  {isCityOpen && (
-                    <div className="absolute mt-2 w-full bg-[#040405] rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                      <ul className="text-sm text-white">
-                        {cities.map((city) => (
-                          <li
-                            key={city}
-                            className="p-2 hover:bg-gradient-to-r from-[#040405] to-[#122127] cursor-pointer"
-                            onClick={() => {
-                              setSelectedCity(city);
-                              setIsCityOpen(false);
-                            }}
-                          >
-                            {city}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
               </div>
-            </div>
           </div>
 
           {/* Order List */}

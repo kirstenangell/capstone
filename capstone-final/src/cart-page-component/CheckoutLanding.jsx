@@ -165,6 +165,23 @@ const CheckoutLanding = () => {
 
   const handlePlaceOrder = async () => {
     const orderDetails = {
+      id: `OID-${Math.floor(Math.random() * 10000)}`,
+      items: cartItems.map((item) => ({
+        ...item,
+        price: parseFloat(item.price) || 0, // Ensure price is a number
+      })),
+      createdAt: new Date().toLocaleDateString(),
+      deliveryService: selectedDeliveryOption === "courier" ? selectedCourier : "Pickup",
+      paymentMethod: selectedPaymentMethod === "gcash" ? "GCash" : "Physical Store",
+      status: "Processing",
+      customerName: `${userInfo.firstName} ${userInfo.lastName}`,
+      email: userInfo.email,
+      phone: userInfo.contactNumber,
+      paymentSummary: {
+        subtotal: total,
+        shippingFee: selectedDeliveryOption === "courier" ? 50 : 0,
+        total: total + (selectedDeliveryOption === "courier" ? 50 : 0),
+      },
       user: {
         firstName: userInfo.firstName,
         lastName: userInfo.lastName,
@@ -192,21 +209,35 @@ const CheckoutLanding = () => {
     };
   
     try {
-      const response = await axios.post('http://localhost:5000/api/save-order', orderDetails);
+      const response = await axios.post("http://localhost:5000/api/save-order", orderDetails);
       if (response.data.success) {
-          alert('Order placed successfully!');
-          // Update order history after placing an order
-          fetchOrderHistory(); // Fetch the updated order history
-          setOrderPlaced(true);
-          setTimeout(() => {
-              navigate('/manage-account');
-          }, 2000);
-      }
+        alert("Order placed successfully!");
+        fetchOrderHistory(); // Fetch the updated order history
+        setOrderPlaced(true);
+        setTimeout(() => {
+            navigate("/manage-account");
+        }, 2000);
+    }
   } catch (error) {
-      console.error('Error placing order:', error.message);
-      alert('Failed to place order. Please try again.');
+      console.error("Error placing order:", error.message);
+      alert("Failed to place order. Please try again.");
   }
+  };
+
+  const fetchOrderHistory = async () => {
+    try {
+        const response = await axios.get("http://localhost:5000/api/order-history", {
+            params: { email: userInfo.email },
+        });
+        if (response.data.success) {
+            console.log("Order history updated:", response.data.orders);
+        }
+    } catch (error) {
+        console.error("Error fetching order history:", error);
+    }
 };
+
+  
   
   const isFutureDate = (date) => {
     const today = new Date();
