@@ -1883,7 +1883,6 @@ app.post('/api/cart', async (req, res) => {
 // API to save orders
 app.post("/api/save-order", (req, res) => {
   const { user, order, orderItems } = req.body;
-
   // Insert into `orders` table
   const orderQuery = `
     INSERT INTO orders (
@@ -1891,7 +1890,6 @@ app.post("/api/save-order", (req, res) => {
       deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', CURDATE())
   `;
-
   db.query(
     orderQuery,
     [
@@ -1918,9 +1916,7 @@ app.post("/api/save-order", (req, res) => {
         console.error(err);
         return res.status(500).json({ error: "Failed to save order" });
       }
-
       const orderId = orderResult.insertId;
-
       // Insert into `order_items` table
       const orderItemsQuery = `
         INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES ?
@@ -1931,41 +1927,33 @@ app.post("/api/save-order", (req, res) => {
         item.quantity,
         item.unitPrice,
       ]);
-
       db.query(orderItemsQuery, [orderItemsData], (err) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ error: "Failed to save order items" });
         }
-
         res.json({ success: true, orderId });
       });
     }
   );
 });
-
 // Fetch orders specific to the user_id with associated order items
 app.get('/orders', (req, res) => {
   const userId = parseInt(req.query.user_id, 10); // Parse user_id as an integer
-
   // Check if userId is valid
   if (isNaN(userId)) {
     return res.status(400).json({ message: 'Invalid User ID provided.' });
   }
-
   // Step 1: Validate if the user exists in the database
   const userValidationQuery = `SELECT id FROM users WHERE id = ? LIMIT 1;`;
-
   db.query(userValidationQuery, [userId], (userErr, userResults) => {
     if (userErr) {
       console.error('Error validating user:', userErr);
       return res.status(500).json({ message: 'Internal server error while validating user.' });
     }
-
     if (userResults.length === 0) {
       return res.status(404).json({ message: 'User not found.' });
     }
-
     // Step 2: Fetch the orders and associated items for the valid user
     const query = `
       SELECT 
@@ -2005,13 +1993,11 @@ app.get('/orders', (req, res) => {
       ORDER BY 
         o.date DESC, o.id;
     `;
-
     db.query(query, [userId], (err, results) => {
       if (err) {
         console.error('Error fetching user-specific orders:', err);
         return res.status(500).json({ message: 'Internal server error while fetching orders.' });
       }
-
       // Step 3: Group orders by `order_id` for structured response
       const orders = results.reduce((acc, row) => {
         const {
@@ -2041,7 +2027,6 @@ app.get('/orders', (req, res) => {
           item_unit_price,
           item_total_price,
         } = row;
-
         // If the order ID is not in the accumulator, add it
         if (!acc[order_id]) {
           acc[order_id] = {
@@ -2067,7 +2052,6 @@ app.get('/orders', (req, res) => {
             items: [], // Initialize items array
           };
         }
-
         // If the current row has order item details, add to the items array
         if (order_item_id) {
           acc[order_id].items.push({
@@ -2079,10 +2063,8 @@ app.get('/orders', (req, res) => {
             item_total_price,
           });
         }
-
         return acc;
       }, {});
-
       // Step 4: Respond with grouped orders as an array
       res.status(200).json(Object.values(orders));
     });
