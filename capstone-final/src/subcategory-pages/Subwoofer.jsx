@@ -6,14 +6,13 @@ import { ProductContext } from '../context/ProductContext';
 import axios from 'axios';
 
 const Subwoofer = ({ isLoggedIn }) => {
-  const { products } = useContext(ProductContext);
+  const { products } = useContext(ProductContext); // Get products from context
   const location = useLocation();
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'; // Backend server
 
-
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState(products || []);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showLoginWarning, setShowLoginWarning] = useState(false);
@@ -27,15 +26,20 @@ const Subwoofer = ({ isLoggedIn }) => {
   }, [location.state]);
 
   useEffect(() => {
-    setFilteredProducts(products || []);
+    // Filter products by "Subwoofer" category
+    if (products) {
+      const subwooferProducts = products.filter((product) => product.category === 'Subwoofer');
+      setFilteredProducts(subwooferProducts);
+    }
   }, [products]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) {
-      setFilteredProducts(products);
+      // If search is empty, show all Subwoofer products
+      setFilteredProducts(products.filter((product) => product.category === 'Subwoofer'));
     } else {
-      const searchResults = products.filter((product) =>
+      const searchResults = filteredProducts.filter((product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredProducts(searchResults);
@@ -50,14 +54,10 @@ const Subwoofer = ({ isLoggedIn }) => {
     let sortedProducts = [];
     switch (type) {
       case 'A-Z':
-        sortedProducts = [...filteredProducts].sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
+        sortedProducts = [...filteredProducts].sort((a, b) => a.name.localeCompare(b.name));
         break;
       case 'Z-A':
-        sortedProducts = [...filteredProducts].sort((a, b) =>
-          b.name.localeCompare(a.name)
-        );
+        sortedProducts = [...filteredProducts].sort((a, b) => b.name.localeCompare(a.name));
         break;
       case 'Price ↑':
         sortedProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
@@ -79,20 +79,20 @@ const Subwoofer = ({ isLoggedIn }) => {
       navigate('/login');
       return;
     }
-  
+
     const payload = {
       user_id: userId,
       product_id: product.id,
       quantity: product.quantity || 1,
     };
-  
+
     console.log('Add to Cart Payload:', payload);
-  
+
     try {
       const response = await axios.post(`${baseUrl}/api/cart`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-  
+
       if (response.status === 200) {
         console.log('Product added to cart successfully:', response.data);
       } else {
@@ -102,7 +102,7 @@ const Subwoofer = ({ isLoggedIn }) => {
       console.error('Error adding product to cart:', error.response?.data || error.message);
     }
   };
-  
+
   const handleBuyNowClick = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
@@ -110,28 +110,28 @@ const Subwoofer = ({ isLoggedIn }) => {
       navigate('/login');
       return;
     }
-  
+
     if (!selectedProduct || !selectedProduct.id) {
       console.error('Invalid product selection.');
       return;
     }
-  
+
     const payload = {
       user_id: userId,
       product_id: selectedProduct.id,
       quantity: selectedProduct.quantity || 1,
     };
-  
+
     console.log('Buy Now Payload:', payload);
-  
+
     try {
       const response = await axios.post(`${baseUrl}/api/cart`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-  
+
       if (response.status === 200) {
         console.log('Buy Now Success:', response.data);
-  
+
         navigate('/checkout-landing', {
           state: {
             cartItems: [
@@ -147,7 +147,6 @@ const Subwoofer = ({ isLoggedIn }) => {
       console.error('Error processing Buy Now action:', error.response?.data || error.message);
     }
   };
-  
 
   const handleProductClick = (product) => {
     setSelectedProduct({ ...product, quantity: 0 });
