@@ -121,7 +121,7 @@ const Login = ({ setIsLoggedIn }) => {
                 <div className="text-center mt-4 text-xs">
                     <span>Don't have an account? </span>
                     <a
-                        href="#"
+                        href="/signup"
                         className="hover:underline bg-gradient-to-r from-[#C9CACA] via-[#335C6E] to-[#62B1D4] bg-clip-text text-transparent"
                     >
                         Sign Up
