@@ -300,7 +300,7 @@ return (
                     />
                   )}
                   <img
-                    src={item.image}
+                    src={item.image.split(',')[0]}
                     alt="Product"
                     className="w-12 h-12 mr-4"
                   />
