@@ -754,4 +754,13 @@ const SupplierLanding = () => {
   );
 };
 
+export const getSupplierSummary = (suppliers) => {
+  return {
+    totalSuppliers: suppliers.length,
+    activeSuppliers: suppliers.filter(s => s.isActive).length,
+    inactiveSuppliers: suppliers.filter(s => !s.isActive).length,
+  };
+};
+
+
 export default SupplierLanding;
