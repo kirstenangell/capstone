@@ -657,6 +657,7 @@ const ManageAcc = () => {
                                 style={{ background: 'linear-gradient(90deg, #335C6E, #040405)' }}
                                 onClick={() => {
                                     setSelectedOrder(order);
+                                    console.log('Selected Order:', order);
                                     setModalVisible(true);
                                 }}
                             >
@@ -695,7 +696,7 @@ const ManageAcc = () => {
                                 {/* Items Section */}
                                 <div>
                                     <h3 className="text-lg font-semibold text-black">Items</h3>
-                                    {selectedOrder.items.map((item, index) => (
+                                    {selectedOrder.products.map((item, index) => (
                                         <div key={index} className="flex justify-between text-sm text-black">
                                             <p>{item.name} ({item.category})</p>
                                             <p>{item.quantity} pcs</p>
