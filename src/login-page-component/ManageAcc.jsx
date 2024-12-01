@@ -87,6 +87,7 @@ const ManageAcc = () => {
 
     const fetchOrderHistory = async () => {
         const userId = parseInt(localStorage.getItem('userId'), 10); // Get and parse the user ID
+        const email = localStorage.getItem('email'); // Get the email from localStorage
 
         if (isNaN(userId)) {
             console.error('User ID is missing or invalid in localStorage.');
@@ -100,7 +101,8 @@ const ManageAcc = () => {
             });
 
             if (response.status === 200) {
-                const filteredOrders = response.data.filter(order => order.user_id === userId); // Ensure data is filtered
+                const filteredOrders = response.data.filter(order => order.email === email);
+                console.log('Filtered Orders:', filteredOrders);
                 setOrderHistory(filteredOrders); // Set filtered orders in state
                 console.log('Order history fetched successfully:', response);
             } else {
