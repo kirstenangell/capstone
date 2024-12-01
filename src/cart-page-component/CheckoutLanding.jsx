@@ -950,7 +950,7 @@ if (!selectedPaymentMethod) {
                 {cartItems.map((item, index) => (
                   <div key={index} className="flex justify-between items-center">
                     <div className="flex items-center space-x-4">
-                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
+                      <img src={item.image.split(',')[0]} alt={item.name} className="w-16 h-16 object-cover rounded" />
                       <div>
                         <div className="font-medium">{item.name}</div>
                         <div className="text-sm text-gray-400">PHP {item.price.toLocaleString()}</div>
