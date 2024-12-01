@@ -592,4 +592,13 @@ className="w-full h-64 object-contain rounded-lg"
   );
 };
 
+export const getInventorySummary = (products) => {
+  return {
+    totalProducts: products.length,
+    inStock: products.filter(p => p.status === 'In Stock').length,
+    outOfStock: products.filter(p => p.status === 'Out of Stock').length,
+    lowStock: products.filter(p => p.quantity < 10).length, // Example threshold
+  };
+};
+
 export default InventoryLanding;

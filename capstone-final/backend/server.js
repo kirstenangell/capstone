@@ -2166,6 +2166,196 @@ app.get('/api/order-items/:orderId', async (req, res) => {
   }
 });
 
+// Middleware to authenticate user
+const authenticateUser = (req, res, next) => {
+  const userId = req.headers['user-id']; // Get user_id from request header
+
+  if (!userId) {
+    return res.status(401).json({ message: 'User ID is required for authentication.' });
+  }
+
+  const query = 'SELECT id FROM users WHERE id = ? LIMIT 1';
+  db.query(query, [userId], (err, result) => {
+    if (err || result.length === 0) {
+      return res.status(403).json({ message: 'Unauthorized: Invalid User ID.' });
+    }
+
+    req.userId = userId; // Attach userId to the request object for further use
+    next();
+  });
+};
+
+// Backend: Save Orders Upon Successful Checkout
+app.post('/api/save-order', async (req, res) => {
+  const { user, order, orderItems } = req.body;
+
+  // Basic validation for required fields
+  if (!user || !order || !orderItems || !Array.isArray(orderItems)) {
+    return res.status(400).json({ error: 'Invalid order payload' });
+  }
+
+  const connection = db.promise(); // Use promise-based connection for cleaner async/await handling
+
+  try {
+    // Start a transaction
+    await connection.query('START TRANSACTION');
+
+    // Insert into `orders` table
+    const orderQuery = `
+      INSERT INTO orders (user_id, firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode, deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())
+    `;
+    const orderValues = [
+      user.id,
+      user.firstName,
+      user.lastName,
+      user.email,
+      user.contactNumber || '',
+      order.address.streetName || '',
+      order.address.barangay || '',
+      order.address.city || '',
+      order.address.region || '',
+      order.address.province || '',
+      order.address.zipCode || '',
+      order.deliveryOption || '',
+      order.courier || '',
+      order.paymentOption || '',
+      order.pickUpTime || null,
+      order.pickUpDate || null,
+      JSON.stringify(order.products || []),
+      order.total || 0,
+      'PENDING',
+    ];
+    const [orderResult] = await connection.query(orderQuery, orderValues);
+    const orderId = orderResult.insertId;
+
+    // Insert into `order_items` table
+    const orderItemsQuery = `
+      INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+      VALUES ?
+    `;
+    const orderItemsValues = orderItems.map((item) => [
+      orderId,
+      item.productId,
+      item.quantity,
+      item.unitPrice,
+    ]);
+
+    await connection.query(orderItemsQuery, [orderItemsValues]);
+
+    // Commit the transaction
+    await connection.query('COMMIT');
+    console.log('Order and order items saved successfully');
+
+    res.status(201).json({ success: true, orderId });
+  } catch (error) {
+    console.error('Error saving order:', error.message);
+
+    // Rollback the transaction in case of an error
+    await connection.query('ROLLBACK');
+    res.status(500).json({ error: 'Failed to save order items' });
+  }
+});
+
+// Backend: Fetch Order History for Specific User
+app.get("/order-history", (req, res) => {
+  const userId = req.headers["user-id"]; // Get user_id from headers
+
+  if (!userId) {
+    return res.status(401).json({ message: "User ID is required." });
+  }
+
+  const query = `
+    SELECT 
+      id, 
+      firstName, 
+      lastName, 
+      email, 
+      contactNumber, 
+      streetName, 
+      barangay, 
+      city, 
+      region, 
+      province, 
+      zipCode, 
+      deliveryOption, 
+      courier, 
+      paymentOption, 
+      pickUpTime, 
+      pickUpDate, 
+      products, 
+      price, 
+      status, 
+      date 
+    FROM orders 
+    WHERE user_id = ? 
+    ORDER BY date DESC
+  `;
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching order history:", err);
+      return res.status(500).json({ message: "Failed to fetch order history." });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
+// Order Details Endpoint
+app.get('/order-details', async (req, res) => {
+  const { order_id } = req.query;
+
+  if (!order_id) {
+      return res.status(400).json({ message: 'Order ID is required' });
+  }
+
+  try {
+      const query = `
+          SELECT o.id, o.date, o.deliveryOption, o.paymentOption, o.status, o.price, 
+                 u.firstName, u.lastName, u.email, u.contactNumber, 
+                 u.street AS streetName, u.barangay, u.city, u.region, u.province, u.zipCode
+          FROM orders o
+          JOIN users u ON o.user_id = u.id
+          WHERE o.id = ?
+      `;
+      const [orderRows] = await db.promise().query(query, [order_id]);
+
+      if (orderRows.length === 0) {
+          return res.status(404).json({ message: 'Order not found' });
+      }
+
+      res.status(200).json(orderRows[0]);
+  } catch (err) {
+      console.error('Error fetching order details:', err);
+      res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+// Order Items Endpoint
+app.get('/order-items', async (req, res) => {
+  const { order_id } = req.query;
+
+  if (!order_id) {
+      return res.status(400).json({ message: 'Order ID is required' });
+  }
+
+  try {
+      const query = `
+          SELECT * FROM order_items WHERE order_id = ?
+      `;
+      const [itemRows] = await db.promise().query(query, [order_id]);
+
+      res.status(200).json(itemRows);
+  } catch (err) {
+      console.error('Error fetching order items:', err);
+      res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
 
 // Start the server
 const PORT = process.env.PORT || 5000;

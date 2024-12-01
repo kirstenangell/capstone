@@ -451,4 +451,13 @@ return (
   );
 };
 
+export const getOrderSummary = (orders) => {
+  return {
+    totalOrders: orders.length,
+    pendingOrders: orders.filter(o => o.status === 'Pending').length,
+    completedOrders: orders.filter(o => o.status === 'Completed').length,
+  };
+};
+
+
 export default OrderLanding;

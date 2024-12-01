@@ -37,76 +37,101 @@ const ManageAcc = () => {
     useEffect(() => {
         const userId = localStorage.getItem('userId');
         if (userId) {
-            console.log(`User ID found in localStorage: ${userId}`);
+          console.log(`User ID found in localStorage: ${userId}`);
         } else {
-            console.warn('User ID not found in localStorage. Redirecting to login...');
-            navigate('/login'); // Redirect to login if not found
+          console.warn('User ID not found in localStorage. Redirecting to login...');
+          navigate('/login'); // Redirect to login if not found
         }
     
         const fetchUserData = async () => {
-            const email = localStorage.getItem('email');
-            if (!email) {
-                console.error('Email is missing in localStorage. Redirecting to login...');
-                navigate('/login'); // Redirect to login
-                return;
-            }
-    
-            try {
-                const response = await axios.get(`http://localhost:5000/user-details`, {
-                    params: { email }, // Pass email as query parameter
-                });
-    
-                if (response.status === 200) {
-                    const userData = response.data;
-                    console.log('User Data:', userData); // Log user data for debugging
-                    setFormData({
-                        firstName: userData.firstName || '',
-                        lastName: userData.lastName || '',
-                        email: userData.email || '',
-                        contactNumber: userData.contactNumber || '',
-                        street: userData.street || '',
-                        barangay: userData.barangay || '',
-                        city: userData.city || '',
-                        region: userData.region || '',
-                        province: userData.province || '',
-                        zipCode: userData.zipCode || '',
-                    });
-                    setInitialFormData(userData); // Store the initial data
-                } else {
-                    console.error('Unexpected response status:', response.status);
-                }
-            } catch (error) {
-                console.error('Error fetching user data:', error.message);
-            }
-        };
-    
-        fetchUserData();
-    }, []);
-    
-    const fetchOrderHistory = async () => {
-        const userId = parseInt(localStorage.getItem('userId'), 10); // Get and parse the user ID
-    
-        if (isNaN(userId)) {
-            console.error('User ID is missing or invalid in localStorage.');
+          const email = localStorage.getItem('email');
+          if (!email) {
+            console.error('Email is missing in localStorage. Redirecting to login...');
+            navigate('/login'); // Redirect to login
             return;
-        }
+          }
     
-        try {
-            // Make the request with the user_id as a query parameter
-            const response = await axios.get(`http://localhost:5000/orders`, {
-                params: { user_id: userId }, // Pass userId directly
+          try {
+            const response = await axios.get(`http://localhost:5000/user-details`, {
+              params: { email }, // Pass email as query parameter
             });
     
             if (response.status === 200) {
-                const filteredOrders = response.data.filter(order => order.user_id === userId); // Ensure data is filtered
-                setOrderHistory(filteredOrders); // Set filtered orders in state
+              const userData = response.data;
+              console.log('User Data:', userData); // Log user data for debugging
+              setFormData({
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                email: userData.email || '',
+                contactNumber: userData.contactNumber || '',
+                street: userData.street || '',
+                barangay: userData.barangay || '',
+                city: userData.city || '',
+                region: userData.region || '',
+                province: userData.province || '',
+                zipCode: userData.zipCode || '',
+              });
+              setInitialFormData(userData); // Store the initial data
             } else {
-                console.error('Failed to fetch order history:', response.statusText);
+              console.error('Unexpected response status:', response.status);
             }
-        } catch (error) {
-            console.error('Error fetching order history:', error.message);
+          } catch (error) {
+            console.error('Error fetching user data:', error.message);
+          }
+        };
+    
+        fetchUserData();
+        fetchOrderHistory(); // Fetch order history on component load
+      }, []);
+    
+    // Fetch order history for the logged-in user
+    const fetchOrderHistory = async () => {
+        const userId = parseInt(localStorage.getItem("userId"), 10); // Get userId from localStorage
+      
+        if (!userId) {
+          console.error("User ID is missing or invalid in localStorage.");
+          return;
         }
-    };    
+      
+        try {
+          // Fetch orders for the user
+          const response = await axios.get("http://localhost:5000/order-history", {
+            headers: { "user-id": userId }, // Pass user_id as a header
+          });
+      
+          if (response.status === 200) {
+            setOrderHistory(response.data); // Set the fetched orders in state
+          } else {
+            console.error("Failed to fetch order history:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error fetching order history:", error.message);
+        }
+      };
+      
+      const fetchOrderDetails = async (orderId) => {
+        try {
+            // Fetch the order details
+            const orderResponse = await axios.get(`http://localhost:5000/order-details`, {
+                params: { order_id: orderId },
+            });
+    
+            // Fetch the items associated with the order
+            const itemsResponse = await axios.get(`http://localhost:5000/order-items`, {
+                params: { order_id: orderId },
+            });
+    
+            // Combine order and items into a single object
+            setSelectedOrder({
+                ...orderResponse.data, // Include order details
+                items: itemsResponse.data, // Include items
+            });
+        } catch (error) {
+            console.error('Error fetching order details:', error.message);
+            alert('Failed to fetch order details. Please try again later.');
+        }
+    };
+    
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
@@ -638,38 +663,49 @@ const ManageAcc = () => {
                     </div>
                 )}
 
-{activeTab === 'orderHistory' && (
-    <div className="space-y-4">
-        <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Order History</h3>
-        </div>
-        {/* Order History Content */}
-        {orderHistory.map((order) => (
-            <div
-                key={order.id}
-                className="flex justify-between items-center bg-gray-800 p-4 rounded-md cursor-pointer"
-                style={{ background: 'linear-gradient(90deg, #335C6E, #040405)' }}
-                onClick={() => {
-                    setSelectedOrder(order);
-                    setModalVisible(true);
-                }}
-            >
-                <div>
-                    <h4 className="font-semibold text-white">Order #{order.id}</h4>
-                    <p className="text-sm text-gray-300">Placed on {order.createdAt}</p>
+{activeTab === "orderHistory" && (
+           <div className="space-y-4">
+           <h3 className="text-lg font-semibold">Order History</h3>
+           {orderHistory.length === 0 ? (
+             <p>No orders found.</p>
+           ) : (
+             orderHistory.map((order) => (
+               <div
+                 key={order.id}
+                 className="flex justify-between items-center bg-gray-800 p-4 rounded-md cursor-pointer"
+                 style={{
+                   background: "linear-gradient(90deg, #335C6E, #040405)",
+                 }}
+                 onClick={() => {
+                   setModalVisible(true);
+                   fetchOrderDetails(order.id); // Fetch details for the selected order
+                 }}
+               >
+                 <div>
+                   <h4 className="font-semibold text-white">Order #{order.id}</h4>
+                   <p className="text-sm text-gray-300">Placed on {order.date}</p>
+                 </div>
+                 <div className="font-semibold text-white">
+                   PHP{" "}
+                   {order.price && !isNaN(order.price)
+                     ? parseFloat(order.price).toFixed(2)
+                     : "0.00"}
+                 </div>
+                 <span
+                   className={`px-3 py-1 rounded-full text-sm font-medium ${
+                     order.status === "Delivered"
+                       ? "bg-green-500 text-black"
+                       : "bg-yellow-500 text-black"
+                   }`}
+                 >
+                    {order.status}
+                  </span>
                 </div>
-                <div className="font-semibold text-white">
-                PHP {order.total_price?.toFixed(2) ?? '0.00'}
-                </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    order.status === 'Delivered' ? 'bg-green-500 text-black' : 'bg-yellow-500 text-black'
-                }`}>
-                    {order.status ?? 'Pending'}
-                </span>
-            </div>
-        ))}
-    </div>
-)}
+              ))
+            )}
+          </div>
+        )}
+
 {modalVisible && selectedOrder && (
     <div
         className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
@@ -685,67 +721,55 @@ const ManageAcc = () => {
             >
                 &times;
             </button>
-            <h2 className="text-xl font-semibold mb-4 text-black">Order Details - #{selectedOrder.id}</h2>
+            <h2 className="text-xl font-semibold mb-4 text-black">
+                Order Details - #{selectedOrder.id}
+            </h2>
             <div className="space-y-4">
                 {/* Items Section */}
                 <div>
                     <h3 className="text-lg font-semibold text-black">Items</h3>
-                    {selectedOrder.items.map((item, index) => (
-                        <div key={index} className="flex justify-between text-sm text-black">
-                            <p>{item.name} ({item.category})</p>
-                            <p>{item.quantity} pcs</p>
-                            <p>
-                                PHP {typeof item.price === 'number' ? item.price.toFixed(2) : item.price}
-                            </p>
-                        </div>
-                    ))}
+                    {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                        selectedOrder.items.map((item, index) => (
+                            <div key={index} className="flex justify-between text-sm text-black">
+                                <p>Product ID: {item.product_id}</p>
+                                <p>Quantity: {item.quantity}</p>
+                                <p>
+                                    Unit Price: PHP {parseFloat(item.unit_price).toFixed(2)}
+                                </p>
+                                <p>
+                                    Total Price: PHP{" "}
+                                    {(item.quantity * item.unit_price).toFixed(2)}
+                                </p>
+                            </div>
+                        ))
+                    ) : (
+                        <p>No items found for this order.</p>
+                    )}
                 </div>
 
                 <hr className="my-4 border-gray-300" />
 
                 {/* Summary Section */}
                 <div>
-                    <h3 className="text-lg font-semibold text-black">Summary</h3>
-                    <p className="text-black">Placed on: {selectedOrder.createdAt}</p>
-                    <p className="text-black">Delivery Options: {selectedOrder.deliveryService}</p>
-                    <p className="text-black">Payment Method: {selectedOrder.paymentMethod}</p>
-                    <p className="text-black">Status: {selectedOrder.status}</p>
-                </div>
-
-                <hr className="my-4 border-gray-300" />
-
-                {/* Payment Section */}
-                <div>
-                    <h3 className="text-lg font-semibold text-black">Payment</h3>
+                    <h3 className="text-lg font-semibold text-black">Order Summary</h3>
+                    <p className="text-black">Order Date: {selectedOrder.date}</p>
+                    <p className="text-black">Delivery Option: {selectedOrder.deliveryOption}</p>
+                    <p className="text-black">Payment Option: {selectedOrder.paymentOption}</p>
+                    <p className="text-black">Order Status: {selectedOrder.status}</p>
                     <p className="text-black">
-                        Subtotal: PHP {selectedOrder.paymentSummary.subtotal.toFixed(2)}
-                    </p>
-                    <p className="text-black">
-                        Delivery Fee: PHP {selectedOrder.paymentSummary.shippingFee.toFixed(2)}
-                    </p>
-                    <p className="text-black">
-                        Total: PHP {selectedOrder.paymentSummary.total.toFixed(2)}
+                        Total Price: PHP {parseFloat(selectedOrder.price).toFixed(2)}
                     </p>
                 </div>
 
                 <hr className="my-4 border-gray-300" />
 
-                {/* Customer Info Section */}
-                <div>
-                    <h3 className="text-lg font-semibold text-black">Customer Info</h3>
-                    <p className="text-black">Name: {selectedOrder.customerName}</p>
-                    <p className="text-black">Email: {selectedOrder.email}</p>
-                    <p className="text-black">Phone: {selectedOrder.phone}</p>
-                </div>
+               
             </div>
         </div>
     </div>
 )}
 
 
-
-
-                 
             </div>
         </div>
     );
