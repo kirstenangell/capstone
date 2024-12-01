@@ -74,8 +74,8 @@ app.use((err, req, res, next) => {
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  // password: '', // Your MySQL root password
-  password: 'pass', // Your MySQL root password
+  password: '', // Your MySQL root password
+  // password: 'pass', // Your MySQL root password
   database: 'FlackoDB' // Your database name
 });
 
