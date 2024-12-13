@@ -155,9 +155,27 @@ const SignUp = () => {
             </div>
           </div>
 
-          <p className="text-xs text-gray-400 mt-2 flex items-center">
-            <IoInformationCircle className="mr-1 text-blue-500" /> Must be at least 8 characters
-          </p>
+          <div className="mt-2">
+          <div className="flex flex-wrap gap-4 text-gray-400 text-xs">
+            <p className="flex items-center">
+              <IoInformationCircle className="mr-1 text-blue-500 opacity-75" /> Must be at least 8 characters
+            </p>
+            <p className="flex items-center">
+              <IoInformationCircle className="mr-1 text-blue-500 opacity-75" /> One number
+            </p>
+            <p className="flex items-center">
+              <IoInformationCircle className="mr-1 text-blue-500 opacity-75" /> One uppercase character
+            </p>
+            <p className="flex items-center">
+              <IoInformationCircle className="mr-1 text-blue-500 opacity-75" /> One lowercase character
+            </p>
+            <p className="flex items-center">
+              <IoInformationCircle className="mr-1 text-blue-500 opacity-75" /> One special character
+            </p>
+          </div>
+        </div>
+
+
 
           <div className="flex items-center mt-4 space-x-2">
             <input
