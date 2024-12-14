@@ -923,6 +923,31 @@ app.get('/products', (req, res) => {
   });
 });
 
+// Archive (soft delete) Product API
+app.put('/archive-product/:id', (req, res) => {
+  const productId = req.params.id;
+
+  if (!productId) {
+    return res.status(400).json({ message: 'Product ID is required.' });
+  }
+
+  const query = `UPDATE products SET archived = true WHERE id = ?`;
+
+  db.query(query, [productId], (err, result) => {
+    if (err) {
+      console.error('Error archiving product:', err);
+      return res.status(500).json({ message: 'Error archiving product' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+
+    res.status(200).json({ message: 'Product archived successfully.' });
+  });
+});
+
+
 
 // Add Customer API
 app.post('/add-customer', (req, res) => {
@@ -1266,6 +1291,34 @@ WHERE email = ?;
     res.status(200).json(result[0]);
   });
 });
+
+// Archive (soft delete) Supplier API
+app.put('/archive-supplier/:id', (req, res) => {
+  const supplierId = req.params.id;
+  console.log('Received Supplier ID:', supplierId); // Debug log
+
+  if (!supplierId) {
+    return res.status(400).json({ message: 'Supplier ID is required.' });
+  }
+
+  const query = `UPDATE suppliers SET archived = true WHERE id = ?`;
+
+  db.query(query, [supplierId], (err, result) => {
+    if (err) {
+      console.error('Error archiving supplier:', err);
+      return res.status(500).json({ message: 'Error archiving supplier' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Supplier not found' });
+    }
+
+    res.status(200).json({ message: 'Supplier archived successfully' });
+  });
+});
+
+
+
 
 
 // Fetch all orders from the database

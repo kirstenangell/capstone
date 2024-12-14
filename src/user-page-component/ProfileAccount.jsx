@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaUser, FaLock } from 'react-icons/fa';
+import { FaUser, FaLock, FaBook } from 'react-icons/fa';
+
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
 import axios from 'axios'; // Import Axios for API calls
 
 const ProfileAccount = () => {
     const [activeTab, setActiveTab] = useState('profile');
+    const [instructionsTab, setInstructionsTab] = useState('overview');
+    const handleInstructionsTabClick = (tab) => setInstructionsTab(tab);
     const [profilePic, setProfilePic] = useState(null);
     const [formData, setFormData] = useState({
         firstName: '',
@@ -128,10 +131,9 @@ const ProfileAccount = () => {
         navigate('/');
     };
 
-    // New function to handle password update
     const handlePasswordUpdate = async () => {
         if (newPassword !== confirmPassword) {
-            alert("New password and confirm password do not match.");
+            alert('New password and confirm password do not match.');
             return;
         }
 
@@ -145,7 +147,7 @@ const ProfileAccount = () => {
             });
 
             if (response.status === 200) {
-                alert("Password updated successfully.");
+                alert('Password updated successfully.');
                 setCurrentPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
@@ -176,6 +178,14 @@ const ProfileAccount = () => {
                         <FaLock className="mr-2" />
                         Password
                     </li>
+                    <li
+                        className={`flex items-center p-2 cursor-pointer ${activeTab === 'instructions' ? 'bg-gray-800 rounded-md' : ''}`}
+                        onClick={() => handleTabClick('instructions')}
+                    >
+                        <FaBook className="mr-2" />
+                        Instructions
+                    </li>
+
                 </ul>
             </div>
 
@@ -465,8 +475,7 @@ const ProfileAccount = () => {
                         </div>
                     </div>
                 )}
-
-{activeTab === 'password' && (
+                {activeTab === 'password' && (
                     <div className="space-y-6">
                         <div className="w-full max-w-2xl text-white rounded-lg shadow-lg">
                             <form className="space-y-6">
@@ -521,6 +530,199 @@ const ProfileAccount = () => {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+                {activeTab === 'instructions' && (
+                    <div>
+                        <h2 className="text-lg font-semibold mb-4">Instructions on Using the Inventory</h2>
+                        <div className="flex space-x-4 border-b border-gray-600">
+                            <button
+                                className={`px-4 py-2 ${instructionsTab === 'overview' ? 'border-b-2 border-blue-500' : ''}`}
+                                onClick={() => handleInstructionsTabClick('overview')}
+                            >
+                                Overview
+                            </button>
+                            <button
+                                className={`px-4 py-2 ${instructionsTab === 'addProduct' ? 'border-b-2 border-blue-500' : ''}`}
+                                onClick={() => handleInstructionsTabClick('addProduct')}
+                            >
+                                Inventory
+                            </button>
+                            <button
+                                className={`px-4 py-2 ${instructionsTab === 'addOrder' ? 'border-b-2 border-blue-500' : ''}`}
+                                onClick={() => handleInstructionsTabClick('addOrder')}
+                            >
+                                Order
+                            </button>
+                            <button
+                                className={`px-4 py-2 ${instructionsTab === 'addSupplier' ? 'border-b-2 border-blue-500' : ''}`}
+                                onClick={() => handleInstructionsTabClick('addSupplier')}
+                            >
+                                Supplier
+                            </button>
+                        </div>
+                        <div className="mt-6">
+                        {instructionsTab === 'overview' && (
+                            <div>
+                                <h2 className="text-lg font-bold">System Overview</h2>
+                                <p className="mt-4">
+                                    Flacko is an e-commerce platform with integrated product monitoring. It streamlines inventory and supplier management, 
+                                    allowing users to efficiently track stock levels, add or edit suppliers and products, and monitor product availability in real time. 
+                                </p>
+                                <p className="mt-4">For security, a password is required to access certain functionalities, such as archiving suppliers or products.</p>
+                            </div>
+                        )}
+
+
+                            {instructionsTab === 'addProduct' && (
+                                <div>
+                                    <h2 className="text-md font-bold">Inventory Instructions</h2>
+                                    <p className="mt-4 text-sm">
+                                        To Add a Product:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Navigate to the Add Product page by clicking the "Add Product" button.</li>
+                                        <li>Fill in the required details, including:
+                                            <ul className="list-disc list-inside ml-6">
+                                                <li>Product Name, Type, and Brand</li>
+                                                <li>Product Category and Description</li>
+                                                <li>Retail Price, Discount, and Total Price</li>
+                                                <li>Quantity and Product Images (up to 4)</li>
+                                            </ul>
+                                        </li>
+                                        <li>Once all fields are completed, click the "Save" button to add the product to the inventory.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-sm">
+                                        To Edit a Product:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Select the product from the inventory list by clicking on it.</li>
+                                        <li>Click the "Edit" button to open the edit form.</li>
+                                        <li>Update the required fields, such as:
+                                            <ul className="list-disc list-inside ml-6">
+                                                <li>Product Name, Type, or Brand</li>
+                                                <li>Category, Price, or Quantity</li>
+                                            </ul>
+                                        </li>
+                                        <li>Ensure all changes are correct and click the "Update" button to save changes.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-sm">
+                                        To Archive a Product:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Locate the product you want to archive from the inventory list.</li>
+                                        <li>Click the "Archive" button.</li>
+                                        <li>Confirm the action in the modal prompt by entering the required password.</li>
+                                        <li>Archived products are no longer visible in the main inventory but can be accessed in the "Archived Products" section.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-gray-400 text-sm">
+                                        For further assistance, contact support - rhea.ceo.flacko1990@gmail.com.
+                                    </p>
+                                </div>
+                            )}
+                            {instructionsTab === 'addOrder' && (
+                                <div>
+                                    <h2 className="text-md font-bold">Order Management Instructions</h2>
+
+                                    <p className="mt-4 text-sm">
+                                        To Add an Order:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Click the "Add Order" button.</li>
+                                        <li>Fill out the required details across multiple steps, including:
+                                            <ul className="list-disc list-inside ml-6">
+                                                <li>Customer name, email, and contact number.</li>
+                                                <li>Current address and optional new address fields.</li>
+                                                <li>Delivery or pickup options, courier details (if applicable), and payment method.</li>
+                                                <li>Add the products to include in the order. You can specify product names and quantities.</li>
+                                            </ul>
+                                        </li>
+                                        <li>Click the "Save" button to add the order. The new order will be displayed in the Order List.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-sm">
+                                        To Edit an Order:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Select an order from the Order List and click the "Edit" button.</li>
+                                        <li>Update the desired fields, such as:
+                                            <ul className="list-disc list-inside ml-6">
+                                                <li>Customer information</li>
+                                                <li>Address, delivery details, or payment method</li>
+                                                <li>Products included in the order</li>
+                                            </ul>
+                                        </li>
+                                        <li>Click the "Save" button to update the order.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-sm">
+                                            To Archive an Order:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Locate the order you want to archive from the Order List.</li>
+                                        <li>Click the "Archive" button. You will be prompted to confirm the action by entering a password.</li>
+                                        <li>Archived orders will no longer appear in the active Order List but will be accessible in the archived section.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-gray-400 text-sm">
+                                        For further assistance, contact support - rhea.ceo.flacko1990@gmail.com.
+                                    </p>
+                                </div>
+                            )}
+                            {instructionsTab === 'addSupplier' && (
+                                <div>
+                                    <h2 className="text-md font-bold">Supplier Management Instructions</h2>
+
+                                    <p className="mt-4 text-sm">
+                                        To Add a Supplier:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Click the "Add Supplier" button.</li>
+                                        <li>Fill out the required details across multiple steps, including:
+                                            <ul className="list-disc list-inside ml-6">
+                                                <li>Supplier name, contact name, email, phone number, type, and status.</li>
+                                                <li>Current and optional new addresses, including street, city, province, zip code, and landmark.</li>
+                                                <li>Add the supplier's products, specifying product ID, name, category, description, quantity available, and unit price.</li>
+                                            </ul>
+                                        </li>
+                                        <li>Click the "Save" button to add the supplier.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-sm">
+                                        To Edit a Supplier:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Select a supplier from the Supplier List and click the "Edit" button.</li>
+                                        <li>Update the desired fields, such as:
+                                            <ul className="list-disc list-inside ml-6">
+                                                <li>General information like name, type, or contact details</li>
+                                                <li>Address details</li>
+                                                <li>Product list details</li>
+                                            </ul>
+                                        </li>
+                                        <li>Click the "Save" button to update the supplier's information.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-sm">
+                                      To Archive a Supplier:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4 text-sm">
+                                        <li>Locate the supplier you want to archive from the Supplier List.</li>
+                                        <li>Click the "Archive" button. You will be prompted to confirm the action by entering a password.</li>
+                                        <li>Archived suppliers will no longer appear in the active Supplier List but will be accessible in the archived section.</li>
+                                    </ul>
+
+                                    <p className="mt-4 text-gray-400 text-sm">
+                                        For further assistance, contact support - rhea.ceo.flacko1990@gmail.com.
+                                    </p>
+                                </div>
+                            )}
+
+
                         </div>
                     </div>
                 )}

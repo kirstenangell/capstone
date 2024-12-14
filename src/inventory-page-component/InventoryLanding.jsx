@@ -33,7 +33,9 @@ const InventoryLanding = () => {
   console.log('Base URL:', baseUrl); // Add this line
 
    // Use ProductContext to get products and product manipulation functions
-   const { products, archiveProduct } = useContext(ProductContext);
+   const { products, addProduct, archiveProduct } = useContext(ProductContext);
+
+
 
    // Fetch archived products
    const fetchArchivedProducts = async () => {
@@ -72,33 +74,38 @@ const InventoryLanding = () => {
     setUploadedImages(product.images || []); // Ensure images is an array
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (selectedProduct) {
       const newProduct = {
-        id: 'PID-' + Math.random().toString(36).substr(2, 9), // Generate a prefixed unique ID
+        id: 'PID-' + Math.random().toString(36).substr(2, 9),
         name: selectedProduct.name || "Untitled Product",
-        image: selectedProduct.image || "/assets/wheel1.png", // Use a default image if not provided
+        image: selectedProduct.image || "/assets/wheel1.png",
         price: selectedProduct.price || 0,
         reviews: selectedProduct.reviews || 0,
         rating: selectedProduct.rating || 0,
         category: selectedProduct.category || "Uncategorized",
       };
-
-      // Add the new product to the global product list using addProduct from ProductContext
-      addProduct(newProduct);
-
-      // Navigate to the ProductSection after publishing
-      navigate('/products'); // Navigate to the product section
+  
+      // Use addProduct from the context to add the product to the database and state
+      await addProduct(newProduct);
+  
+      // Navigate to the product section after publishing
+      navigate('/products');
     }
   };
+  
+  
 
   const handleExit = () => {
     setSelectedProduct(null); // Close product summary
   };
 
   const handleAddProductClick = () => {
-    navigate('/inventory/product-information'); // Navigate to add product page
+    setActionType('add'); // Set action to "add"
+    setShowPasswordModal(true); // Show password modal
   };
+  
+  
 
   const handleEditClick = () => {
     setActionType('edit'); // Set action to edit
@@ -121,22 +128,41 @@ const InventoryLanding = () => {
 
   // Handle submit logic for the password modal
   const handlePasswordSubmit = async () => {
-    if (password === '12345') { // Replace '12345' with the actual password logic
+    if (password === '12345') { // Replace with actual password validation logic
       if (actionType === 'edit') {
-        // Navigate to ProductInformation.jsx with the selectedProduct data for editing
         navigate('/inventory/product-information', { state: { product: selectedProduct, isEdit: true } });
       } else if (actionType === 'archive') {
-        // Archive the product using archiveProduct from ProductContext
-        await archiveProduct(selectedProduct.id);
-        setSelectedProduct(null); // Close modal after archiving
+        try {
+          // Archive the product using the archiveProduct function
+          await archiveProduct(selectedProduct.id);
+  
+          // Alert user about successful archiving
+          alert(`Product #${selectedProduct.id} has been archived.`);
+  
+          // Fetch updated products after archiving
+          const response = await fetch(`${baseUrl}/products`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch updated products.');
+          }
+  
+          const updatedProducts = await response.json();
+          setProducts(updatedProducts.filter(product => !product.archived)); // Update state to exclude archived products
+        } catch (error) {
+          console.error('Error archiving product:', error);
+        }
+      } else if (actionType === 'add') {
+        navigate('/inventory/product-information'); // Navigate to add product page
       }
+      setSelectedProduct(null); // Clear the selected product
     } else {
-      alert('Incorrect Password'); // Add any error handling logic if needed
+      alert('Incorrect Password'); // Error handling for incorrect password
     }
     setShowPasswordModal(false);
-    setPassword(''); // Clear the password field after submission
+    setPassword(''); // Reset the password input
   };
-
+  
+  
+  
   // Check if product list has updated after edit
   const handleUpdate = (updatedProduct) => {
     updateProduct(updatedProduct); // Trigger product update using the context function
@@ -201,11 +227,12 @@ const InventoryLanding = () => {
 
             {/* Add Product Button */}
             <button
-              onClick={handleAddProductClick} // Navigate to the ProductInformation page
-              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
-            >
-              Add Product
-            </button>
+            onClick={handleAddProductClick} // Show password modal for adding a product
+            className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
+          >
+            Add Product
+          </button>
+
           </div>
         </div>
 
@@ -554,43 +581,50 @@ const InventoryLanding = () => {
 
         {/* Password Modal */}
         {showPasswordModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-            <div className="bg-[#040405] p-8 rounded-lg shadow-lg max-w-md w-full">
-              <h2 className="text-lg font-bold mb-4 text-center">
-                ACCESS INVENTORY TO {actionType === 'edit' ? `EDIT PRODUCT #${selectedProduct?.id}` : actionType === 'archive' ? `ARCHIVE PRODUCT #${selectedProduct?.id}` : 'ADD NEW PRODUCT'}
-              </h2>
-              <p className="mb-4 text-sm text-center">
-                Enter your password to {actionType} the product in the inventory.
-              </p>
-              <label className="block text-xs font-bold mb-2">PASSWORD</label>
-              <div className="relative">
-                <input
-                  type={passwordVisible ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
-                  style={{ background: 'linear-gradient(90deg, #040405, #335C6E)' }}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-3 text-white"
-                  onClick={togglePasswordVisibility}
-                >
-                  {passwordVisible ? <IoIosEyeOff /> : <IoIosEye />}
-                </button>
-              </div>
-              <div className="flex justify-center mt-6">
-                <button
-                  className="w-full px-6 text-sm py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 transition"
-                  onClick={handlePasswordSubmit}
-                >
-                  SUBMIT
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+  <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+    <div className="bg-[#040405] p-8 rounded-lg shadow-lg max-w-md w-full">
+    <h2 className="text-lg font-bold mb-4 text-center">
+        ACCESS INVENTORY TO {actionType === 'edit' ? `EDIT PRODUCT #${selectedProduct?.id}` : actionType === 'archive' ? `ARCHIVE PRODUCT #${selectedProduct?.id}` : 'ADD NEW PRODUCT'}
+      </h2>
+      <p className="mb-4 text-sm text-center">
+        Enter your password to {actionType} the product in the inventory.
+      </p>
+      <label className="block text-xs font-bold mb-2">PASSWORD</label>
+      <div className="relative">
+        <input
+          type={passwordVisible ? 'text' : 'password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter password"
+          className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
+          style={{ background: 'linear-gradient(90deg, #040405, #335C6E)' }}
+        />
+        <button
+          type="button"
+          className="absolute right-3 top-3 text-white"
+          onClick={togglePasswordVisibility}
+        >
+          {passwordVisible ? <IoIosEyeOff /> : <IoIosEye />}
+        </button>
+      </div>
+      <div className="flex justify-between mt-6">
+        <button
+          className="w-1/2 px-6 text-sm py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 transition mr-2"
+          onClick={handlePasswordSubmit}
+        >
+          SUBMIT
+        </button>
+        <button
+          className="w-1/2 px-6 text-sm py-2 text-white rounded-lg bg-gray-600 hover:bg-gray-700 transition"
+          onClick={handleCloseModal}
+        >
+          CANCEL
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );

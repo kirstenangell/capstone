@@ -6,6 +6,7 @@ import { FaOpencart } from 'react-icons/fa';
 import { OrderContext } from '../context/OrderContext';
 import { BsBoxArrowRight } from 'react-icons/bs';
 import { CiSearch } from 'react-icons/ci';
+import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Password Visibility Icons
 
 const OrderLanding = () => {
   const { orders = [], archiveOrder, fetchOrders } = useContext(OrderContext); // Default orders to an empty array
@@ -27,6 +28,12 @@ const OrderLanding = () => {
   const [isPaymentStatusOpen, setIsPaymentStatusOpen] = useState(false);
   const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false);
   const [isDeliveryOptionOpen, setIsDeliveryOptionOpen] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [actionType, setActionType] = useState('');
+  
+
 
 
   const provinces = ['Metro Manila', 'Cavite', 'Laguna']; // Example provinces
@@ -52,40 +59,65 @@ const OrderLanding = () => {
     setLoadingItems(false); // Reset loading state
   };
 
-  // Archive the selected order
-  const handleArchiveOrder = () => {
-    if (selectedOrder) {
-      archiveOrder(selectedOrder.id);
-      alert(`Order #${selectedOrder.id} has been archived.`);
-      setSelectedOrder(null);
+  const handlePasswordSubmit = async () => {
+    if (password === '12345') { // Replace with actual password validation logic
+      if (actionType === 'edit') {
+        navigate('/order-details', { state: { order: selectedOrder, isEdit: true } });
+      } else if (actionType === 'archive') {
+        archiveOrder(selectedOrder.id);
+        alert(`Order #${selectedOrder.id} has been archived.`);
+      } else if (actionType === 'add') {
+        const newOrder = {
+          title: '',
+          customer: '',
+          address: '',
+          price: '',
+          status: 'PENDING',
+          date: new Date().toLocaleDateString(),
+          deliveryOption: '',
+          pickUpDate: '',
+          pickUpTime: '',
+          paymentOption: '',
+          products: [],
+        };
+        navigate('/order-details', { state: { order: newOrder, isEdit: false } });
+      }
+      setShowPasswordModal(false);
+      setPassword('');
+    } else {
+      alert('Incorrect Password');
     }
+  };
+  
+
+  
+
+  const handleEditClick = () => {
+    setActionType('edit');
+    setShowPasswordModal(true);
   };
 
-  // Navigate to OrderDetails for editing
-  const handleEditOrder = () => {
-    if (selectedOrder) {
-      navigate('/order-details', { state: { order: selectedOrder, isEdit: true } });
-      setSelectedOrder(null);
-    }
+  const handleArchiveClick = () => {
+    setActionType('archive');
+    setShowPasswordModal(true);
   };
+
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPassword('');
+  };
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+  
 
   // Navigate to OrderDetails for adding a new order
   const handleAddOrder = () => {
-    const newOrder = {
-      title: '',
-      customer: '',
-      address: '',
-      price: '',
-      status: 'PENDING',
-      date: new Date().toLocaleDateString(),
-      deliveryOption: '',
-      pickUpDate: '',
-      pickUpTime: '',
-      paymentOption: '',
-      products: [],
-    };
-    navigate('/order-details', { state: { order: newOrder, isEdit: false } });
+    setActionType('add'); // Set action to "add"
+    setShowPasswordModal(true); // Show the password modal
   };
+  
 
   // Fetch order items for the selected order
   const fetchOrderItems = async (orderId) => {
@@ -159,11 +191,12 @@ return (
             />
           </div>
           <button
-            onClick={handleAddOrder}
-            className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
-          >
-            Add Order
-          </button>
+          onClick={handleAddOrder} // Open password modal for adding a new order
+          className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
+        >
+          Add Order
+        </button>
+
         </div>
       </div>
 
@@ -342,13 +375,10 @@ return (
                 </div>
               </div>
               <div className="space-x-4">
-                <button onClick={handleEditOrder} className="text-sm text-white hover:underline">
+              <button onClick={handleEditClick} className="text-sm text-white hover:underline">
                   Edit
                 </button>
-                <button
-                  onClick={() => handleArchiveOrder(selectedOrder)}
-                  className="text-sm text-white hover:underline"
-                >
+                <button onClick={handleArchiveClick} className="text-sm text-white hover:underline">
                   Archive
                 </button>
               </div>
@@ -447,6 +477,53 @@ return (
           </div>
         </div>
       )}
+       {showPasswordModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+            <div className="bg-[#040405] p-8 rounded-lg shadow-lg max-w-md w-full">
+            <h2 className="text-lg font-bold mb-4 text-center">
+              ACCESS ORDER TO {actionType === 'edit' ? `EDIT ORDER #${selectedOrder?.id}` : actionType === 'archive' ? `ARCHIVE ORDER #${selectedOrder?.id}` : 'ADD NEW ORDER'}
+            </h2>
+            <p className="mb-4 text-sm text-center">
+              Enter your password to {actionType} the order.
+            </p>
+
+              <label className="block text-xs font-bold mb-2">PASSWORD</label>
+              <div className="relative">
+                <input
+                  type={passwordVisible ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
+                  style={{ background: 'linear-gradient(90deg, #040405, #335C6E)' }}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-3 text-white"
+                  onClick={togglePasswordVisibility}
+                >
+                  {passwordVisible ? <IoIosEyeOff /> : <IoIosEye />}
+                </button>
+              </div>
+              <div className="flex justify-between mt-6">
+                <button
+                  className="w-1/2 px-6 py-2 text-sm text-white rounded-lg bg-blue-600 hover:bg-blue-700 transition mr-2"
+                  onClick={handlePasswordSubmit}
+                >
+                  SUBMIT
+                </button>
+                <button
+                  className="w-1/2 px-6 py-2 text-sm text-white rounded-lg bg-gray-600 hover:bg-gray-700 transition"
+                  onClick={handleClosePasswordModal}
+                >
+                  CANCEL
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+
     </div>
   );
 };

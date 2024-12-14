@@ -168,7 +168,7 @@ const CheckoutLanding = () => {
       id: `OID-${Math.floor(Math.random() * 10000)}`,
       items: cartItems.map((item) => ({
         ...item,
-        price: parseFloat(item.price) || 0, // Ensure price is a number
+        price: parseFloat(item.price) || 0,
       })),
       createdAt: new Date().toLocaleDateString(),
       deliveryService:
@@ -177,7 +177,7 @@ const CheckoutLanding = () => {
         selectedPaymentMethod === "gcash" ? "GCash" : "Physical Store",
       status: "Processing",
       customerName: `${userInfo.firstName} ${userInfo.lastName}`,
-      email: userInfo.email,
+      userEmail: userInfo.email, // Ensure this field is passed
       phone: userInfo.contactNumber,
       paymentSummary: {
         subtotal: total,
@@ -210,8 +210,7 @@ const CheckoutLanding = () => {
       })),
     };
   
-    // Log order details for debugging
-    console.log("Order Details Payload:", orderDetails);
+    console.log("Order Details Payload:", orderDetails); // Log for debugging
   
     try {
       const response = await axios.post(
@@ -221,21 +220,22 @@ const CheckoutLanding = () => {
   
       if (response.data.success) {
         alert("Order placed successfully!");
-        fetchOrderHistory(); // Fetch the updated order history
+        fetchOrderHistory();
         setOrderPlaced(true);
         setTimeout(() => {
           navigate("/manage-account");
         }, 2000);
+      } else {
+        throw new Error("Order placement failed on server.");
       }
     } catch (error) {
-      // Log detailed error for debugging
       console.error("Error placing order:", error.response?.data || error.message);
       alert(
-        error.response?.data?.message ||
-          "Failed to place order. Please try again."
+        error.response?.data?.message || "Failed to place order. Please try again."
       );
     }
   };
+  
   
 
   const fetchOrderHistory = async () => {
