@@ -283,6 +283,44 @@ const SupplierLanding = () => {
     setIsAddressTypeOpen(!isAddressTypeOpen);
   };
 
+  const handleExportClick = () => {
+    if (filteredSuppliers.length === 0) {
+        alert("No suppliers available to export.");
+        return;
+    }
+
+    // Prepare filtered suppliers data for CSV export
+    const csvData = filteredSuppliers.map(supplier => ({
+        SupplierID: `OID-${supplier.id}`,
+        Name: supplier.name || "N/A",
+        Type: supplier.type || "N/A",
+        Status: supplier.status || "N/A",
+        Email: supplier.email || "N/A",
+        Phone: supplier.phone || "N/A",
+        Province: supplier.currentAddress?.province || "N/A",
+        City: supplier.currentAddress?.city || "N/A",
+        Street: supplier.currentAddress?.street || "N/A",
+        ZipCode: supplier.currentAddress?.zipCode || "N/A",
+    }));
+
+    const csvContent = [
+        Object.keys(csvData[0]).join(','), // Header row
+        ...csvData.map(row => Object.values(row).join(',')), // Data rows
+    ].join('\n');
+
+    // Create a Blob for the CSV data and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'suppliers_export.csv'); // File name
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
@@ -301,6 +339,12 @@ const SupplierLanding = () => {
                 onChange={(e) => setSearchQuery(e.target.value)} // Track input changes
               />
             </div>
+            <button
+              onClick={handleExportClick} // Trigger the export functionality
+              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
+          >
+              Export
+          </button>
             <button
             onClick={handleAddSupplierClick} // Open password modal for adding a supplier
             className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"

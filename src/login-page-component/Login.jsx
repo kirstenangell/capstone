@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,8 @@ const Login = ({ setIsLoggedIn }) => {
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
+
+    const [timeoutId, setTimeoutId] = useState(null);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -25,12 +27,15 @@ const Login = ({ setIsLoggedIn }) => {
                 localStorage.setItem('email', userData.email);
                 localStorage.setItem('firstName', userData.firstName);
                 localStorage.setItem('lastName', userData.lastName);
-    
+
                 if (typeof setIsLoggedIn === 'function') {
                     setIsLoggedIn(true);
                     localStorage.setItem('isLoggedIn', 'true');
                 }
-    
+
+                // Start session timer
+                startSessionTimer();
+
                 if (role === 'admin') {
                     navigate('/dashboard');
                 } else if (role === 'customer') {
@@ -44,8 +49,40 @@ const Login = ({ setIsLoggedIn }) => {
             console.error('Login error:', error);
         }
     };
-    
-    
+
+    const startSessionTimer = () => {
+        clearTimeout(timeoutId); // Clear any existing timeout
+        const id = setTimeout(() => {
+            handleLogout();
+        }, 60000); // 1 minute
+        setTimeoutId(id);
+    };
+
+    const handleLogout = () => {
+        localStorage.clear();
+        if (typeof setIsLoggedIn === 'function') {
+            setIsLoggedIn(false);
+        }
+        navigate('/login');
+        alert('You have been logged out due to inactivity.');
+    };
+
+    const resetTimer = () => {
+        startSessionTimer();
+    };
+
+    useEffect(() => {
+        // Add event listeners to reset the timer on user activity
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('keydown', resetTimer);
+
+        return () => {
+            // Clean up event listeners when the component unmounts
+            window.removeEventListener('mousemove', resetTimer);
+            window.removeEventListener('keydown', resetTimer);
+        };
+    }, []);
+
     return (
         <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]">
             <div className="w-full max-w-sm space-y-6 p-8 rounded-lg">
@@ -98,7 +135,6 @@ const Login = ({ setIsLoggedIn }) => {
                         >
                             Forgot Password?
                         </button>
-
                     </div>
 
                     <button

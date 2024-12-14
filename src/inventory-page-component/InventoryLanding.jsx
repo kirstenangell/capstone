@@ -204,6 +204,36 @@ const InventoryLanding = () => {
       );
     });
 
+    const handleExportClick = () => {
+      // Convert product data to CSV format
+      const csvData = products.map(product => ({
+          ID: product.id,
+          Name: product.name,
+          Category: product.category,
+          Brand: product.brand,
+          Price: product.price,
+          Stock: product.quantity,
+          Status: product.status,
+      }));
+  
+      const csvContent = [
+          Object.keys(csvData[0]).join(','), // Header row
+          ...csvData.map(row => Object.values(row).join(',')), // Data rows
+      ].join('\n');
+  
+      // Create a Blob for the CSV data and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+  
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'products_export.csv'); // File name
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+  
+
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
@@ -224,6 +254,12 @@ const InventoryLanding = () => {
                 onChange={(e) => setSearchQuery(e.target.value)} // Track input changes
               />
             </div>
+            <button
+                onClick={handleExportClick} // Trigger the export functionality
+                className="mr-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
+            >
+                Export
+            </button>
 
             {/* Add Product Button */}
             <button
