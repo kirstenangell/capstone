@@ -7,15 +7,19 @@ const Returns = () => {
   const returnsPolicies = [
     {
       question: 'What is your return policy?',
-      answer: 'You can return any item within 30 days of purchase for a full refund or exchange.',
+      answer: 'Returns are accepted within 7 days of purchase, provided the items are unused and in their original packaging. Change of mind returns are not accepted. Returns will only be processed for defective, damaged, or incorrect items. An official receipt must be provided for all returns or claims related to defective items.',
     },
     {
       question: 'How do I initiate a return?',
-      answer: 'To initiate a return, please contact our customer service team for instructions.',
+      answer: 'To initiate a return, contact us at [phone/email] within 7 days to request a return authorization (RA#).  Items must be returned in person.',
+    },
+    {
+      question: 'Store Credit & Refunds',
+      answer: 'Approved returns will receive store credit for the full item value. Refunds are subject to approval and may be issued to the original payment method for defective or damaged items. For items that have been installed, a labor fee will be deducted from the refund or store credit. Please allow up to 10 business days for processing.',
     },
     {
       question: 'What items are non-returnable?',
-      answer: 'Certain items like customized products and clearance items are non-returnable.',
+      answer: 'Used interior accessories (e.g., seat covers, floor mats) and custom products cannot be returned unless defective.',
     },
   ];
 

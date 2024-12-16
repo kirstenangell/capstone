@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
@@ -7,6 +7,7 @@ import { OrderContext } from '../context/OrderContext';
 import { BsBoxArrowRight } from 'react-icons/bs';
 import { CiSearch } from 'react-icons/ci';
 import { IoIosEye, IoIosEyeOff } from 'react-icons/io'; // Password Visibility Icons
+import jsPDF from 'jspdf';
 
 const OrderLanding = () => {
   const { orders = [], archiveOrder, fetchOrders } = useContext(OrderContext); // Default orders to an empty array
@@ -32,7 +33,7 @@ const OrderLanding = () => {
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [actionType, setActionType] = useState('');
-  
+  const pdfRef = useRef();
 
 
 
@@ -45,6 +46,45 @@ const OrderLanding = () => {
   useEffect(() => {
     fetchOrders(); // Load orders from the context
   }, [fetchOrders]);
+
+  const handleGeneratePDF = () => {
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 10;
+
+    doc.setFontSize(40);
+    doc.setTextColor(200, 200, 200);
+    doc.text('CONFIDENTIAL', pageWidth / 2, 150, { align: 'center', angle: 45 });
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(16);
+    doc.text('Order Report', 10, y);
+    y += 10;
+
+    doc.setFontSize(12);
+    doc.setFillColor(220, 220, 220);
+    doc.rect(10, y, pageWidth - 20, 10, 'F');
+    doc.text('Control #', 12, y + 7);
+    doc.text('Customer', 50, y + 7);
+    doc.text('Email', 100, y + 7);
+    doc.text('Price', 150, y + 7);
+    doc.text('Status', 180, y + 7);
+    y += 10;
+
+    orders.forEach((order, index) => {
+      if (y > 280) {
+        doc.addPage();
+        y = 10;
+      }
+      const controlNumber = `CN-${String(index + 1).padStart(4, '0')}`;
+      doc.text(controlNumber, 12, y);
+      doc.text(`${order.firstName} ${order.lastName}`, 50, y);
+      doc.text(order.email, 100, y);
+      doc.text(`₱${order.price}`, 150, y);
+      doc.text(order.status, 180, y);
+      y += 8;
+    });
+    doc.save('orders.pdf');
+  };
 
   // Open modal with order details
   const handleOrderClick = (order) => {
@@ -223,6 +263,14 @@ return (
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+
+          <button
+              onClick={handleGeneratePDF}
+              className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
+            >
+              Generate PDF
+            </button>
+
           <button
             onClick={handleExportClick} // Trigger the export functionality
             className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
