@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import axios from 'axios';
 
 
 // Global Components
@@ -107,17 +108,22 @@ const [cartItems, setCartItems] = useState(() => {
 });
 
 useEffect(() => {
-  try {
-    // Avoid circular structure issues by ensuring cartItems is serializable
-    const serializableCartItems = cartItems.map(item => ({
-      ...item,
-      // Omit any properties that could cause circular references
-    }));
-    localStorage.setItem('cartItems', JSON.stringify(serializableCartItems));
-  } catch (error) {
-    console.error('Error saving cart items to localStorage:', error);
-  }
-}, [cartItems]);
+  const fetchCartItems = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    try {
+      const response = await axios.get(`http://localhost:5000/api/cart/${userId}`);
+      if (response.status === 200) {
+        setCartItems(response.data.cartItems || []); // Ensure cartItems are updated
+      }
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+    }
+  };
+  fetchCartItems();
+}, []);
+
 
 const [isLoggedIn, setIsLoggedIn] = useState(() => {
   try {
@@ -146,7 +152,7 @@ const [isLoggedIn, setIsLoggedIn] = useState(() => {
   // Cart Functions
   const handleAddToCartClick = (product) => {
     setCartItems((prevItems) => {
-      const existingProductIndex = prevItems.findIndex(item => item.id === product.id);
+      const existingProductIndex = prevItems.findIndex((item) => item.id === product.id);
       if (existingProductIndex !== -1) {
         const updatedItems = [...prevItems];
         updatedItems[existingProductIndex].quantity += product.quantity || 1;
@@ -155,7 +161,7 @@ const [isLoggedIn, setIsLoggedIn] = useState(() => {
         return [...prevItems, product];
       }
     });
-  };
+  };  
 
   const handleRemoveFromCart = (index) => {
     setCartItems((prevItems) => prevItems.filter((_, i) => i !== index));

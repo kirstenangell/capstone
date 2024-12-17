@@ -105,12 +105,6 @@ const CartSection = ({ onRemoveFromCart }) => {
   }, [quantities, cartItems]);
   
 
-
-useEffect(() => {
-  updateCartCount();
-}, [quantities, cartItems]);
-
-
   // Update item quantity
   const handleQuantityChange = async (index, action) => {
     const updatedQuantities = [...quantities];

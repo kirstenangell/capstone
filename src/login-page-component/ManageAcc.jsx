@@ -22,6 +22,7 @@ const ManageAcc = () => {
         zipCode: '',
     });
 
+    const [showPrompt, setShowPrompt] = useState(false); // State for the fill-out prompt
     const [activeDropdown, setActiveDropdown] = useState(null); // Single state to manage dropdowns
     const fileInputRef = useRef(null);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -32,58 +33,76 @@ const ManageAcc = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
+// Check if user profile is complete
+const isProfileComplete = (data) => {
+    return (
+        data.firstName &&
+        data.lastName &&
+        data.email &&
+        data.contactNumber &&
+        data.street &&
+        data.barangay &&
+        data.city &&
+        data.region &&
+        data.province &&
+        data.zipCode
+    );
+};
 
-    // Fetch user data when the component loads
-    useEffect(() => {
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-            console.log(`User ID found in localStorage: ${userId}`);
-        } else {
-            console.warn('User ID not found in localStorage. Redirecting to login...');
-            navigate('/login'); // Redirect to login if not found
+// Fetch user data and determine whether to show the prompt
+useEffect(() => {
+    const fetchUserData = async () => {
+        const email = localStorage.getItem('email');
+
+        if (!email) {
+            console.warn('Email is missing. Redirecting to login...');
+            navigate('/login');
+            return;
         }
 
-        const fetchUserData = async () => {
-            const email = localStorage.getItem('email');
-            if (!email) {
-                console.error('Email is missing in localStorage. Redirecting to login...');
-                navigate('/login'); // Redirect to login
-                return;
-            }
+        try {
+            const response = await axios.get(`http://localhost:5000/user-details`, { params: { email } });
+            if (response.status === 200) {
+                const userData = response.data;
+                console.log('Fetched User Data:', userData);
 
-            try {
-                const response = await axios.get(`http://localhost:5000/user-details`, {
-                    params: { email }, // Pass email as query parameter
+                // Update state with fetched data
+                setFormData({
+                    firstName: userData.firstName || '',
+                    lastName: userData.lastName || '',
+                    email: userData.email || '',
+                    contactNumber: userData.contactNumber || '',
+                    street: userData.street || '',
+                    barangay: userData.barangay || '',
+                    city: userData.city || '',
+                    region: userData.region || '',
+                    province: userData.province || '',
+                    zipCode: userData.zipCode || '',
                 });
 
-                if (response.status === 200) {
-                    const userData = response.data;
-                    console.log('User Data:', userData); // Log user data for debugging
-                    setFormData({
-                        firstName: userData.firstName || '',
-                        lastName: userData.lastName || '',
-                        email: userData.email || '',
-                        contactNumber: userData.contactNumber || '',
-                        street: userData.street || '',
-                        barangay: userData.barangay || '',
-                        city: userData.city || '',
-                        region: userData.region || '',
-                        province: userData.province || '',
-                        zipCode: userData.zipCode || '',
-                    });
-                    setInitialFormData(userData); // Store the initial data
-                } else {
-                    console.error('Unexpected response status:', response.status);
-                }
-            } catch (error) {
-                console.error('Error fetching user data:', error.message);
-            }
-        };
+                setInitialFormData(userData);
 
-        fetchUserData(userId);
-        fetchOrderHistory(); 
-    
-    }, [navigate]);
+                // Determine whether to show the prompt
+                const profileComplete = isProfileComplete(userData);
+                console.log('Profile Complete:', profileComplete);
+
+                if (profileComplete) {
+                    setShowPrompt(false); // Profile is complete, no prompt
+                } else {
+                    setShowPrompt(true); // Profile is incomplete, show prompt
+                }
+            } else {
+                console.error('Unexpected response status:', response.status);
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error.message);
+        }
+    };
+
+    fetchUserData();
+    fetchOrderHistory(); 
+}, [navigate]);
+
 
     const fetchOrderHistory = async () => {
         const userId = parseInt(localStorage.getItem('userId'), 10); // Get and parse the user ID
@@ -153,12 +172,12 @@ const ManageAcc = () => {
                 province: formData.province,
                 zipCode: formData.zipCode,
             });
-
+    
             if (response.status === 200) {
                 console.log('User details updated successfully');
                 setInitialFormData(formData);
                 setIsEditing(false);
-
+    
                 // Update localStorage with new data
                 localStorage.setItem('contactNumber', formData.contactNumber);
                 localStorage.setItem('street', formData.street);
@@ -167,13 +186,19 @@ const ManageAcc = () => {
                 localStorage.setItem('region', formData.region);
                 localStorage.setItem('province', formData.province);
                 localStorage.setItem('zipCode', formData.zipCode);
+    
+                // Display a success notification (optional, can use a library like react-toastify)
+                alert("Your details have been saved successfully!");
+    
+                // Redirect to the product page
+                navigate('/products');
             }
         } catch (error) {
             console.error('Error updating user details:', error);
+            alert('Failed to save changes. Please try again.');
         }
     };
-
-
+    
 
     const toggleDropdown = (dropdown) => {
         if (activeDropdown === dropdown) {
@@ -225,6 +250,24 @@ const ManageAcc = () => {
 
     return (
         <div className="min-h-screen flex bg-black text-white px-8">
+             {showPrompt && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg w-full max-w-md p-6 text-black">
+                        <h2 className="text-xl font-semibold mb-4">Complete Your Profile</h2>
+                        <p className="text-sm mb-6">
+                            To ensure a seamless shopping experience, please complete your profile by filling out the missing personal details.
+                        </p>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                className="px-4 py-2 bg-gray-300 rounded-md text-sm"
+                                onClick={() => setShowPrompt(false)}
+                            >
+                                Fill Out Now
+                            </button>
+                            </div>
+                    </div>
+                </div>
+            )}
             <div className="w-1/4 p-6 bg-black">
                 <h2 className="text-xl font-semibold mb-10">Manage Account</h2>
                 <ul className="space-y-4">
