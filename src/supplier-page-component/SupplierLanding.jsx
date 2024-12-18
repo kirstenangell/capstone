@@ -6,9 +6,9 @@ import { IoIosInformationCircle } from 'react-icons/io';
 import { GiStorkDelivery } from 'react-icons/gi';
 import { FaOpencart } from 'react-icons/fa';
 import { SupplierContext } from '../context/SupplierContext'; // Import SupplierContext
-
+import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 const SupplierLanding = () => {
-  const { suppliers, archiveSupplier } = useContext(SupplierContext);
+  const { suppliers } = useContext(SupplierContext);
   const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
@@ -140,6 +140,12 @@ const SupplierLanding = () => {
     setShowModal(true);
   };
 
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [actionType, setActionType] = useState('');
+
+
   // Close modal
   const handleCloseModal = () => {
     setShowModal(false);
@@ -147,25 +153,73 @@ const SupplierLanding = () => {
 
   // Redirect to Add Supplier page when the "Add Supplier" button is clicked
   const handleAddSupplierClick = () => {
-    navigate('/supplier/supplier-information');
+    setActionType('add'); // Set action type to "add"
+    setShowPasswordModal(true); // Open the password modal
   };
+  
 
-  // Archive supplier
-  const handleArchiveSupplier = (supplierToArchive) => {
-    const confirmArchive = window.confirm(`Are you sure you want to archive Supplier #${supplierToArchive.oid}?`);
-    if (confirmArchive) {
-      archiveSupplier(supplierToArchive.id);
-      alert(`Supplier #${supplierToArchive.oid} has been archived.`);
-      setShowModal(false);
+  const handlePasswordSubmit = () => {
+    if (password === '12345') { // Replace with actual password validation logic
+      if (actionType === 'edit') {
+        navigate('/supplier/supplier-information', {
+          state: { supplier: selectedSupplier, isEdit: true },
+        });
+      } else if (actionType === 'archive') {
+        archiveSupplier(selectedSupplier.id);
+        alert(`Supplier #${selectedSupplier.id} has been archived.`);
+      } else if (actionType === 'add') {
+        navigate('/supplier/supplier-information', {
+          state: { isEdit: false }, // Navigate to Add Supplier page
+        });
+      }
+      setShowPasswordModal(false);
+      setPassword(''); // Reset password
+    } else {
+      alert('Incorrect Password');
     }
   };
-
-  // Handle Edit button click
-  const handleEditSupplier = () => {
-    navigate('/supplier/supplier-information', { state: { supplier: selectedSupplier, isEdit: true } });
-    setShowModal(false);
+  
+  const archiveSupplier = async (supplierId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/archive-supplier/${supplierId}`, {
+        method: 'PUT',
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.message || 'Failed to archive supplier');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error archiving supplier:', error);
+      throw error;
+    }
+  };
+  
+  
+  
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPassword('');
   };
 
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
+  // Edit Button Click
+  const handleEditClick = (supplier) => {
+    setSelectedSupplier(supplier);
+    setActionType('edit');
+    setShowPasswordModal(true);
+  };
+
+  // Archive Button Click
+  const handleArchiveClick = (supplier) => {
+    setSelectedSupplier(supplier);
+    setActionType('archive');
+    setShowPasswordModal(true);
+  };
   // Function to handle status button click
   const handleStatusClick = (status) => {
     setActiveStatus(status); // Set the active status
@@ -229,6 +283,44 @@ const SupplierLanding = () => {
     setIsAddressTypeOpen(!isAddressTypeOpen);
   };
 
+  const handleExportClick = () => {
+    if (filteredSuppliers.length === 0) {
+        alert("No suppliers available to export.");
+        return;
+    }
+
+    // Prepare filtered suppliers data for CSV export
+    const csvData = filteredSuppliers.map(supplier => ({
+        SupplierID: `OID-${supplier.id}`,
+        Name: supplier.name || "N/A",
+        Type: supplier.type || "N/A",
+        Status: supplier.status || "N/A",
+        Email: supplier.email || "N/A",
+        Phone: supplier.phone || "N/A",
+        Province: supplier.currentAddress?.province || "N/A",
+        City: supplier.currentAddress?.city || "N/A",
+        Street: supplier.currentAddress?.street || "N/A",
+        ZipCode: supplier.currentAddress?.zipCode || "N/A",
+    }));
+
+    const csvContent = [
+        Object.keys(csvData[0]).join(','), // Header row
+        ...csvData.map(row => Object.values(row).join(',')), // Data rows
+    ].join('\n');
+
+    // Create a Blob for the CSV data and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'suppliers_export.csv'); // File name
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+
 
   return (
     <div className="min-h-screen bg-black text-white py-10">
@@ -248,11 +340,18 @@ const SupplierLanding = () => {
               />
             </div>
             <button
-              onClick={handleAddSupplierClick}
+              onClick={handleExportClick} // Trigger the export functionality
               className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
-            >
-              Add Supplier
-            </button>
+          >
+              Export
+          </button>
+            <button
+            onClick={handleAddSupplierClick} // Open password modal for adding a supplier
+            className="ml-4 px-4 py-2 bg-gradient-to-r from-[#040405] to-[#122127] text-white rounded-lg text-sm"
+          >
+            Add Supplier
+          </button>
+
           </div>
         </div>
 
@@ -548,18 +647,19 @@ const SupplierLanding = () => {
 
               {/* Right Section: Edit and Archive buttons */}
               <div className="space-x-4">
-                <button
-                  onClick={handleEditSupplier}
-                  className="text-sm text-white hover:underline"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleArchiveSupplier(selectedSupplier)}
-                  className="text-sm text-white hover:underline"
-                >
-                  Archive
-                </button>
+              <button
+                onClick={() => handleEditClick(selectedSupplier)}
+                className="text-sm text-white hover:underline"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleArchiveClick(selectedSupplier)}
+                className="text-sm text-white hover:underline"
+              >
+                Archive
+              </button>
+
               </div>
             </div>
             <div className="flex space-x-4 mb-6">
@@ -747,6 +847,53 @@ const SupplierLanding = () => {
               )}
             </div>
 
+          </div>
+        </div>
+      )}
+
+       {/* Password Modal */}
+       {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-[#040405] p-8 rounded-lg shadow-lg max-w-md w-full">
+          <h2 className="text-lg font-bold mb-4 text-center">
+            ACCESS SUPPLIER TO {actionType === 'edit' ? 'EDIT' : actionType === 'archive' ? 'ARCHIVE' : 'ADD'}
+          </h2>
+          <p className="mb-4 text-sm text-center">
+            Enter your password to {actionType} the supplier.
+          </p>
+
+            <label className="block text-xs font-bold mb-2">PASSWORD</label>
+            <div className="relative">
+              <input
+                type={passwordVisible ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                className="w-full p-3 bg-transparent border border-gray-700 rounded-md outline-none text-xs focus:border-blue-500 transition-colors"
+                style={{ background: 'linear-gradient(90deg, #040405, #335C6E)' }}
+              />
+              <button
+                  type="button"
+                  className="absolute right-3 top-3 text-white"
+                  onClick={togglePasswordVisibility}
+                >
+                  {passwordVisible ? <IoIosEyeOff /> : <IoIosEye />}
+                </button>
+            </div>
+            <div className="flex justify-between mt-6">
+              <button
+                className="w-1/2 px-6 py-2 text-sm text-white rounded-lg bg-blue-600 hover:bg-blue-700 transition mr-2"
+                onClick={handlePasswordSubmit}
+              >
+                SUBMIT
+              </button>
+              <button
+                className="w-1/2 px-6 py-2 text-sm text-white rounded-lg bg-gray-600 hover:bg-gray-700 transition"
+                onClick={handleClosePasswordModal}
+              >
+                CANCEL
+              </button>
+            </div>
           </div>
         </div>
       )}

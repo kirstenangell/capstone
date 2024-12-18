@@ -286,84 +286,82 @@ const OrderDetails = () => {
             <div>
               {/* Current Address */}
               <div>
-                <label className="block text-sm font-medium mb-1">Current Address</label>
-                <div className="flex space-x-4">
-                  <div className="w-1/2">
-                    <input
-                      type="text"
-                      name="currentStreet"
-                      value={formData.streetNameeet}
-                      onChange={handleChange}
-                      placeholder="Street Number/Street Name"
-                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  <div className="w-1/2">
-                    <input
-                      type="text"
-                      name="currentBarangay"
-                      value={formData.barangay}
-                      onChange={handleChange}
-                      placeholder="Barangay"
-                      className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
+  <label className="block text-sm font-medium mb-1">Current Address</label>
+  <div className="flex space-x-4">
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="streetName" // Corrected name
+        value={formData.streetName} // Corrected key
+        onChange={handleChange}
+        placeholder="Street Number/Street Name"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+        required
+      />
+    </div>
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="barangay"
+        value={formData.barangay}
+        onChange={handleChange}
+        placeholder="Barangay"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+        required
+      />
+    </div>
+  </div>
 
-              <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentCity"
-                    value={formData.city}
-                    onChange={handleChange}
-                    placeholder="City"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentRegion"
-                    value={formData.region}
-                    onChange={handleChange}
-                    placeholder="Region"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-              </div>
+  <div className="flex space-x-4 mt-4">
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="city"
+        value={formData.city}
+        onChange={handleChange}
+        placeholder="City"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+        required
+      />
+    </div>
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="region"
+        value={formData.region}
+        onChange={handleChange}
+        placeholder="Region"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+        required
+      />
+    </div>
+  </div>
 
-              <div className="flex space-x-4 mt-4">
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentProvince"
-                    value={formData.province}
-                    onChange={handleChange}
-                    placeholder="Province"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div className="w-1/2">
-                  <input
-                    type="text"
-                    name="currentZipCode"
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    placeholder="Zip Code"
-                    className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
+  <div className="flex space-x-4 mt-4">
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="province"
+        value={formData.province}
+        onChange={handleChange}
+        placeholder="Province"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+        required
+      />
+    </div>
+    <div className="w-1/2">
+      <input
+        type="text"
+        name="zipCode"
+        value={formData.zipCode}
+        onChange={handleChange}
+        placeholder="Zip Code"
+        className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+        required
+      />
+    </div>
+  </div>
+  <div className="mt-4">
                 <input
                   type="text"
                   name="currentLandmark"
@@ -373,6 +371,9 @@ const OrderDetails = () => {
                   className="w-full text-sm p-3 bg-black border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
                 />
               </div>
+</div>
+
+              
 
               {/* New Address */}
               <div className="mt-6">

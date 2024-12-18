@@ -182,7 +182,23 @@ app.get('/check-email', async (req, res) => {
   }
 });
 
+// Helper function to send emails
+async function sendEmail(to, subject, htmlContent) {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: to,
+    subject: subject,
+    html: htmlContent
+  };
 
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully to', to);
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    throw error;
+  }
+}
 
 
 
@@ -1822,63 +1838,58 @@ app.post('/api/cart', async (req, res) => {
 });
 
 
-// API to save orders
 app.post("/api/save-order", (req, res) => {
   const { user, order, orderItems } = req.body;
-  // Insert into `orders` table
   const orderQuery = `
     INSERT INTO orders (
-      firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode, 
+      firstName, lastName, email, contactNumber, streetName, barangay, city, region, province, zipCode,
       deliveryOption, courier, paymentOption, pickUpTime, pickUpDate, products, price, status, date
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', CURDATE())
   `;
-  db.query(
-    orderQuery,
-    [
-      user.firstName,
-      user.lastName,
-      user.email,
-      user.contactNumber,
-      order.address.streetName,
-      order.address.barangay,
-      order.address.city,
-      order.address.region,
-      order.address.province,
-      order.address.zipCode,
-      order.deliveryOption,
-      order.courier,
-      order.paymentOption,
-      order.pickUpTime || null,
-      order.pickUpDate || null,
-      JSON.stringify(order.products),
-      order.total,
-    ],
-    (err, orderResult) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Failed to save order" });
-      }
-      const orderId = orderResult.insertId;
-      // Insert into `order_items` table
-      const orderItemsQuery = `
-        INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES ?
-      `;
-      const orderItemsData = orderItems.map((item) => [
-        orderId,
-        item.productId,
-        item.quantity,
-        item.unitPrice,
-      ]);
-      db.query(orderItemsQuery, [orderItemsData], (err) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: "Failed to save order items" });
-        }
-        res.json({ success: true, orderId });
-      });
+  
+  db.query(orderQuery, [
+    user.firstName, user.lastName, user.email, user.contactNumber,
+    order.address.streetName, order.address.barangay, order.address.city,
+    order.address.region, order.address.province, order.address.zipCode,
+    order.deliveryOption, order.courier, order.paymentOption,
+    order.pickUpTime || null, order.pickUpDate || null,
+    JSON.stringify(order.products), order.total
+  ], async (err, orderResult) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Failed to save order" });
     }
-  );
+
+    const orderId = orderResult.insertId;
+    const orderItemsData = orderItems.map(item => [orderId, item.productId, item.quantity, item.unitPrice]);
+    const orderItemsQuery = `INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES ?`;
+
+    db.query(orderItemsQuery, [orderItemsData], async (err) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Failed to save order items" });
+      }
+
+      try {
+        // Prepare the email content
+        const customerEmailContent = `<h1>Order Confirmation</h1><p>Thank you for your order, ${user.firstName} ${user.lastName}!</p><p>Your order ID is: ${orderId}</p>`;
+        const adminEmailContent = `<h1>New Order Received</h1><p>A new order has been received from ${user.email}.</p><p>Order ID: ${orderId}</p>`;
+
+        // Send confirmation email to customer
+        await sendEmail(user.email, "Order Confirmation", customerEmailContent);
+
+        // Send notification email to admin
+        await sendEmail("rhea.ceo.flacko1990@gmail.com", "New Order Notification", adminEmailContent);
+
+        res.json({ success: true, orderId });
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        res.status(500).json({ error: "Order saved, but email sending failed." });
+      }
+    });
+  });
 });
+
 
 app.post('/api/buy-now', async (req, res) => {
   const { user, product, quantity, deliveryDetails, paymentOption } = req.body;
