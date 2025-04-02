@@ -54,9 +54,10 @@ const Login = ({ setIsLoggedIn }) => {
         clearTimeout(timeoutId); // Clear any existing timeout
         const id = setTimeout(() => {
             handleLogout();
-        }, 60000); // 1 minute
+        }, 900000); // 15 minutes (15 * 60 * 1000)
         setTimeoutId(id);
     };
+    
 
     const handleLogout = () => {
         localStorage.clear();

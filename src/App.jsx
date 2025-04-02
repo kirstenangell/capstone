@@ -190,7 +190,6 @@ const [isLoggedIn, setIsLoggedIn] = useState(() => {
     <ProductProvider>
       <Router>
         <div style={{ background: 'black' }}>
-          <Header />
           <Routes>
             {/* Dashboard Route */}
             <Route

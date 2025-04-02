@@ -36,116 +36,64 @@ const AboutUs = () => {
   };
 
   return (
-    <div className="relative w-full h-screen flex items-center justify-between overflow-hidden px-8">
+    <div className="relative w-full min-h-screen overflow-hidden pt-[120px] flex items-center justify-center">
+      
       {/* Background Image */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center z-0"
         style={{
           backgroundImage: `url(${background.image})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          opacity: 0.3, // Low opacity for the background image
+          opacity: 0.3,
         }}
       />
 
-      {/* Text Content */}
-      <div
-        className="relative text-white max-w-lg z-10 flex flex-col justify-center"
-        style={{
-          marginLeft: '2%',
-          marginRight: '2%',
-          height: 'auto',
-          maxHeight: '300px',
-          overflowY: 'auto',
-        }}
-      >
-        <h2 className="text-6xl font-bold mb-10">{background.title}</h2>
-        <p className="mt-4 text-MD leading-relaxed">{background.text}</p>
-      </div>
+      {/* Content */}
+      <div className="relative z-10 flex flex-col xl:flex-row items-center justify-center px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20 max-w-[1440px] w-full space-y-12 xl:space-y-0 xl:space-x-12">
+        {/* Text Content */}
+        <div className="text-white max-w-lg flex flex-col justify-center text-center xl:text-left">
+          <h1 className="font-bold mb-6 text-4xl sm:text-5xl md:text-6xl lg:text-[64px]">
+            {background.title}
+          </h1>
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed">
+            {background.text}
+          </p>
+        </div>
 
-      {/* Boxes */}
-      <div
-        className="relative z-10 flex space-x-6 flex-wrap justify-center md:space-x-4"
-        style={{
-          marginRight: '2%',
-          marginLeft: '1%',
-          alignItems: 'center',
-          height: '450px',
-        }}
-      >
-        {boxes.map((box) => (
-          <div
-            key={box.id}
-            onClick={() => handleBoxClick(box)}
-            className="cursor-pointer relative transition-transform duration-300 ease-in-out"
-            style={{
-              width: '330px', // Smaller image size
-              height: '350px', // Smaller image size
-              backgroundImage: `url(${box.image})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              borderRadius: '25px',
-              opacity: 1,
-              transition: 'height 0.3s ease', // Add transition for height
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.height = '400px'; // Increase the height when hovered
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.height = '350px'; // Revert the height when not hovered
-            }}
-          >
-            {/* Title */}
+        {/* Scrollable Boxes */}
+        <div
+          className="flex space-x-6 overflow-x-auto scrollbar-hide px-2"
+          style={{
+            height: '450px',
+            scrollSnapType: 'x mandatory',
+          }}
+        >
+          {boxes.map((box) => (
             <div
-              className="absolute bottom-4 left-8 text-white text-2xl font-extra-light text-[28px]"
-              style={{ zIndex: 2 }} // Ensure text is in front of the image
+              key={box.id}
+              onClick={() => handleBoxClick(box)}
+              className="cursor-pointer relative transition-all duration-300 ease-in-out shrink-0 snap-start"
+              style={{
+                width: '330px',
+                height: background.title === box.title ? '400px' : '350px',
+                backgroundImage: `url(${box.image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                borderRadius: '25px',
+                opacity: 1,
+              }}
             >
-              {box.title}
+              <div
+                className="absolute bottom-4 left-8 text-white text-base sm:text-lg md:text-xl lg:text-2xl font-extralight"
+                style={{ zIndex: 2 }}
+              >
+                {box.title}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-
-      {/* Responsive Styling */}
-      <style jsx>{`
-        @media (max-width: 1024px) {
-          .text-6xl {
-            font-size: 3.5rem;
-          }
-          .leading-relaxed {
-            font-size: 0.85rem;
-          }
-          .max-w-lg {
-            max-width: 80%;
-          }
-        }
-        @media (max-width: 768px) {
-          .text-6xl {
-            font-size: 3rem;
-          }
-          .leading-relaxed {
-            font-size: 0.8rem;
-          }
-          .max-w-lg {
-            max-width: 90%;
-          }
-          .flex-wrap {
-            flex-wrap: wrap;
-          }
-        }
-        @media (max-width: 480px) {
-          .text-6xl {
-            font-size: 2.5rem;
-          }
-          .leading-relaxed {
-            font-size: 0.75rem;
-          }
-          .relative {
-            width: 200px;
-            height: 250px;
-          }
-        }
-      `}</style>
     </div>
   );
 };

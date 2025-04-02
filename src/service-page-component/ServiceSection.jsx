@@ -17,40 +17,45 @@ const ServiceSection = () => {
   ];
 
   return (
-    <div className="bg-black min-h-screen flex flex-col justify-center items-center gap-4 pb-[100px]">
-      <div className="max-w-screen-xl w-full h-[381px] flex justify-between items-center p-8">
-        <div className="text-white text-[70px] font-semibold">
+    <div className="min-h-screen pt-[120px] pb-[100px] flex flex-col items-center gap-12 bg-black">
+      
+      {/* Header */}
+      <div className="max-w-[1440px] w-full px-6 lg:px-12 flex flex-col xl:flex-row justify-between items-center text-white gap-8">
+        <h1 className="text-[40px] sm:text-[50px] md:text-[60px] lg:text-[70px] font-semibold text-center xl:text-left">
           OUR COMPANY SERVICE
-        </div>
-        <div className="text-white text-[17px] font-light max-w-[700px]">
-        At Flacko Auto Parts and Accessories Trading, we are dedicated to providing high-quality car parts and accessories tailored to meet your needs. Our commitment to exceptional service ensures a seamless experience, from browsing our catalog to receiving your order. Whether you're upgrading your vehicle or maintaining its performance, we are here to support you every step of the way.
-        </div>
+        </h1>
+        <p className="text-[16px] sm:text-[17px] font-light max-w-[700px] text-center xl:text-left leading-relaxed">
+          At Flacko Auto Parts and Accessories Trading, we are dedicated to providing high-quality car parts and accessories tailored to meet your needs. Our commitment to exceptional service ensures a seamless experience, from browsing our catalog to receiving your order. Whether you're upgrading your vehicle or maintaining its performance, we are here to support you every step of the way.
+        </p>
       </div>
 
-      {services.map((service, index) => (
-        <div
-          key={index}
-          className="relative max-w-screen-xl w-full h-[381px] bg-cover bg-center rounded-[10px] overflow-hidden group"
-        >
-          {/* Background Image */}
+      {/* Service Items */}
+      <div className="flex flex-col items-center gap-10 w-full px-6">
+        {services.map((service, index) => (
           <div
-            className="absolute inset-0 bg-cover bg-center transition-all duration-500 group-hover:brightness-50"
-            style={{ backgroundImage: `url(${service.image})` }}
-          />
+            key={index}
+            className="relative max-w-[1440px] w-full h-[381px] bg-cover bg-center rounded-[10px] overflow-hidden group"
+          >
+            {/* Background Image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-all duration-500 group-hover:brightness-50"
+              style={{ backgroundImage: `url(${service.image})` }}
+            />
 
-          {/* Title (Disappears on Hover) */}
-          <div className="absolute bottom-8 left-12 text-white font-poppins text-[45px] font-light transition-opacity duration-500 group-hover:opacity-0">
-            {service.title}
-          </div>
+            {/* Title (Disappears on Hover) */}
+            <div className="absolute bottom-8 left-12 text-white font-poppins text-[45px] font-light transition-opacity duration-500 group-hover:opacity-0">
+              {service.title}
+            </div>
 
-          {/* Description (Visible on Hover) */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-            <div className="text-white font-poppins text-[30px] font-light text-center px-8">
-              {service.description}
+            {/* Description (Visible on Hover) */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <div className="text-white font-poppins text-[30px] font-light text-center px-8">
+                {service.description}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
