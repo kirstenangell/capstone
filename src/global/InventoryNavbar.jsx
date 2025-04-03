@@ -5,10 +5,8 @@ import FlackoLogo from '../assets/FlackoLogo.png';
 
 const InventoryNavbar = ({ cartItemCount }) => {
   return (
-    <nav
-      className="p-4 flex justify-between items-center sticky top-[52px] z-40"
-      style={{ backgroundColor: 'black' }} 
-    >
+    <nav className="p-4 flex justify-between items-center fixed top-0 left-0 w-full z-50 bg-transparent backdrop-blur-sm">
+
       {/* Logo */}
       <NavLink to="/" className="text-white text-2xl font-bold">
         <img src={FlackoLogo} alt="Flacko Logo" style={{ height: '50px' }} />

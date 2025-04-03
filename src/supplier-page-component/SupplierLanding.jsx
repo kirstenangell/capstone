@@ -323,7 +323,7 @@ const SupplierLanding = () => {
 
 
   return (
-    <div className="min-h-screen bg-black text-white py-10">
+    <div className="min-h-screen bg-black text-white pt-[120px] pb-10">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">

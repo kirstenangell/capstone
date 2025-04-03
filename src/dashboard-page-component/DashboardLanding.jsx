@@ -55,7 +55,7 @@ const DashboardLanding = () => {
   }, []);
 
   return (
-    <div className="min-h-screen p-8 bg-black font-poppins">
+    <div className="min-h-screen bg-black text-white pt-[120px] pb-10">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {/* Product Inventory */}
         <div className="bg-gradient-to-t from-[#000000] to-[#62B1D4]/[0.2] text-white rounded-lg p-6 shadow-lg">
