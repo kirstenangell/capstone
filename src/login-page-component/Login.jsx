@@ -85,7 +85,7 @@ const Login = ({ setIsLoggedIn }) => {
     }, []);
 
     return (
-        <div className="min-h-screen flex items-start justify-center bg-black text-white mt-[-50px] pt-[100px] pb-[50px]">
+            <div className="min-h-screen flex items-center justify-center bg-black text-white py-[50px]">
             <div className="w-full max-w-sm space-y-6 p-8 rounded-lg">
                 <h1 className="text-2xl font-medium text-center mb-4">WELCOME BACK!</h1>
 

@@ -123,7 +123,7 @@ const ProductSection = ({ onAddToCart, isLoggedIn }) => {
 
 
   return (
-    <div className="relative min-h-screen bg-black text-white pb-80">
+      <div className="relative min-h-screen bg-black text-white pt-[80px] pb-80">
       {showLoginWarning && !isLoggedIn && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
           <div className="p-6 bg-gradient-to-br from-gray-700 to-gray-900 text-white rounded-md shadow-lg">

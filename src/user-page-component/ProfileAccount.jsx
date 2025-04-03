@@ -160,7 +160,8 @@ const ProfileAccount = () => {
     
 
     return (
-        <div className="min-h-screen flex bg-black text-white px-8">
+        <div className="min-h-screen flex bg-black text-white px-8 pt-[500px]">
+
             <div className="w-1/4 p-6 bg-black">
                 <h2 className="text-xl font-semibold mb-10">Manage Account</h2>
                 <ul className="space-y-4">

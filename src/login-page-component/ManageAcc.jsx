@@ -249,8 +249,8 @@ useEffect(() => {
 
 
     return (
-        <div className="min-h-screen flex bg-black text-white px-8">
-             {showPrompt && (
+            <div className="min-h-screen flex bg-black text-white px-8 pt-[150px]">
+            {showPrompt && (
                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg w-full max-w-md p-6 text-black">
                         <h2 className="text-xl font-semibold mb-4">Complete Your Profile</h2>

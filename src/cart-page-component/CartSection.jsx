@@ -203,8 +203,8 @@ setShowSelectedModal(false);
 
 
 return (
-<div className="min-h-screen flex flex-col items-center bg-black text-white py-10 relative">
-  {showModal && (
+<div className="min-h-screen flex flex-col items-center bg-black text-white pt-[150px] pb-10 relative">
+{showModal && (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
       <div className="bg-black hover:shadow-blue-500/40 text-black p-6 rounded-lg shadow-md max-w-sm">
         <p className="mb-2 text-md font-semibold text-center text-white">

@@ -17,7 +17,7 @@ const ServiceSection = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-[120px] pb-[100px] flex flex-col items-center gap-12 bg-black">
+    <div className="min-h-screen pt-[150px] pb-[100px] flex flex-col items-center gap-12 bg-black">
       
       {/* Header */}
       <div className="max-w-[1440px] w-full px-6 lg:px-12 flex flex-col xl:flex-row justify-between items-center text-white gap-8">
