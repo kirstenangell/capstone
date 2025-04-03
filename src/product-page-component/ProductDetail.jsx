@@ -117,7 +117,7 @@ const ProductDetail = ({ onAddToCart, isLoggedIn, updateCartCount }) => {
 
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 mt-12">
+      <div className="min-h-screen bg-black text-white p-6 pt-[120px]">
       {showLoginWarning && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
           <div className="p-6 bg-gradient-to-br from-[#4B88A3] to-[#000000] text-white rounded-md shadow-lg text-center">
